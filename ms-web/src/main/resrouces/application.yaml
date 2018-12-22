@@ -1,0 +1,6 @@
+spring:
+  messages:
+    basename: i18n.Message
+    encoding: UTF-8
+  jackson:
+    time-zone: GMT+8
