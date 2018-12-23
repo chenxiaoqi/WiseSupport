@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Sign Up</title>
+</head>
+<body>
+<form action="/security/update_user" method="post">
+    <input name="id" type="hidden" th:value="${user.id}">
+    <ul>
+        <li><label for="name">name:</label> <input name="name" id="name" type="text" th:value="${user.name}"></li>
+        <li><label for="password">password:</label> <input name="password" id="password" type="text"
+                                                           th:value="${user.password}"></li>
+        <li>
+            <label for="locale">local:</label>
+            <select name="locale" id="locale">'
+                <option value="zh_CN">Chinese</option>
+                <option value="en_US">English</option>
+            </select>
+        </li>
+        <li><input name="submit" value="Update" type="submit"></li>
+    </ul>
+
+</form>
+</body>
+</html>

@@ -1,0 +1,19 @@
+spring:
+  messages:
+    basename: i18n.Message
+    encoding: UTF-8
+  jackson:
+    time-zone: GMT+8
+  datasource:
+    url: jdbc:h2:tcp://localhost:8043/./ms-web/db/WiseSupport
+    username: sa
+    driver-class-name: org.h2.Driver
+  thymeleaf:
+    cache: false
+  h2:
+    console:
+      enabled: true
+  http:
+    log-request-details: true
+  mvc:
+    locale-resolver: fixed

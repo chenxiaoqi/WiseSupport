@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Welcome Please Sign In</title>
+</head>
+<body>
+<form action="/security/sign_in" method="post">
+    <ul>
+        <li th:text="${errorMessage}" style="color: red;"></li>
+        <li><label for="name">name:</label> <input name="name" id="name" type="text"></li>
+        <li><label for="password">password:</label> <input name="password" id="password" type="password"></li>
+        <li><input name="submit" value="Sign In" type="submit"></li>
+        <li><a href="/security/sign_up">Sign Up</a></li>
+    </ul>
+
+</form>
+</body>
+</html>

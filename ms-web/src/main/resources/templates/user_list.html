@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="#{home.greed}">User List</title>
+</head>
+<body>
+<a href="/security/sign_up">Sign Up</a>|<a href="/security/sign_in">Sign In</a>
+<table border="1">
+    <tr>
+        <th>ID</th>
+        <th>NAME</th>
+        <th>PASSWORD</th>
+        <th>LOCALE</th>
+        <th>OPERATION</th>
+    </tr>
+    <tr th:each="user : ${users}">
+        <td th:text="${user.id}">id</td>
+        <td th:text="${user.name}">name</td>
+        <td th:text="${user.password}">password</td>
+        <td th:text="${user.locale}">locale</td>
+        <td>
+            <a th:href="'/security/delete_user?id='+ ${user.id}">Delete</a>|
+            <a th:href="'/security/update_user?id='+ ${user.id}">Update</a>
+        </td>
+    </tr>
+</table>
+</body>
+</html>
