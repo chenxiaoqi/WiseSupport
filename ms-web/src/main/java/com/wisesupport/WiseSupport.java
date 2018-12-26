@@ -10,7 +10,7 @@ import org.springframework.data.jdbc.repository.config.EnableJdbcRepositories;
  */
 
 @SpringBootApplication(scanBasePackages = "com.wisesupport")
-@ImportResource("/applicationContext.xml")
+@ImportResource("/spring/applicationContext.xml")
 @EnableJdbcRepositories(basePackages = "com.wisesupport")
 public class WiseSupport {
 
