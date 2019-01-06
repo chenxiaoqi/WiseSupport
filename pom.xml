@@ -33,5 +33,6 @@
     </dependencyManagement>
     <modules>
         <module>ms-web</module>
+        <module>code-generator</module>
     </modules>
 </project>
