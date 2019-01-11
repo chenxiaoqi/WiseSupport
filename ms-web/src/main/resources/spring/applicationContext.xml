@@ -30,4 +30,15 @@
         <property name="annotationClass" value="org.apache.ibatis.annotations.Mapper"/>
     </bean>
 
+    <bean class="org.springframework.validation.beanvalidation.MethodValidationPostProcessor"/>
+
+    <bean class="org.springframework.web.servlet.i18n.CookieLocaleResolver">
+        <property name="cookieName" value="lang"/>
+        <property name="cookiePath" value="/"/>
+        <property name="cookieHttpOnly" value="true"/>
+        <property name="cookieSecure" value="false"/>
+    </bean>
+
+    <bean class="com.wisesupport.commons.spring.Jackson2ObjectMapperBuilderCustomizerImpl"/>
+
 </beans>

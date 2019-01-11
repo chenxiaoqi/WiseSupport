@@ -22,17 +22,11 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
-            <dependency>
-                <groupId>org.springframework.data</groupId>
-                <artifactId>spring-data-releasetrain</artifactId>
-                <version>Lovelace-SR3</version>
-                <scope>import</scope>
-                <type>pom</type>
-            </dependency>
         </dependencies>
     </dependencyManagement>
     <modules>
         <module>ms-web</module>
         <module>code-generator</module>
+        <module>ms-commons</module>
     </modules>
 </project>

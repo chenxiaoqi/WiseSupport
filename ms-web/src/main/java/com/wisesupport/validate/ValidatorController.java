@@ -1,7 +1,7 @@
 package com.wisesupport.validate;
 
-import com.wisesupport.security.UserMapper;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.wisesupport.user.UserMapper;
+import lombok.AllArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,9 +18,9 @@ import javax.validation.constraints.Size;
 @RestController
 @RequestMapping("/validate")
 @Validated
+@AllArgsConstructor
 public class ValidatorController {
 
-    @Autowired
     private UserMapper userMapper;
 
     @GetMapping(value = "/binding", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
