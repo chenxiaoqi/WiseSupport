@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.Locale;
+import java.util.Optional;
 
 /**
  * Author chenxiaoqi on 2018/12/23.
@@ -30,21 +31,21 @@ public class UserController {
     }
 
     @GetMapping("/delete_user")
-    public String deleteUser(@RequestParam Long id) {
+    public String deleteUser(@RequestParam Integer id) {
         userMapper.deleteById(id);
         return "redirect:user_list";
     }
 
     @GetMapping("/update_user")
-    public String updateUserPage(@RequestParam Long id, Model model) {
-        User user = userMapper.findById(id).orElseThrow(() -> new IllegalArgumentException(id.toString()));
+    public String updateUserPage(@RequestParam Integer id, Model model) {
+        User user = Optional.of(userMapper.findById(id)).orElseThrow(() -> new IllegalArgumentException(id.toString()));
         model.addAttribute("user", user);
         return "update_user";
     }
 
     @PostMapping("/update_user")
-    public String updateUser(@RequestParam Long id, @RequestParam String account, @RequestParam String password, @RequestParam Locale locale) {
-        User user = userMapper.findById(id).orElseThrow(() -> new IllegalArgumentException(id.toString()));
+    public String updateUser(@RequestParam Integer id, @RequestParam String account, @RequestParam String password, @RequestParam Locale locale) {
+        User user = Optional.of(userMapper.findById(id)).orElseThrow(() -> new IllegalArgumentException(id.toString()));
         user.setAccount(account);
         user.setLocale(locale.toString());
         user.setPassword(password);

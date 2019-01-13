@@ -24,7 +24,7 @@ import java.util.Optional;
 @AllArgsConstructor
 @Slf4j
 @Controller
-@RequestMapping("/user")
+@RequestMapping("/login")
 public class LoginController {
 
     private UserMapper userMapper;
@@ -38,10 +38,10 @@ public class LoginController {
 
     @PostMapping("/sign_in")
     public String signIn(@RequestParam String account, @RequestParam String password, Model model, HttpServletRequest request, HttpServletResponse response) {
-        Optional<User> user = userMapper.findByAccount(account);
+        Optional<User> user = Optional.ofNullable(userMapper.findByAccount(account));
         if (user.isPresent() && user.get().getPassword().equals(password)) {
             localeResolver.setLocale(request, response, StringUtils.parseLocale(user.get().getLocale()));
-            return "redirect:user_list";
+            return "redirect:/user/user_list";
         } else {
             model.addAttribute("errorMessage", "name or password incorrect.");
             return "sign_in";

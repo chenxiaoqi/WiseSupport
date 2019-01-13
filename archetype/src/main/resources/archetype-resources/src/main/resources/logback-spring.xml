@@ -1,4 +1,7 @@
-<?xml version="1.0" encoding="UTF-8"?>
+#set( $symbol_pound = '#' )
+        #set( $symbol_dollar = '$' )
+        #set( $symbol_escape = '\' )
+        <?xml version="1.0" encoding="UTF-8"?>
 <configuration scan="true" scanPeriod="60 seconds" debug="false">
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <!-- encoder 默认配置为PatternLayoutEncoder -->
@@ -11,9 +14,7 @@
         <logger name="org.springframework" level="info"/>
         <logger name="org.springframework.web" level="trace"/>
         <logger name="org.springframework.jdbc" level="trace"/>
-        <logger name="org.springframework.boot.actuate.endpoint.web.servlet.WebMvcEndpointHandlerMapping"
-                level="trace"/>
-        <logger name="com.wisesupport" level="debug"/>
+        <logger name="${package}" level="debug"/>
     </springProfile>
 
     <root level="info">

@@ -17,14 +17,3 @@ spring:
     log-request-details: true
   mvc:
     locale-resolver: fixed
-management:
-  endpoint:
-    shutdown:
-      enabled: true
-    health:
-      show-details: always
-  endpoints:
-    web:
-      exposure:
-        include: ["*"]
-

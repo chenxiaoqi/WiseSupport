@@ -5,10 +5,11 @@
     <title>Sign Up</title>
 </head>
 <body>
-<form action="/security/update_user" method="post">
+<form action="/user/update_user" method="post">
     <input name="id" type="hidden" th:value="${user.id}">
     <ul>
-        <li><label for="name">name:</label> <input name="name" id="name" type="text" th:value="${user.name}"></li>
+        <li><label for="account">name:</label> <input name="account" id="account" type="text"
+                                                      th:value="${user.account}"></li>
         <li><label for="password">password:</label> <input name="password" id="password" type="text"
                                                            th:value="${user.password}"></li>
         <li>

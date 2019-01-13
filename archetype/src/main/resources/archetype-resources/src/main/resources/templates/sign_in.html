@@ -1,3 +1,6 @@
+#set( $symbol_pound = '#' )
+#set( $symbol_dollar = '$' )
+#set( $symbol_escape = '\' )
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
@@ -5,14 +8,15 @@
     <title>Welcome Please Sign In</title>
 </head>
 <body>
-<form action="/login/sign_in" method="post">
+<form action="/security/sign_in" method="post">
     <ul>
-        <li th:text="${errorMessage}" style="color: red;"></li>
-        <li><label for="account">name:</label> <input name="account" id="account" type="text"></li>
+        <li th:text="${symbol_dollar}{errorMessage}" style="color: red;"></li>
+        <li><label for="name">name:</label> <input name="name" id="name" type="text"></li>
         <li><label for="password">password:</label> <input name="password" id="password" type="password"></li>
         <li><input name="submit" value="Sign In" type="submit"></li>
-        <li><a href="/login/sign_up">Sign Up</a></li>
+        <li><a href="/security/sign_up">Sign Up</a></li>
     </ul>
+
 </form>
 </body>
 </html>
