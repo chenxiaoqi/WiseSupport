@@ -30,7 +30,7 @@ public class Person {
 
     @Min(1)
     @Max(150)
-    @ApiModelProperty(value = "年龄")
+    @ApiModelProperty(value = "年龄",example = "39")
     private int age;
 
 
