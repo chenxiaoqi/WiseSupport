@@ -41,4 +41,22 @@
 
     <bean class="com.wisesupport.commons.spring.Jackson2ObjectMapperBuilderCustomizerImpl"/>
 
+    <!--todo-->
+    <!--<bean class="org.springframework.web.servlet.handler.SimpleUrlHandlerMapping">-->
+    <!--<property name="urlMap">-->
+    <!--<map>-->
+    <!--<entry key="/static/**">-->
+    <!--<bean class="org.springframework.web.servlet.resource.ResourceHttpRequestHandler">-->
+    <!--<property name="locations">-->
+    <!--<list>-->
+    <!--<value>classpath:/META-INF/resources/</value>-->
+    <!--<value>classpath:/public</value>-->
+    <!--</list>-->
+    <!--</property>-->
+    <!--</bean>-->
+    <!--</entry>-->
+    <!--</map>-->
+    <!--</property>-->
+    <!--</bean>-->
+
 </beans>

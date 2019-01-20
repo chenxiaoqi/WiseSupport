@@ -66,8 +66,8 @@ public class Swagger2Configuration {
                 .securitySchemes(asList(
                         new OAuth(
                                 "ms_web_auth",
-                                asList(new AuthorizationScope("write", "modify pets in your account"),
-                                        new AuthorizationScope("read", "read your pets")),
+                                asList(new AuthorizationScope("write", "modify in your account"),
+                                        new AuthorizationScope("read", "read")),
                                 Collections.singletonList(new ImplicitGrant(new LoginEndpoint("http://www.webo.com/login"), "tokenName"))
                         ),
                         new ApiKey("Authorization", "Authorization", "header"),

@@ -17,6 +17,10 @@ spring:
     log-request-details: true
   mvc:
     locale-resolver: fixed
+  resources:
+    add-mappings: true
+
+
 management:
   endpoint:
     shutdown:
@@ -30,3 +34,4 @@ management:
 
 swagger:
   enabled: true
+
