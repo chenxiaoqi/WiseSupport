@@ -1,4 +1,4 @@
-package com.wisesupport.mybatis;
+package com.wisesupport.cg.mybatis;
 
 import org.mybatis.generator.api.IntrospectedColumn;
 import org.mybatis.generator.api.IntrospectedTable;

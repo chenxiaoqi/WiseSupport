@@ -14,7 +14,7 @@
             <property name="targetPackage" value="src/test/resources"/>
             <property name="targetProject" value="./"/>
         </plugin>
-        <plugin type="com.wisesupport.mybatis.ValidationXmlPlugin"/>
+        <plugin type="com.wisesupport.cg.mybatis.ValidationXmlPlugin"/>
 
         <commentGenerator>
             <property name="suppressDate" value="true"/>
