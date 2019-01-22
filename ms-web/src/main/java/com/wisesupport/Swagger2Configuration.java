@@ -1,20 +1,13 @@
 package com.wisesupport;
 
-import com.fasterxml.jackson.databind.Module;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.smile.SmileFactory;
-import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
-import com.google.common.base.Predicates;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.MediaType;
-import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.http.converter.json.AbstractJackson2HttpMessageConverter;
 import springfox.bean.validators.configuration.BeanValidatorPluginsConfiguration;
 import springfox.documentation.builders.ApiInfoBuilder;
 import springfox.documentation.builders.ParameterBuilder;
+import springfox.documentation.builders.RequestHandlerSelectors;
 import springfox.documentation.schema.ModelRef;
 import springfox.documentation.service.*;
 import springfox.documentation.spi.DocumentationType;
@@ -26,7 +19,6 @@ import java.util.Collections;
 import java.util.List;
 
 import static java.util.Arrays.asList;
-import static springfox.documentation.builders.PathSelectors.ant;
 
 /**
  * Author chenxiaoqi on 2019-01-18.
@@ -36,18 +28,19 @@ import static springfox.documentation.builders.PathSelectors.ant;
 @Import(BeanValidatorPluginsConfiguration.class)
 @ConditionalOnProperty(prefix = "swagger", name = "enabled", havingValue = "true")
 public class Swagger2Configuration {
-    @Bean
-    public Module jacksonAfterBurnerModule() {
-        return new AfterburnerModule();
-    }
 
-    @Bean
-    public HttpMessageConverter httpSmileJackson2MessageConverter() {
-        return new AbstractJackson2HttpMessageConverter(
-                new ObjectMapper(new SmileFactory()).registerModule(new AfterburnerModule()),
-                new MediaType("application", "x-jackson-smile")) {
-        };
-    }
+//    @Bean
+//    public Module jacksonAfterBurnerModule() {
+//        return new AfterburnerModule();
+//    }
+//
+//    @Bean
+//    public HttpMessageConverter httpSmileJackson2MessageConverter() {
+//        return new AbstractJackson2HttpMessageConverter(
+//                new ObjectMapper(new SmileFactory()).registerModule(new AfterburnerModule()),
+//                new MediaType("application", "x-jackson-smile")) {
+//        };
+//    }
 
     @Bean
     public Docket restApi() {
@@ -75,13 +68,14 @@ public class Swagger2Configuration {
 
                 ))
                 .select()
-                .paths(
-                        Predicates.and(
-                                ant("/**"),
-                                Predicates.not(ant("/error")),
-                                Predicates.not(ant("/actuator/**"))
-                        )
-                )
+                .apis(RequestHandlerSelectors.basePackage("com.wisesupport"))
+//                .paths(
+//                        Predicates.and(
+//                                ant("/**"),
+//                                Predicates.not(ant("/error")),
+//                                Predicates.not(ant("/actuator/**"))
+//                        )
+//                )
                 .build();
     }
 
