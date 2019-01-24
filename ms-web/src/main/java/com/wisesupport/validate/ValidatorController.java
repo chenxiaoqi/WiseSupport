@@ -4,6 +4,7 @@ import com.wisesupport.user.UserMapper;
 import io.swagger.annotations.*;
 import lombok.AllArgsConstructor;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,13 +15,14 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
 /**
- * Author chenxiaoqi on 2018/12/22.
- */
+ *  * Author chenxiaoqi on 2018/12/22.
+ *   */
 @RestController
 @RequestMapping("/validate")
 @Validated
 @AllArgsConstructor
 @Api(tags = "验证", description = "验证DEMO")
+@Secured("ROLE_USER")
 public class ValidatorController {
 
     private UserMapper userMapper;
@@ -44,3 +46,4 @@ public class ValidatorController {
 
 
 }
+

@@ -3,6 +3,7 @@ package com.wisesupport;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.WebSecurityConfigurer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
@@ -14,15 +15,16 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 
 /**
- *  * <一句话功能简述>
- *   * <功能详细描述>
- *    *
- *     * @author c00286900
- *      * @version [版本号, 2019/1/23]
- *       * @see [相关类/方法]
- *        * @since [产品/模块版本]
- *         */
+ *  *  * <一句话功能简述>
+ *   *   * <功能详细描述>
+ *    *    *
+ *     *     * @author c00286900
+ *      *      * @version [版本号, 2019/1/23]
+ *       *       * @see [相关类/方法]
+ *        *        * @since [产品/模块版本]
+ *         *         */
 @Configuration
+@EnableGlobalMethodSecurity(securedEnabled = true)
 public class SpringSecurityConfiguration
 {
     @Bean
@@ -55,9 +57,9 @@ public class SpringSecurityConfiguration
         {
             http
                     .authorizeRequests()
-                    .antMatchers("/statics/**","/swagger-resources/**")
+                    .antMatchers("/favicon.ico","/statics/**","/swagger-resources/**")
                     .permitAll()
-                    .anyRequest()
+                    .antMatchers("/user/**")
                     .authenticated()
                     .and()
                     .formLogin()
@@ -77,4 +79,5 @@ public class SpringSecurityConfiguration
         return new WiseSupportSecurityConfigurer();
     }
 }
+
 

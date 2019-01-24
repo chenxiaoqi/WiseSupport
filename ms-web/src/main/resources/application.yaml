@@ -17,6 +17,7 @@ spring:
     log-request-details: true
   mvc:
     locale-resolver: fixed
+    static-path-pattern: /statics/**
   resources:
     add-mappings: true
 
