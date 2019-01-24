@@ -35,3 +35,8 @@ management:
 swagger:
   enabled: true
 
+springfox:
+  documentation:
+    swagger:
+      v2:
+        path: /swagger-resources/v2/api-docs
