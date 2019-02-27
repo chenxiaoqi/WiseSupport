@@ -18,6 +18,7 @@ spring:
   mvc:
     locale-resolver: fixed
     static-path-pattern: /statics/**
+    throw-exception-if-no-handler-found: true
   resources:
     add-mappings: true
 
