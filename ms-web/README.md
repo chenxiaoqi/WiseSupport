@@ -1,6 +1,6 @@
 http://localhost:8080/h2-console/
-http://localhost:8080/swagger-ui.html
-http://localhost:8080/v2/api-docs
+http://localhost:8080/statics/swagger-ui.html ** baseUrl = http://127.0.0.1:8080
+http://localhost:8080/swagger-resources/v2/api-docs
 
 
 0 = {WebAsyncManagerIntegrationFilter@8555} 

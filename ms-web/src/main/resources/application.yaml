@@ -5,7 +5,7 @@ spring:
   jackson:
     time-zone: GMT+8
   datasource:
-    url: jdbc:h2:tcp://localhost:8043/./db/WiseSupport
+    url: ENC(jdbc:h2:tcp://localhost:8043/./db/WiseSupport)
     username: sa
     driver-class-name: org.h2.Driver
   thymeleaf:
@@ -42,3 +42,5 @@ springfox:
     swagger:
       v2:
         path: /swagger-resources/v2/api-docs
+server:
+  port: 8080
