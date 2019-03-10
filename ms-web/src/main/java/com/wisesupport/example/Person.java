@@ -1,4 +1,4 @@
-package com.wisesupport.validate;
+package com.wisesupport.example;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -32,7 +32,6 @@ public class Person {
     @Max(150)
     @ApiModelProperty(value = "年龄",example = "39")
     private int age;
-
 
     private Date birthDate;
 }

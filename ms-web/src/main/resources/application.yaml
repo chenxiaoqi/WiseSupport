@@ -21,7 +21,19 @@ spring:
     throw-exception-if-no-handler-found: true
   resources:
     add-mappings: true
-
+  quartz:
+    job-store-type: jdbc
+    jdbc:
+      initialize-schema: never
+  task:
+    execution:
+      pool:
+        core-size: 1
+        max-size: 2
+        queue-capacity: 1
+    scheduling:
+      pool:
+        size: 1
 
 management:
   endpoint:
