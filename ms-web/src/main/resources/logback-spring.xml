@@ -9,12 +9,12 @@
 
     <springProfile name="!production">
         <logger name="org.springframework" level="info"/>
+        <logger name="org.springframework.security" level="debug"/>
         <logger name="org.springframework.web" level="trace"/>
         <logger name="org.springframework.jdbc" level="trace"/>
-        <logger name="org.springframework.boot.actuate.endpoint.web.servlet.WebMvcEndpointHandlerMapping"
-                level="trace"/>
-        <logger name="com.wisesupport" level="debug"/>
-        <logger name="org.quartz" level="debug"/>
+        <logger name="org.springframework.boot.actuate.endpoint.web.servlet.WebMvcEndpointHandlerMapping" level="trace"/>
+        <logger name="com.wisesupport" level="trace"/>
+        <logger name="org.quartz" level="info"/>
     </springProfile>
 
     <root level="info">

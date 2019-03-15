@@ -1,5 +1,6 @@
 package com.wisesupport.example;
 
+import io.micrometer.core.annotation.Timed;
 import io.swagger.annotations.*;
 import lombok.AllArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -42,6 +43,7 @@ public class ValidatorController {
     }
 
     @GetMapping("date")
+    @Timed("validate.date")
     public Date date(@DateTimeFormat(pattern = "yyyy/MM/dd HH:mm:ss") Date date) {
         return date;
     }

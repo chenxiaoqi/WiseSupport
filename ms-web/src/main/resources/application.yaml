@@ -15,6 +15,10 @@ spring:
       enabled: true
   http:
     log-request-details: true
+  session:
+    store-type: jdbc
+    jdbc:
+      initialize-schema: never
   mvc:
     locale-resolver: fixed
     static-path-pattern: /statics/**
@@ -34,7 +38,8 @@ spring:
     scheduling:
       pool:
         size: 1
-
+  cache:
+    type: simple
 management:
   endpoint:
     shutdown:

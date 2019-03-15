@@ -15,21 +15,20 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 
 /**
- *  *  * <一句话功能简述>
- *   *   * <功能详细描述>
- *    *    *
- *     *     * @author c00286900
- *      *      * @version [版本号, 2019/1/23]
- *       *       * @see [相关类/方法]
- *        *        * @since [产品/模块版本]
- *         *         */
+ *  * *  * <一句话功能简述>
+ *   * *   * <功能详细描述>
+ *    * *    *
+ *     * *     * @author c00286900
+ *      * *      * @version [版本号, 2019/1/23]
+ *       * *       * @see [相关类/方法]
+ *        * *        * @since [产品/模块版本]
+ *         * *
+ *          */
 @Configuration
 @EnableGlobalMethodSecurity(securedEnabled = true)
-public class SpringSecurityConfiguration
-{
+public class SpringSecurityConfiguration {
     @Bean
-    public UserDetailsService userDetailsService()
-    {
+    public UserDetailsService userDetailsService() {
         InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
         PasswordEncoder passwordEncoder = PasswordEncoderFactories.createDelegatingPasswordEncoder();
         manager.createUser(
@@ -50,34 +49,34 @@ public class SpringSecurityConfiguration
     }
 
     @Order(99)
-    private static class WiseSupportSecurityConfigurer extends WebSecurityConfigurerAdapter
-    {
+    private static class WiseSupportSecurityConfigurer extends WebSecurityConfigurerAdapter {
         @Override
-        protected void configure(HttpSecurity http) throws Exception
-        {
+        protected void configure(HttpSecurity http) throws Exception {
             http
                     .authorizeRequests()
-                    .antMatchers("/favicon.ico","/statics/**","/swagger-resources/**")
+                    .antMatchers("/favicon.ico", "/statics/**", "/swagger-resources/**")
                     .permitAll()
                     .antMatchers("/user/**")
                     .authenticated()
+                    .and()
+                    .csrf()
+                    .ignoringAntMatchers("/**")
                     .and()
                     .formLogin()
             ;
         }
 
         @Override
-        public void configure(WebSecurity web)
-        {
+        public void configure(WebSecurity web) {
 
         }
     }
 
     @Bean
-    public WebSecurityConfigurer<WebSecurity> webSecurityConfigurerAdapter()
-    {
+    public WebSecurityConfigurer<WebSecurity> webSecurityConfigurerAdapter() {
         return new WiseSupportSecurityConfigurer();
     }
 }
+
 
 
