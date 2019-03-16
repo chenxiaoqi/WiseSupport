@@ -26,10 +26,6 @@
 
     <bean class="com.wisesupport.commons.spring.Jackson2ObjectMapperBuilderCustomizerImpl"/>
 
-    <bean class="com.wisesupport.task.SampleJob" abstract="true">
-        <property name="userMapper" ref="userMapper"/>
-    </bean>
-
     <bean id="sampleJob" class="org.springframework.scheduling.quartz.JobDetailFactoryBean">
         <property name="jobClass" value="com.wisesupport.task.SampleJob"/>
         <property name="durability" value="true"/>
