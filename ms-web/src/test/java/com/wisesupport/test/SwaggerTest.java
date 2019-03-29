@@ -16,6 +16,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 import javax.sql.DataSource;
+
 import java.io.BufferedWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -33,7 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebAppConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
-@AutoConfigureRestDocs(outputDir = "build/asciidoc/snippets")
+@AutoConfigureRestDocs(outputDir = "../code-generator/target/asciidoc/snippets")
 @SpringBootTest(classes = {WiseSupport.class})
 @AutoConfigureMockMvc
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -48,9 +49,9 @@ public class SwaggerTest {
     @Test
     public void addANewPetToTheStore() throws Exception {
         System.out.println(dataSource);
-        this.mockMvc.perform(get("/user/user_list")
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE))
-                .andDo(document("show_user_list", preprocessResponse(prettyPrint())))
+        this.mockMvc.perform(get("/validate/aop")
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE).param("name","cxq"))
+                .andDo(document("aopUsingGET", preprocessResponse(prettyPrint())))
                 .andExpect(status().isOk());
     }
 

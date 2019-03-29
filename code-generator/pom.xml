@@ -13,12 +13,6 @@
 
     <properties>
         <swagger2markup.version>1.2.0</swagger2markup.version>
-        <asciidoctor.input.directory>${project.basedir}/src/docs/asciidoc</asciidoctor.input.directory>
-        <swagger.snippetOutput.dir>${project.build.directory}/asciidoc/snippets</swagger.snippetOutput.dir>
-        <generated.asciidoc.directory>${project.build.directory}/asciidoc/generated</generated.asciidoc.directory>
-        <asciidoctor.html.output.directory>${project.build.directory}/asciidoc/html</asciidoctor.html.output.directory>
-        <asciidoctor.pdf.output.directory>${project.build.directory}/asciidoc/pdf</asciidoctor.pdf.output.directory>
-        <swagger.input>http://localhost:8080/swagger-resources/v2/api-docs</swagger.input>
     </properties>
 
     <dependencies>
@@ -88,20 +82,21 @@
                         <artifactId>swagger2markup-spring-restdocs-ext</artifactId>
                         <version>${swagger2markup.version}</version>
                     </dependency>
+                    <dependency>
+                        <groupId>org.slf4j</groupId>
+                        <artifactId>slf4j-simple</artifactId>
+                        <version>1.7.9</version>
+                    </dependency>
                 </dependencies>
                 <configuration>
-                    <swaggerInput>${swagger.input}</swaggerInput>
-                    <outputDir>${generated.asciidoc.directory}</outputDir>
+                    <swaggerInput>http://localhost:8080/swagger-resources/v2/api-docs</swaggerInput>
+                    <outputDir>${project.build.directory}/asciidoc/generated</outputDir>
                     <config>
-                        <swagger2markup.markupLanguage>ASCIIDOC</swagger2markup.markupLanguage>
+                        <swaMarkupLanguagegger2markup.markupLanguage>ASCIIDOC</swaMarkupLanguagegger2markup.markupLanguage>
                         <swagger2markup.outputLanguage>ZH</swagger2markup.outputLanguage>
                         <swagger2markup.pathsGroupedBy>TAGS</swagger2markup.pathsGroupedBy>
                         <swagger2markup.generatedExamplesEnabled>true</swagger2markup.generatedExamplesEnabled>
-                        <swagger2markup.extensions.dynamicOverview.contentPath>${project.basedir}/src/docs/asciidoc/extensions/overview</swagger2markup.extensions.dynamicOverview.contentPath>
-                        <swagger2markup.extensions.dynamicDefinitions.contentPath>${project.basedir}/src/docs/asciidoc/extensions/definitions</swagger2markup.extensions.dynamicDefinitions.contentPath>
-                        <swagger2markup.extensions.dynamicPaths.contentPath>${project.basedir}/src/docs/asciidoc/extensions/paths</swagger2markup.extensions.dynamicPaths.contentPath>
-                        <swagger2markup.extensions.dynamicSecurity.contentPath>${project.basedir}src/docs/asciidoc/extensions/security/</swagger2markup.extensions.dynamicSecurity.contentPath>
-                        <swagger2markup.extensions.springRestDocs.snippetBaseUri>${swagger.snippetOutput.dir}</swagger2markup.extensions.springRestDocs.snippetBaseUri>
+                        <swagger2markup.extensions.springRestDocs.snippetBaseUri>${project.build.directory}/asciidoc/snippets</swagger2markup.extensions.springRestDocs.snippetBaseUri>
                         <swagger2markup.extensions.springRestDocs.defaultSnippets>true</swagger2markup.extensions.springRestDocs.defaultSnippets>
                     </config>
                 </configuration>
@@ -133,21 +128,17 @@
                 </dependencies>
                 <!-- Configure generic document generation settings -->
                 <configuration>
-                    <sourceDirectory>${asciidoctor.input.directory}</sourceDirectory>
+                    <sourceDirectory>${project.basedir}/src/docs/asciidoc</sourceDirectory>
                     <sourceDocumentName>index.adoc</sourceDocumentName>
                     <attributes>
                         <doctype>book</doctype>
                         <toc>left</toc>
                         <toclevels>3</toclevels>
-                        <numbered></numbered>
-                        <hardbreaks></hardbreaks>
-                        <sectlinks></sectlinks>
-                        <sectanchors></sectanchors>
-                        <generated>${generated.asciidoc.directory}</generated>
+                        <generated>${project.build.directory}/asciidoc/generated</generated>
                     </attributes>
                 </configuration>
                 <!-- Since each execution can only handle one backend, run
-                     separate executions for each desired output type -->
+                                          separate executions for each desired output type -->
                 <executions>
                     <execution>
                         <id>output-html</id>
@@ -157,43 +148,7 @@
                         </goals>
                         <configuration>
                             <backend>html5</backend>
-                            <outputDirectory>${asciidoctor.html.output.directory}</outputDirectory>
-                        </configuration>
-                    </execution>
-
-                    <execution>
-                        <id>output-pdf</id>
-                        <phase>test</phase>
-                        <goals>
-                            <goal>process-asciidoc</goal>
-                        </goals>
-                        <configuration>
-                            <backend>pdf</backend>
-                            <outputDirectory>${asciidoctor.pdf.output.directory}</outputDirectory>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <artifactId>maven-resources-plugin</artifactId>
-                <version>3.1.0</version>
-                <executions>
-                    <execution>
-                        <id>copy-resources</id>
-                        <phase>prepare-package</phase>
-                        <goals>
-                            <goal>copy-resources</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>${project.build.outputDirectory}/static/docs</outputDirectory>
-                            <resources>
-                                <resource>
-                                    <directory>${asciidoctor.html.output.directory}</directory>
-                                </resource>
-                                <resource>
-                                    <directory>${asciidoctor.pdf.output.directory}</directory>
-                                </resource>
-                            </resources>
+                            <outputDirectory>${project.build.directory}/asciidoc</outputDirectory>
                         </configuration>
                     </execution>
                 </executions>

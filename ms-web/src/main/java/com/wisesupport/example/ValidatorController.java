@@ -8,6 +8,7 @@ import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
@@ -16,37 +17,38 @@ import javax.validation.constraints.Size;
 import java.util.Date;
 
 /**
- * * Author chenxiaoqi on 2018/12/22.
- */
+ *  * * Author chenxiaoqi on 2018/12/22.
+ *   */
 @RestController
 @RequestMapping("/validate")
 @Validated
 @AllArgsConstructor
-@Api(tags = "验证", description = "验证DEMO")
+@Api(tags = "Java Validator Demo", description = "demonstrate how to use java validator")
 public class ValidatorController {
 
-    @GetMapping(value = "/binding", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @GetMapping(value = "/binding")
     @ApiOperation(value = "operation-binding", notes = "notes-参数绑定到对象")
     public Person binding(@Valid Person person) {
         return person;
     }
 
-    @GetMapping(value = "/aop", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @GetMapping(value = "/aop")
     @ApiImplicitParams(
             {
                     @ApiImplicitParam(name = "name", defaultValue = "cxq")
             }
     )
     @ApiResponse(code = 200, message = "ok")
-    public String aop(@NotNull @Size(min = 1, max = 10) String name) {
+    public String aop(@NotNull @Size(min = 1, max = 10) @RequestParam String name) {
         return name;
     }
 
-    @GetMapping("date")
+    @GetMapping(value = "/date")
     @Timed("validate.date")
-    public Date date(@DateTimeFormat(pattern = "yyyy/MM/dd HH:mm:ss") Date date) {
+    public Date date(@DateTimeFormat(pattern = "yyyy/MM/dd HH:mm:ss") @RequestParam Date date) {
         return date;
     }
 
 }
+
 
