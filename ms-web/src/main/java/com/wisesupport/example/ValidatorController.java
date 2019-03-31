@@ -4,12 +4,8 @@ import io.micrometer.core.annotation.Timed;
 import io.swagger.annotations.*;
 import lombok.AllArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -41,6 +37,12 @@ public class ValidatorController {
     @ApiResponse(code = 200, message = "ok")
     public String aop(@NotNull @Size(min = 1, max = 10) @RequestParam String name) {
         return name;
+    }
+
+
+    @PostMapping("/json")
+    public Person json(@RequestBody Person person) {
+        return person;
     }
 
     @GetMapping(value = "/date")
