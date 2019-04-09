@@ -51,6 +51,12 @@ public class ValidatorController {
         return person;
     }
 
+
+    @PostMapping("/json")
+    public Person json(@RequestBody Person person) {
+        return person;
+    }
+
     @GetMapping(value = "/date")
     @Timed("validate.date")
     public Date date(@DateTimeFormat(pattern = "yyyy/MM/dd HH:mm:ss") @RequestParam Date date) {
