@@ -4,20 +4,18 @@ import io.micrometer.core.annotation.Timed;
 import io.swagger.annotations.*;
 import lombok.AllArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Digits;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.util.Date;
+import java.util.List;
 
 /**
- *  * * Author chenxiaoqi on 2018/12/22.
+ *  * * * Author chenxiaoqi on 2018/12/22.
  *   */
 @RestController
 @RequestMapping("/validate")
@@ -39,8 +37,18 @@ public class ValidatorController {
             }
     )
     @ApiResponse(code = 200, message = "ok")
-    public String aop(@NotNull @Size(min = 1, max = 10) @RequestParam String name) {
-        return name;
+    public String aop(@NotNull @Size(min = 1, max = 10) @RequestParam String name,
+                      @NotNull @Size(max = 2) @RequestParam List<@Digits(integer = 2, fraction = 0) String> habits,
+                      @NotNull @Id @RequestParam String id
+
+    ) {
+        return name + habits + id;
+    }
+
+
+    @PostMapping("/json")
+    public Person json(@RequestBody Person person) {
+        return person;
     }
 
     @GetMapping(value = "/date")
@@ -50,5 +58,6 @@ public class ValidatorController {
     }
 
 }
+
 
 
