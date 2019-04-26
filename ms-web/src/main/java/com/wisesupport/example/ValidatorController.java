@@ -8,14 +8,13 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import javax.validation.constraints.Digits;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 import java.util.Date;
-import java.util.List;
 
 /**
- *  * * * Author chenxiaoqi on 2018/12/22.
+ *  * * Author chenxiaoqi on 2018/12/22.
  *   */
 @RestController
 @RequestMapping("/validate")
@@ -37,18 +36,8 @@ public class ValidatorController {
             }
     )
     @ApiResponse(code = 200, message = "ok")
-    public String aop(@NotNull @Size(min = 1, max = 10) @RequestParam String name,
-                      @NotNull @Size(max = 2) @RequestParam List<@Digits(integer = 2, fraction = 0) String> habits,
-                      @NotNull @Id @RequestParam String id
-
-    ) {
-        return name + habits + id;
-    }
-
-
-    @PostMapping("/json")
-    public Person json(@RequestBody Person person) {
-        return person;
+    public String aop(@NotNull @Size(min = 1, max = 10) @Pattern(regexp = "\\p{Alnum}*") @RequestParam String name) {
+        return name;
     }
 
 
@@ -64,6 +53,5 @@ public class ValidatorController {
     }
 
 }
-
 
 

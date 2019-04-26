@@ -10,6 +10,7 @@ import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.context.request.async.CallableProcessingInterceptor;
 import org.springframework.web.servlet.config.annotation.AsyncSupportConfigurer;
@@ -20,13 +21,13 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
- *  * Author chenxiaoqi on 2018/12/22.
- *   */
+ * * Author chenxiaoqi on 2018/12/22.
+ */
 
 @SpringBootApplication(scanBasePackages = "com.wisesupport")
 @ImportResource("classpath:/spring/applicationContext.xml")
 @EnableCaching
-public class WiseSupport implements WebMvcConfigurer {
+public class WiseSupport {
 
     private static final Logger LOG = LoggerFactory.getLogger(WiseSupport.class);
 
@@ -45,15 +46,21 @@ public class WiseSupport implements WebMvcConfigurer {
         };
     }
 
-    @Override
-    public void configureAsyncSupport(AsyncSupportConfigurer configurer) {
-        configurer.registerCallableInterceptors(new CallableProcessingInterceptor() {
+    @Bean
+    public WebMvcConfigurer webMvcConfigurer(AsyncTaskExecutor taskExecutor) {
+        return new WebMvcConfigurer() {
             @Override
-            public <T> void afterCompletion(NativeWebRequest request, Callable<T> task) {
-                LOG.debug("async call completed.");
+            public void configureAsyncSupport(AsyncSupportConfigurer configurer) {
+                configurer.registerCallableInterceptors(new CallableProcessingInterceptor() {
+                    @Override
+                    public <T> void afterCompletion(NativeWebRequest request, Callable<T> task) {
+                        LOG.debug("async call completed.");
+                    }
+                }).setTaskExecutor(taskExecutor);
             }
-        });
+        };
     }
+
 
     public static void main(String[] args) {
         ClassPathXmlApplicationContext parent = new ClassPathXmlApplicationContext("/spring/applicationContext-parent.xml");

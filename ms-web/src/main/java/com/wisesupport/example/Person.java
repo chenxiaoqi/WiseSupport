@@ -1,15 +1,12 @@
 package com.wisesupport.example;
 
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import javax.validation.constraints.*;
 import java.sql.Date;
 
 /**
@@ -22,6 +19,7 @@ import java.sql.Date;
 public class Person {
 
     @Size(min = 1, max = 20)
+    @Pattern(regexp = "[a-zA-Z0-9]*")
     @NotNull
     private String name;
 
@@ -34,4 +32,5 @@ public class Person {
     private int age;
 
     private Date birthDate;
+
 }
