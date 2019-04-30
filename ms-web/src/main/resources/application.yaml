@@ -29,6 +29,12 @@ spring:
     job-store-type: jdbc
     jdbc:
       initialize-schema: never
+    properties:
+      org:
+        quartz:
+          jobStore:
+            clusterCheckinInterval: 20000
+            isClustered: true
   task:
     execution:
       pool:

@@ -37,16 +37,6 @@ public class WiseSupport {
     }
 
     @Bean
-    public SchedulerFactoryBeanCustomizer schedulerFactoryBeanCustomizer() {
-        return (schedulerFactoryBean) -> {
-            Properties properties = new Properties();
-            properties.setProperty("org.quartz.jobStore.isClustered", "true");
-            properties.setProperty("org.quartz.jobStore.clusterCheckinInterval", "20000");
-            schedulerFactoryBean.setQuartzProperties(properties);
-        };
-    }
-
-    @Bean
     public WebMvcConfigurer webMvcConfigurer(AsyncTaskExecutor taskExecutor) {
         return new WebMvcConfigurer() {
             @Override
