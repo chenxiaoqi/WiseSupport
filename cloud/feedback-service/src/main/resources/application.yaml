@@ -1,0 +1,4 @@
+feedback:
+  secret: '{cipher}4ef03780cdcbe389b33084b5dea08386cd83030288d1650713d087b7f675a8e2'
+foo:
+  bar: foo-bar-feedback

@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: feedback-manager
+server:
+  port: 8083
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8081/eureka/
