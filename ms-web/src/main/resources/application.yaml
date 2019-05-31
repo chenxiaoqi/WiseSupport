@@ -46,6 +46,11 @@ spring:
         size: 1
   cache:
     type: simple
+  batch:
+    initialize-schema: never
+    job:
+      enabled: true
+      names: importJob
 management:
   endpoint:
     shutdown:
