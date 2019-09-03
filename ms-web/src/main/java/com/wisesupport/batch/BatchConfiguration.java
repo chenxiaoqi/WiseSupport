@@ -13,7 +13,6 @@ import org.springframework.batch.core.listener.JobExecutionListenerSupport;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
-import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -77,9 +76,7 @@ public class BatchConfiguration {
     public Step stepTwo() {
         return stepBuilderFactory
                 .get("stepTow")
-                .tasklet((contribution, chunkContext) -> {
-                    log.info("tasklet run");
-                    return RepeatStatus.FINISHED;})
+                .tasklet(new SimpleTasklet())
                 .build();
     }
 
