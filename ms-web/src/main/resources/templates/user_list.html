@@ -6,7 +6,7 @@
 </head>
 <body>
 <a href="/login/sign_up">Sign Up</a>|<a href="/login/sign_in">Sign In</a>
-<div>hello:<span th:text="${user.getAccount()}"></span> </div>
+<div>hello:<span th:text="${user.name}"></span> </div>
 <table border="1">
     <tr>
         <th>ID</th>
@@ -15,14 +15,14 @@
         <th>LOCALE</th>
         <th>OPERATION</th>
     </tr>
-    <tr th:each="user : ${users}">
-        <td th:text="${user.id}">id</td>
-        <td th:text="${user.account}">name</td>
-        <td th:text="${user.password}">password</td>
-        <td th:text="${user.locale}">locale</td>
+    <tr th:each="u : ${users}">
+        <td th:text="${u.id}">id</td>
+        <td th:text="${u.account}">name</td>
+        <td th:text="${u.password}">password</td>
+        <td th:text="${u.locale}">locale</td>
         <td>
-            <a th:href="'/user/delete_user?id='+ ${user.id}">Delete</a>|
-            <a th:href="'/user/update_user?id='+ ${user.id}">Update</a>
+            <a th:href="'/user/delete_user?id='+ ${u.id}">Delete</a>|
+            <a th:href="'/user/update_user?id='+ ${u.id}">Update</a>
         </td>
     </tr>
 </table>

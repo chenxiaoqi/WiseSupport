@@ -71,4 +71,16 @@ springfox:
       v2:
         path: /swagger-resources/v2/api-docs
 server:
-  port: 8080
+  port: 8443
+  ssl:
+    enabled: true
+    key-password: 123456
+    key-store-password: 123456
+    key-store: classpath:ssl/tomcat.keystore
+    key-alias: lazyman
+    key-store-type: jks
+    client-auth: need
+    trust-store: classpath:ssl/tomcat.keystore
+    trust-store-password: 123456
+    trust-store-type: jks
+    trust-store-provider: SUN
