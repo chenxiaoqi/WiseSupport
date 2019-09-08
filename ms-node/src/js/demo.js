@@ -7,7 +7,6 @@ const expect = chai.expect;
     const map = new Map([['a', 1]]);
     expect(map.get('a')).to.equal(1);
     map.forEach(function (key, value) {
-        console.log(`${key}=${value}`);
     });
 })();
 
@@ -32,6 +31,14 @@ const expect = chai.expect;
     expect(arr).deep.equal([0, 1, 4, 5, 6]);
     expect(removed).deep.equal([2, 3]);
 
+    arr.splice(1, 0, 9, 10);
+    expect(arr).deep.equal([0, 9, 10, 1, 4, 5, 6]);
+})();
 
+(function () {
+    let obj = JSON.parse('{"a":1,"b":3}', (k, v) => {
+        return v
+    });
+    expect(obj).deep.equal({a: 1, b: 3})
 })();
 

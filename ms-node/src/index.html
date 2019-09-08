@@ -5,6 +5,23 @@
     <title>ms-node</title>
 </head>
 <body>
+<div id="app">
+    <app-nav></app-nav>
 
+    <app-view>
+        <app-sidebar></app-sidebar>
+        <app-content>{{message}} - {{say}} - {{sayHello()}}</app-content>
+    </app-view>
+
+    <compoment v-bind:is="ss"></compoment>
+</div>
+
+<script type="text/x-template" id="app-nave">
+
+    <router-link to="/foo">Go to Foo</router-link>
+    <router-link to="/bar">Go to Bar</router-link>
+
+</script>
 </body>
+
 </html>
