@@ -1,5 +1,6 @@
-const htmlWebpackPlugin = require('html-webpack-plugin');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 const path = require('path');
+const CopyWebpackPlugin = require("copy-webpack-plugin");
 module.exports = {
     mode: "development",
     entry: "./src/index.js",
@@ -40,7 +41,7 @@ module.exports = {
         extensions: ['*', '.js', '.vue', '.json']
     },
     plugins: [
-        new htmlWebpackPlugin({
+        new HtmlWebpackPlugin({
             template: "./src/index.html",
             inject: 'body'
         })
