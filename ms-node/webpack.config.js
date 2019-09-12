@@ -47,7 +47,7 @@ module.exports = {
         })
     ],
     devServer: {
-        host: '127.0.0.1', //fix error [WDS] Disconnected!
+        host: '0.0.0.0', //fix error [WDS] Disconnected!
         proxy: {
             '/mock/*': {
                 target: 'http://localhost:9090',

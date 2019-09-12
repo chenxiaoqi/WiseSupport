@@ -3,6 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <title>ms-node</title>
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+        }
+        html {
+            font-family: sans-serif;
+        }
+        body,html{
+            margin: 0;
+            height: 100%;
+        }
+	#app {
+	    display:flex;
+            flex-direction: column;
+            height:100%;
+	}
+        #app div {
+
+            border: 1px solid aquamarine;
+            margin: 10px;
+        }
+
+    </style>
 </head>
 <body>
 <template id="v-app-nave">
@@ -14,11 +38,15 @@
     </div>
 </template>
 <div id="app">
-    <app-view>
-        <app-sidebar></app-sidebar>
-        <app-content>{{message}} - {{say}} - {{sayHello()}}</app-content>
-    </app-view>
-    <app-nav></app-nav>
+    <div style="flex: 5">
+
+
+    </div>
+
+    <div style="flex: 1">
+
+
+    </div>
 </div>
 </body>
 </html>
