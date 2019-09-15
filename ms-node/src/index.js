@@ -6,9 +6,8 @@ require("./css/index.css");
 Vue.use(VueRouter);
 
 Vue.component("app-nav",{
-    el:"#v-app-nave"
+    template:"#v-app-nave"
 });
-
 
 const app = new Vue({
     created: function () {

@@ -4,28 +4,25 @@
     <meta charset="UTF-8">
     <title>ms-node</title>
     <style>
-        *{
+        * {
             margin: 0;
             padding: 0;
         }
+
         html {
             font-family: sans-serif;
         }
-        body,html{
+
+        body, html {
             margin: 0;
             height: 100%;
         }
-	#app {
-	    display:flex;
-            flex-direction: column;
-            height:100%;
-	}
         #app div {
-
             border: 1px solid aquamarine;
-            margin: 10px;
         }
-
+        .menu{
+            flex: 1;
+        }
     </style>
 </head>
 <body>
@@ -37,15 +34,15 @@
         </ul>
     </div>
 </template>
-<div id="app">
-    <div style="flex: 5">
-
+<div id="app" style="display: flex;height: 100%;flex-direction: column">
+    <div style="flex: 9">
 
     </div>
 
-    <div style="flex: 1">
-
-
+    <div style="flex: 1;display:flex;">
+        <button class="menu">订场</button>
+        <button class="menu">我的</button>
+        <button class="menu">公告</button>
     </div>
 </div>
 </body>
