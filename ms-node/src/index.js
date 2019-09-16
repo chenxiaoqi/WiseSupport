@@ -1,12 +1,15 @@
 import Vue from 'vue'
-import VueRouter from "vue-router";
+import VueRouter from 'vue-router';
 
-require("./css/index.css");
+require('bootstrap/dist/css/bootstrap-reboot.css');
+require('bootstrap/dist/css/bootstrap.css');
+require('bootstrap/dist/css/bootstrap-grid.css');
+require('./css/index.css');
 
 Vue.use(VueRouter);
 
-Vue.component("app-nav",{
-    template:"#v-app-nave"
+Vue.component('app-nav',{
+    template:'#v-app-nave'
 });
 
 const app = new Vue({
