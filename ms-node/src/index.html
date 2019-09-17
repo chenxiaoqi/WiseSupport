@@ -6,25 +6,20 @@
     <style>
 
     </style>
-    <link rel="stylesheet" href="css/index.css">
 </head>
 <body>
-<template id="v-app-nave">
-    <div style="position: fixed;bottom: 0">
-        <ul>
-            <li>订场</li>
-
-        </ul>
-    </div>
+<template id="tpl-booking">
+    <div>comp-booking</div>
+    
 </template>
 <div id="app" style="display: flex;height: 100%;flex-direction: column">
     <div style="flex: 9">
-
+        <router-view></router-view>
     </div>
     <div style="flex: 1;display:flex;">
-        <button class="menu">订场</button>
-        <button class="menu">我的</button>
-        <button class="menu">公告</button>
+        <div class="menu"><router-link  to="/booking">订场</router-link></div>
+        <div class="menu"><router-link  to="/my">我的</router-link></div>
+        <div class="menu"><router-link  to="/announcement">公告</router-link></div>  
     </div>
 </div>
 </body>

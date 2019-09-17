@@ -8,11 +8,33 @@ require('./css/index.css');
 
 Vue.use(VueRouter);
 
-Vue.component('app-nav',{
-    template:'#v-app-nave'
+let router = new VueRouter({
+    routes: [
+        {
+            path:'/booking',
+            component: {
+                template:'#tpl-booking'
+            }
+        },
+        {
+            path:'/my',
+            component:{
+                template:'<div>my</div>'
+            }
+        },
+        {
+            path:'/announcement',
+            component:{
+                template:'<div>annoucement</div>'
+            }
+        }
+    ],
+    mode:'hash'
 });
 
+
 const app = new Vue({
+    router,
     created: function () {
 
     },
