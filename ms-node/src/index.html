@@ -6,20 +6,34 @@
     <style>
 
     </style>
+    <script  type="text/x-template" id="tpl-booking">
+        <div class="booking-container">
+            <div>ffff</div>
+            <div>xx</div>
+            <div style="display: flex;flex-direction: column">
+                <table style="height: 100%;width: 100%;">
+                    <tr v-for="index in 16" style="background-color: blue">
+                        <td style="border-bottom:1px solid blue;padding-right:5px;text-align:right;background-color:white;vertical-align: middle">{{index+6}}:00</td>
+                    </tr>
+                </table>
+            </div>
+            <div style="height: 100%;display: flex;flex-direction: column">
+                <div v-for="column in table" style="flex: 1">
+                   xx
+                </div>
+            </div>
+        </div>
+    </script>
 </head>
 <body>
-<template id="tpl-booking">
-    <div>comp-booking</div>
-    
-</template>
 <div id="app" style="display: flex;height: 100%;flex-direction: column">
-    <div style="flex: 9">
+    <div style="flex: 15;">
         <router-view></router-view>
     </div>
     <div style="flex: 1;display:flex;">
         <div class="menu"><router-link  to="/booking">订场</router-link></div>
         <div class="menu"><router-link  to="/my">我的</router-link></div>
-        <div class="menu"><router-link  to="/announcement">公告</router-link></div>  
+        <div class="menu"><router-link  to="/announcement">公告</router-link></div>
     </div>
 </div>
 </body>

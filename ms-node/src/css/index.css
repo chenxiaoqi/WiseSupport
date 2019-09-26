@@ -1,8 +1,8 @@
-html,body{
+html, body {
     height: 100%;
 }
 #app {
-    border: 1px solid forestgreen;
+    /*border: 1px solid forestgreen;*/
 }
 .menu {
     flex: 1;
@@ -13,4 +13,17 @@ html,body{
     display: flex;
     align-items: center;
     justify-content: space-around;
+}
+
+.booking-container {
+    height: 100%;
+    display: grid;
+    grid-gap: 1px;
+    background-color: blue;
+    grid-template-columns: 60px auto;
+    grid-template-rows: 40px auto;
+}
+
+.booking-container > div {
+    background-color: white;
 }

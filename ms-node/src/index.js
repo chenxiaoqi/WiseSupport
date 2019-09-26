@@ -11,25 +11,37 @@ Vue.use(VueRouter);
 let router = new VueRouter({
     routes: [
         {
-            path:'/booking',
+            path: '/booking',
             component: {
-                template:'#tpl-booking'
+                template: '#tpl-booking',
+                data() {
+                    let table = [];
+                    for (let i = 0; i < 7; i++) {
+                        let row = [];
+                        for (let j = 0; j < 16; j++) {
+                            let cell = {hour:j+7,day:i};
+                            row.push(cell);
+                        }
+                        table.push(row);
+                    }
+                    return {table}
+                }
             }
         },
         {
-            path:'/my',
-            component:{
-                template:'<div>my</div>'
+            path: '/my',
+            component: {
+                template: '<div>my</div>'
             }
         },
         {
-            path:'/announcement',
-            component:{
-                template:'<div>annoucement</div>'
+            path: '/announcement',
+            component: {
+                template: '<div>annoucement</div>'
             }
         }
     ],
-    mode:'hash'
+    mode: 'hash'
 });
 
 
