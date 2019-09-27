@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Modules Example</title>
+    <script type="module" src="main.js"></script>
+</head>
+<body>
+<button id="dynamic">click</button>
+</body>
+<script>
+    let btn = document.querySelector('#dynamic');
+    btn.addEventListener('click',()=>{
+        import('./modules/dynamic.js').then((Module)=>{
+            Module.dynamic();
+        });
+    });
+</script>
+</html>
