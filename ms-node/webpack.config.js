@@ -49,7 +49,7 @@ module.exports = {
     devServer: {
         host: '0.0.0.0', //fix error [WDS] Disconnected!
         proxy: {
-            '/mock/*': {
+            '/booking/*': {
                 target: 'http://localhost:9090',
                 secure: false
             }
