@@ -1,10 +1,11 @@
-grammar Expr;
+grammar Calc;
 
 prog : stat +;
 
 stat : expr NEWLINE                     #printExpr
      | ID '=' expr NEWLINE              #assign
      | NEWLINE                          #blank
+     | 'clear' NEWLINE                  #clear
      ;
 expr : expr op=('*'|'/') expr           #MulDiv
      | expr op=('-'|'+') expr           #AddSub
