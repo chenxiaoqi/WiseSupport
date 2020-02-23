@@ -12,8 +12,6 @@ public class SerializeWithIterator extends Base {
     @Test
     public void test() {
         System.out.println(deserialize(serialize(f)));
-        System.out.println(deserialize("[]"));
-        System.out.println(serialize(null));
     }
 
     // Encodes a tree to a single string.

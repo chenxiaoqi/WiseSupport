@@ -84,7 +84,9 @@ public class IterateTraversal extends Base {
         return result;
     }
 
-    private List<TreeNode> inOrderIterator(TreeNode node) {
+
+
+    public List<TreeNode> inOrderIterator(TreeNode node) {
         List<TreeNode> result = new ArrayList<>();
         LinkedList<TreeNode> stack = new LinkedList<>();
         TreeNode root = node;

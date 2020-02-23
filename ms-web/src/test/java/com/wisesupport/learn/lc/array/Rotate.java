@@ -1,10 +1,11 @@
-package com.wisesupport.learn.lc;
+package com.wisesupport.learn.lc.array;
 
+import com.wisesupport.learn.lc.Base;
 import org.junit.Test;
 
 import java.util.Arrays;
 
-public class RotateArray extends Base {
+public class Rotate extends Base {
 
     @Test
     public void testRotate() {
