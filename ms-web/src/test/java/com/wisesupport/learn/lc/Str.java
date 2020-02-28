@@ -4,9 +4,7 @@ import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.EmptyStackException;
-import java.util.Stack;
-import java.util.StringTokenizer;
+import java.util.*;
 
 public class Str {
 
@@ -18,6 +16,38 @@ public class Str {
         Assert.assertThat(isValid("{[[(())]]}"), Matchers.is(true));
         Assert.assertThat(isValid("{[[(()]]}"), Matchers.is(false));
         System.out.println(multiply("123", "2"));
+        System.out.println(permute(new int[]{1, 2, 3}));
+    }
+
+
+    public void backtrack(int n,
+                          ArrayList<Integer> nums,
+                          List<List<Integer>> output,
+                          int first) {
+        // if all integers are used up
+        if (first == n)
+            output.add(new ArrayList<>(nums));
+        for (int i = first; i < n; i++) {
+            // place i-th integer first
+            // in the current permutation
+            Collections.swap(nums, first, i);
+            // use next integers to complete the permutations
+            backtrack(n, nums, output, first + 1);
+            // backtrack
+            Collections.swap(nums, first, i);
+        }
+    }
+
+    public List<List<Integer>> permute(int[] nums) {
+        List<List<Integer>> output = new LinkedList<>();
+
+        ArrayList<Integer> row = new ArrayList<>();
+        for (int num : nums) {
+            row.add(num);
+        }
+        int n = nums.length;
+        backtrack(n, row, output, 0);
+        return output;
     }
 
     public String reverseWords(String s) {
@@ -25,7 +55,7 @@ public class Str {
             return s;
         }
         StringBuilder builder = new StringBuilder();
-        for (StringTokenizer stringTokenizer = new StringTokenizer(s," "); stringTokenizer.hasMoreTokens(); ) {
+        for (StringTokenizer stringTokenizer = new StringTokenizer(s, " "); stringTokenizer.hasMoreTokens(); ) {
             String nextToken = stringTokenizer.nextToken();
             for (int i = nextToken.length() - 1; i >= 0; i--) {
                 builder.append(nextToken.charAt(i));
