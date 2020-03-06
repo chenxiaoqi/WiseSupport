@@ -15,16 +15,6 @@ import org.junit.Test;
  */
 public class CommonLangTest {
 
-    /**
-     *
-     * @param param1 param1 desc
-     * @return String
-     */
-    public String method(String param1) {
-        return param1;
-    }
-
-
     @Test
     public void diffBuilder(){
         TestBean t1 = new TestBean();

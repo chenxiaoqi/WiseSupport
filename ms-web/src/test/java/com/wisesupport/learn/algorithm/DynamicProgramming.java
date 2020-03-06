@@ -1,5 +1,7 @@
 package com.wisesupport.learn.algorithm;
 
+import org.hamcrest.Matchers;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -12,32 +14,76 @@ public class DynamicProgramming {
     public void test() {
         System.out.println(mostValuable(5));
         System.out.println(mostValuable(7));
+        Assert.assertThat(commonSubString("fish", "finish"), Matchers.is("ish"));
+        Assert.assertThat(commonSubString("abc", "dbe"), Matchers.is("b"));
+        Assert.assertThat(commonSubString("abc", "def"), Matchers.nullValue());
+        Assert.assertThat(commonSubString("12345", "12312345666"), Matchers.is("12345"));
+
+
     }
 
-    private Cell mostValuable(int weight) {
-        List<Good> goods = create();
-        Cell[][] cells = new Cell[goods.size() + 1][weight + 1];
-        for (int i = 0; i <= goods.size(); i++) {
-            for (int j = 0; j <= weight; j++) {
-                cells[i][j] = new Cell();
-            }
-        }
-        for (int i = 1; i <= goods.size(); i++) {
-            Good good = goods.get(i - 1);
-            for (int j = 1; j <= weight; j++) {
-                if (good.getWeight() > j) {
-                    cells[i][j].add(cells[i - 1][j].getGoods());
-                } else {
-                    if (good.getPrice() + cells[i - 1][j - good.getWeight()].getValue() > cells[i - 1][j].getValue()) {
-                        cells[i][j].add(good);
-                        cells[i][j].add(cells[i - 1][j - good.getWeight()].getGoods());
+    public String commonSubString(String str1, String str2) {
+        int[][] grids = new int[str1.length()][str2.length()];
+        int maxCount = 0;
+        int hc = 0;
+        for (int i = 0; i < str1.length(); i++) {
+            for (int j = 0; j < str2.length(); j++) {
+                if (str1.charAt(i) == str2.charAt(j)) {
+                    if (i == 0 || j == 0) {
+                        grids[i][j] = 1;
                     } else {
-                        cells[i][j].add(cells[i - 1][j].getGoods());
+                        grids[i][j] = grids[i - 1][j - 1] + 1;
+                    }
+                    if (maxCount < grids[i][j]) {
+                        maxCount = grids[i][j];
+                        hc = i;
                     }
                 }
             }
         }
-        return cells[goods.size()][weight];
+
+        if (hc != 0) {
+            return str1.substring(hc - maxCount + 1, hc + 1);
+        } else {
+            return null;
+        }
+    }
+
+    private Cell mostValuable(int weight) {
+        List<Good> goods = create();
+        Cell[][] cells = new Cell[goods.size()][weight];
+        for (int i = 0; i < goods.size(); i++) {
+            Good good = goods.get(i);
+            for (int j = 0; j < weight; j++) {
+                cells[i][j] = new Cell();
+                int price = 0;
+                int remainWeight = j + 1 - good.getWeight();
+                if (remainWeight >= 0) {
+                    price = good.getPrice();
+                }
+                if (j != 0 && i != 0 && remainWeight > 0) {
+                    remainWeight = j + 1 - good.getWeight();
+                    if (remainWeight > 0) {
+                        price = price + cells[i - 1][remainWeight - 1].getPrice();
+                    }
+                }
+
+                Cell pre = null;
+                if (i != 0) {
+                    pre = cells[i - 1][j];
+                }
+
+                if (pre == null || pre.getPrice() < price) {
+                    cells[i][j].add(good);
+                    if (remainWeight > 0 && j != 0 && i != 0) {
+                        cells[i][j].add(cells[i - 1][remainWeight - 1].getGoods());
+                    }
+                } else {
+                    cells[i][j].add(pre.getGoods());
+                }
+            }
+        }
+        return cells[goods.size() - 1][weight - 1];
     }
 
     private List<Good> create() {
@@ -45,17 +91,20 @@ public class DynamicProgramming {
                 new Good("Guitar", 1500, 1),
                 new Good("Laptop", 2000, 3),
                 new Good("Sound", 3000, 4),
-                new Good("iPhone", 2000, 1)
+                new Good("iPhone", 2000, 2),
+                new Good("Diamond", 4000, 3)
         );
     }
 
     private static class Cell {
         private List<Good> goods = new ArrayList<>();
-        private int value;
+        private int price;
+        private int weight;
 
         public void add(Good good) {
             goods.add(good);
-            value = value + good.getPrice();
+            price = price + good.getPrice();
+            weight = weight + good.getWeight();
         }
 
         public void add(List<Good> goods) {
@@ -68,13 +117,13 @@ public class DynamicProgramming {
             return goods;
         }
 
-        public int getValue() {
-            return value;
+        public int getPrice() {
+            return price;
         }
 
         @Override
         public String toString() {
-            return goods + " => " + value;
+            return goods + " => " + price + ' ' + weight;
         }
     }
 

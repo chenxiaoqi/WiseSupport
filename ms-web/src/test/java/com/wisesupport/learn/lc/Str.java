@@ -16,38 +16,6 @@ public class Str {
         Assert.assertThat(isValid("{[[(())]]}"), Matchers.is(true));
         Assert.assertThat(isValid("{[[(()]]}"), Matchers.is(false));
         System.out.println(multiply("123", "2"));
-        System.out.println(permute(new int[]{1, 2, 3}));
-    }
-
-
-    public void backtrack(int n,
-                          ArrayList<Integer> nums,
-                          List<List<Integer>> output,
-                          int first) {
-        // if all integers are used up
-        if (first == n)
-            output.add(new ArrayList<>(nums));
-        for (int i = first; i < n; i++) {
-            // place i-th integer first
-            // in the current permutation
-            Collections.swap(nums, first, i);
-            // use next integers to complete the permutations
-            backtrack(n, nums, output, first + 1);
-            // backtrack
-            Collections.swap(nums, first, i);
-        }
-    }
-
-    public List<List<Integer>> permute(int[] nums) {
-        List<List<Integer>> output = new LinkedList<>();
-
-        ArrayList<Integer> row = new ArrayList<>();
-        for (int num : nums) {
-            row.add(num);
-        }
-        int n = nums.length;
-        backtrack(n, row, output, 0);
-        return output;
     }
 
     public String reverseWords(String s) {
