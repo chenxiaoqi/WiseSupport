@@ -36,9 +36,6 @@
         </dependencies>
     </dependencyManagement>
     <modules>
-        <module>ms-web</module>
-        <module>code-generator</module>
-        <module>ms-commons</module>
     </modules>
 
     <build>
