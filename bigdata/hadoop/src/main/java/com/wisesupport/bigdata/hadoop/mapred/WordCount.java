@@ -28,7 +28,9 @@ public class WordCount {
             while (itr.hasMoreTokens()) {
                 word.set(itr.nextToken());
                 context.write(word, one);
+                context.getCounter("word count group", "tokens").increment(1);
             }
+            context.setStatus("looks good!");
         }
     }
 
@@ -48,7 +50,8 @@ public class WordCount {
         }
     }
 
-    public static void main(String[] args) throws Exception {
+    public void run(String[] args) throws IOException, ClassNotFoundException, InterruptedException {
+
         Configuration conf = new Configuration();
         String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
         if (otherArgs.length < 2) {
@@ -56,17 +59,24 @@ public class WordCount {
             System.exit(2);
         }
         Job job = Job.getInstance(conf, "word count");
-        job.setJarByClass(WordCount.class);
         job.setMapperClass(TokenizerMapper.class);
         job.setCombinerClass(IntSumReducer.class);
         job.setReducerClass(IntSumReducer.class);
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(IntWritable.class);
+        config(job);
         for (int i = 0; i < otherArgs.length - 1; ++i) {
             FileInputFormat.addInputPath(job, new Path(otherArgs[i]));
         }
         FileOutputFormat.setOutputPath(job,
                 new Path(otherArgs[otherArgs.length - 1]));
         System.exit(job.waitForCompletion(true) ? 0 : 1);
+    }
+
+    protected void config(Job job) {
+
+    }
+    public static void main(String[] args) throws Exception {
+        new WordCount().run(args);
     }
 }
