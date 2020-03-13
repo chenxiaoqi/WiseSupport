@@ -1,0 +1,6 @@
+cxq 100
+hrr 66
+shawn 89
+apollo 44
+cz 66
+ljx 100

@@ -1,5 +1,6 @@
 package com.wisesupport.bigdata.hadoop.mapred;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.StringTokenizer;
 
@@ -70,7 +71,7 @@ public class WordCount {
         }
         FileOutputFormat.setOutputPath(job,
                 new Path(otherArgs[otherArgs.length - 1]));
-        System.exit(job.waitForCompletion(true) ? 0 : 1);
+        job.waitForCompletion(true);
     }
 
     protected void config(Job job) {

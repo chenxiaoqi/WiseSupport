@@ -29,7 +29,7 @@ public class TestWordCount {
     @Before
     public void before() throws IOException {
         if (!FS.delete(new Path("output"), true)) {
-            throw new IllegalStateException();
+            System.out.println("delete output failed.");
         }
     }
 
