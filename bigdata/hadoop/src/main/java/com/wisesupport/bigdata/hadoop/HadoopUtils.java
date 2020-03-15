@@ -1,6 +1,7 @@
 package com.wisesupport.bigdata.hadoop;
 
 import com.wisesupport.bigdata.hadoop.ncdc.NcdcRecordParser;
+import com.wisesupport.bigdata.hadoop.ncdc.NcdcStationMetadata;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.Path;
@@ -10,6 +11,7 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 
+import java.io.File;
 import java.io.IOException;
 
 public class HadoopUtils extends Configured implements Tool {
@@ -32,12 +34,15 @@ public class HadoopUtils extends Configured implements Tool {
 //        printSequenceFile("input/ncdc/all-seq/part-m-00001");
 //        printSequenceFile("output-hashsort/part-r-00000");
 //        printSequenceFile("output-hashsort/part-r-00018");
-        printSequenceFile("output-totalsort/part-r-00000");
-        printSequenceFile("output-totalsort/part-r-00029");
+//        printSequenceFile("output-totalsort/part-r-00000");
+//        printSequenceFile("output-totalsort/part-r-00029");
         return 0;
     }
 
     public static void main(String[] args) throws Exception {
+        NcdcStationMetadata metadata = new NcdcStationMetadata();
+        metadata.initialize(new File("input/station/stations-fixed-width.txt"));
+        System.out.println(metadata.getStationIdToNameMap());
         System.exit(ToolRunner.run(new HadoopUtils(), args));
     }
 }
