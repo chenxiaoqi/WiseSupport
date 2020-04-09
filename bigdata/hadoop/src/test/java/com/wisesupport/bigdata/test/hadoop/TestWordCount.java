@@ -1,4 +1,4 @@
-package com.wisesupport.bigdata.hadoop.test;
+package com.wisesupport.bigdata.test.hadoop;
 
 import com.wisesupport.bigdata.hadoop.mapred.WordCount;
 import org.apache.hadoop.conf.Configuration;
