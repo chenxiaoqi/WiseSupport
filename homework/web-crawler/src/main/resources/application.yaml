@@ -1,0 +1,22 @@
+spring:
+  messages:
+    basename: i18n.Message
+    encoding: UTF-8
+  jackson:
+    time-zone: GMT+8
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://192.168.1.20:3306/test?serverTimezone=UTC
+    username: chenxiaoqi
+    password: chenxiaoqi
+  task:
+    execution:
+      pool:
+        core-size: 1
+        max-size: 2
+        queue-capacity: 1
+    scheduling:
+      pool:
+        size: 1
+  cache:
+    type: simple
