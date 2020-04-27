@@ -1,6 +1,7 @@
 package com.lazyman.homework.webcrawler;
 
 import org.apache.http.client.HttpClient;
+import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.springframework.context.annotation.Bean;
@@ -22,6 +23,7 @@ public class SpringConfiguration {
                 .loadTrustMaterial(null, (x509Certificates, s) -> true).build();
         return HttpClientBuilder.create()
                 .setSSLContext(context)
+                .setDefaultCookieStore(new BasicCookieStore())
                 .build();
     }
 
