@@ -68,7 +68,7 @@ public class Crawler {
         this.httpClient = httpClient;
     }
 
-    @Scheduled(fixedDelay = 24 * 60 * 60 * 1000)
+//    @Scheduled(fixedDelay = 24 * 60 * 60 * 1000)
     public void run() throws IOException, InterruptedException {
 
         ReqContext context = init();

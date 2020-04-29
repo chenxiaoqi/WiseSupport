@@ -1,13 +1,17 @@
 package com.lazyman.homework.webcrawler;
 
+import org.apache.http.*;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.BasicCookieStore;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.protocol.HttpContext;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import javax.net.ssl.SSLContext;
+import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -15,8 +19,8 @@ import java.security.NoSuchAlgorithmException;
 @Configuration
 public class SpringConfiguration {
 
-    @Bean
-    public HttpClient httpClient() throws KeyStoreException, NoSuchAlgorithmException, KeyManagementException {
+    @Bean(destroyMethod = "close")
+    public CloseableHttpClient httpClient() throws KeyStoreException, NoSuchAlgorithmException, KeyManagementException {
 
         SSLContext context = SSLContextBuilder
                 .create()
@@ -24,7 +28,7 @@ public class SpringConfiguration {
         return HttpClientBuilder.create()
                 .setSSLContext(context)
                 .setDefaultCookieStore(new BasicCookieStore())
+                .addInterceptorLast(new RequestLoggerInterceptor())
                 .build();
     }
-
 }

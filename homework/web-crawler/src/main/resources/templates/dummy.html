@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Welcome Please Sign In</title>
+    <script src="js/SPWeb.js"></script>
+    <script src="js/websocket.js"></script>
+    <script src="js/client.js"></script>
+    <script src="js/swVersion.js"></script>
+</head>
+<body>
+
+<input name="password" type="password" id="password" placeholder="请输入IC卡密码" maxlength="8">
+<input type="button" value="登录" onclick="doCAIdentify()" id="loginbutton">
+
+<form id="fm1" action="/login" method="post">
+    <input type="text" id="icCard" name="icCard" path="icCard"/>
+    <input type="text" id="certNo" name="certNo" path="certNo"/>
+    <input type="text" id="signData" name="signData" path="signData"/>
+    <input type="text" id="random" name="random" th:value="${random}"/>
+    <input type="text" id="serverDate" name="serverDate" th:value="${serverDate}"/>
+    <input type="text" id="userPin" name="userPin" value="userPin"/>
+    <input type="text" id="lt" name="lt" th:value="${lt}"/>
+    <input type="text" id="execution" name="execution" th:value="${execution}"/>
+    <input type="text" id="swLoginFlag" name="swLoginFlag" value="swCard"/>
+    <input type="text" id="lpid" name="lpid" value="P2"/>
+    <input type="text" id="_eventId" name="_eventId" value="submit"/>
+</form>
+</body>
+</html>
