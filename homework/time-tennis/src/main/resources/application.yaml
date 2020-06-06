@@ -1,0 +1,13 @@
+spring:
+  messages:
+    basename: i18n.Message
+    encoding: UTF-8
+  jackson:
+    time-zone: GMT+8
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://119.45.20.186:3306/timetennis?serverTimezone=UTC
+    username: timetennis
+    password: timetennis$444.com
+server:
+  port: 8090

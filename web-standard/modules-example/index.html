@@ -3,59 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <title>Modules Example</title>
-    <script src="../../homework/web-crawler/src/main/resources/public/js/SPWeb.js"></script>
-    <script src="../../homework/web-crawler/src/main/resources/public/js/websocket.js"></script>
-    <script src="../../homework/web-crawler/src/main/resources/public/js/client.js"></script>
-    <script src="../../homework/web-crawler/src/main/resources/public/js/swVersion.js"></script>
+    <script type="module" src="main.js"></script>
 </head>
 <body>
-<div id="login">
-    <form action="" method="post">
-        <div class="logo"><img src="images/card/logo.png" alt="中国国际贸易单一窗口" width="327" height="93"
-                               longdesc="http://www.singlewindow.cn"></div>
-        <div class="msg-error" style=""><span class="span3" id="info" style=""></span></div>
-        <p><input name="password" type="password" id="password" placeholder="请输入IC卡密码" maxlength="8"
-                  onkeypress="keyp(event)">
-        </p>
-        <p><input type=" " value="" onclick="doCAIdentify()" onkeypress="keyp(event)" id="loginbutton"
-                  readonly="readonly"></p>
-    </form>
-    <p class="login_fgt">
-        请您按照以下步骤进行：<br/>
-        1、请先插入IC卡。<br/>
-        2、在输入框中输入IC卡密码。</p>
-    <div class="login_dlfs">
-        <div class="login_dlfs_05" style="width:125px;" id="download_widget"><a
-                onclick="javascript:downEportIkeySetup();return false;" href="#" id="downocx"
-                target="_blank">客户端控件下载</a></div>
-    </div>
-    <div class="cleardiv"></div>
-</div>
-</div>
-</div>
-<div id="footer"></div>
-
-</div>
-<div class="formdiv">
-    <form id="fm1" class="fm-v clearfix"
-          action="https://app.singlewindow.cn/cas/login?service=http%3A%2F%2Fwww.singlewindow.cn%2Fsinglewindow%2Flogin.jspx&amp;logoutFlag=1&amp;_swCardF=1"
-          method="post">
-
-        <input type="hidden" id="icCard" name="icCard" path="icCard" />
-        <input type="hidden" id="certNo" name="certNo" path="certNo" />
-        <input type="hidden" id="signData" name="signData" path="signData" />
-        <input type="hidden" id="random" name="random" value="ZTTCzNo+bW0="/>
-        <input type="hidden" id="serverDate" name="serverDate" value="20200428144227" />
-        <input type="hidden" id="userPin" name="userPin" value="userPin"/>
-
-
-        <input type="hidden" id="lt" name="lt" value="LT-24761180-el9cRxpmf3RbLn4NPNZ7-app.singlewindow.cn" />
-        <input type="hidden" id="execution" name="execution" value="bdd52bd6-6a6e-4b4a-a8a1-c6e5ddce4709_ZXlKaGJHY2lPaUpJVXpVeE1pSjkuWmtac1dUZzRiRVZ5TkdkSk1uZFVSMVpKTlhwd2JXZzRjemR6UzBSdmJXTkVhbEowY21KMFJYVllXa1ZyT1VWTVlYTlZZazVSVTBZMGJrcFJZMEpCVm1Gc1dISnBXRlI1VTNaV1VtTkxXbTVQVURoMmExUnBOVzlNZUd0clZ6VlhiSHBSYVVaUVVHWmpNVGM1YVdGTlJVaG5hV1ZIVUdOVFRWWjZURlkxYzJ0bmNWcElSM1ZYTUhkd1NWUlVTMVZGUVdaNlpsRnpkRWhvWTFCeldsTm5Ra041U2tkM1pteEZTRlkxTlVKRVZXNWxSbFIyWlRSdlNIRnZVMW8yWVhoeFdISnVRbVp6V0ZOaVdqVkhTRU5GWmpaTlEzTmhkbVZKTldGdU0zUlJRMjFHVG5sWVdYWkhUalF2VnpoM2REVkNVSEJ6WTI4emRWbzFTV0UzSzNrMFZubHNjblpOTmtOWFVFaElSbGxPYW10S00wczFVR1kzTld4dldtTkVWVWhFYTJ0WFUycE1iWE5RUVRGa1FXbEhVMVJRY1ROQlJrOVhNbFozYWs1Q2NETXZOa0pVVTNaSmNWRnNjM05JZVhOblRtSldkamRTV2tWUlFYTjVkWHBVUTNsak4yUlNSMGhXZVhWdlRVd3hiamRpUldsSloyMUpRMEpxT1d3elJVMXNZMGhoYjNKck9GSjFXbTVCWkZCWFlsZzFLMDVsVHpSbGNTc3ZaVlpQTURNcksyVXZkbGhqYTNvNVl6aDBORVppUWpaS2NWVjRZVU4zVTJZcmVpOXlRVGhQUXpGUFQxZE9hVm96UjJGME5EYzVlbXhDWVVsd01GTm9jSFJpUVVoR1VEazNkbEZSWVRsV0syZzVTbVZKVWpCeGJGVlRRMGhuTTBSSk5YWmpOelJ1YUROWGRWbzFRUzlLVWtOMWVqZDNaR2xLYkVSS1NrZHJNVm8xVEhGdGRsZFlSV2gyTW14QlRXZFFTRWRFTlhoS1QwaG9lRXhCVTBoWUszbE9ORXQ1T1ROT2VURkdkazAxZGtFclowZGtlV1kyTlV0cVVFNXNSSE5vVmtKR1FqUmtabGxzUVcxbFdWbDBjRTl6UzNOWlEwbDFOa0owTmtOb2VFOHlWVzloVjBWS1RuZEpPVTVLUVhkNFRWWk1Vak5ETjJ4SlRXRXZaWGRPU21vM05VbDZPR3B4ZVhOSE9YSXlSaTlWTlRBMVdrTnBVMDFQWWtSTVlVODFXVk42YWxGRVJtUnVOVkpPYWpkSk1DdFVSMHBsUjFSbFJFVnNWRGxrWmpWc2JGZGFkekJxYVdaalIza3JhbEo1YkhOVFRUTjVlRmgzYlhnMGFWcEVkbmxTYW01dFJtZG5NbXBvSzJsbGFHNXpSWEJZYmtwSE1VWkZWMWxDVEhOV1JIYzRXbWxGWXpGVVVrSndabWRPZGpaRFlpdGhZa2xHT1ZKRmJtbFJla05xY0hkNVdXOXVhR2RwUWtkak0waFZibUpwVWk5UFEwMXhVRGxUTldwSmNreE9Ualo2T0hGeU1WbGFUWGxJZUVzeVdsZFNiakU0WkVOUlUxaDNTQ3RJV1RWWlUxSm9WVWR1VmtsemFXZExVMk5qUTFsMU5Xb3diVE16YkRNelJHaEtTakpzZG01SVozUmFNalZ1U2k4MFFYZHdWVTFRVDBwM1pFaEViMHBpYTFSclpubEtjekZRVUU0MVRrOU9kbVZ2VkZwTE1HRTJNak5FYm5aRlkySTNRbU4wV214SFRuZHlObU5RWWxOeGFTdHBVekJVZVhOS1VGVlhjMVYzUkhZeVQwSnJUMWhpU21GRWREVmhVRk4yY1Vzd09HUkNkVkJ4ZVRCblQweHFZbk0yVWxZM1lVUlVOV0ZzV1ZwVE5XaGFXVTVtZGs5bmRYTjROa2MyV213eEwxVkpTRk15U0VkVGNHOHpaSEJXT0hwd01rbG1LM05PUVcwd09FUldRVGhxVjNZM2RtVklMMFpzYm5BeFZHRk9XRUYwSzFCYVIzaFBaSFJyVjFBeFpVTTVVR0pIZVdZMFJURnpNbE5uVVROcFNuTmhXSFZJYlZKWFUxaFRjV05uTldaVU1ucFNOelJSVkV4NE5VMWhkV3RDZW1aTlNHOTVhbFJPYmxBcmRrMUdZWFJaWjAxQ1QydG1WMmt3Vm05dlpEQXZTVzlhZGtOUmR6YzJkV3hXUlVoa01tNXBOM2RhWTBndmNrNTJkREZJY1U1MGVEaHhlR1Z5TTNFd1EyTnRWVFp0WVUwNGIzWkZPSE50UVVZMFZVRldSWE13YVhkMVJEQjZjMWxzU2xWbVUweEtWWEl6U1haUVpESXdVWFJ4T1RsNFJteDJObXByWlVGb2MzUnJXbVpWZG05R1N6RnpjRUZtVDNSSlNXNDJNM0V2WjA4M2VIbFpNRWN3WlU5aVJYRkhlVEJKUzJsNlNuTk9hRXcyTjFsaFExUkxTMlJTYW5NMVJFSk9WSHBVWjBSNlMxWkhVbmRpZW1OSlpFSlBVbHBsYlVaWFUxWnBURkJVUWtSUVFYcHpaRTFoTjNkcE1XTlhRVXROVFc5c1RWbHhVV1psWmt0R1FWVlNiR2xHU2s1NlZ6ZGFUVVk0Y0RsUFlqaENXbGhMWmxwWFdYcE5UbFJUZVdoNk5XOWljMmxIZW1sMGVtOUVlVkpHVVZCMFNFRmtNa2R3YmxOR2FDOWxURWxWTlZNMk5FOTJWRkF4WlcxTmNHUjRkVmRyYzNVMVVVcG1ZMGN3YkVaTE1EZ3JSSHAzTms5NU5YRk1WVmMzVXpoTGNscExabEp3TVhGbEwzQlFiV3d4Y2pSTGNrSlllbFZ6ZGsxb00zaFdSa0ZYYVVGRksyWm1jMHBMVDIxNmJIcDRZWGg1THpOR1lsVkxRbmhRYlRaelJrMDVaQzlDTTFWWVUwWnZlVlZPYzJOek1pdDVVazh4YldsNGJFbExkblpYVFVobWEySkVkalozWVZaT1lXbGFSbXRtS3pKSE0zSlhWR015WlVrd1NFVkxNak5qVlVOV2VIbG1SMEpTYUV4T01YRktNVkp1YzFRelFUZGFUMDlYY1dGQlkxcFVaV0pPV21KaVVVRkZNMnBoYlUxQ1UyeFhNVmw0TWxKS05GQmpkMncwWm14UFNFOXdPU3M0ZDFCMFdGTnROV2QyWjNOdlUxbG1URGx6VVhoeVdXbGxaR3AzVEZSNWFUQmlUMk5qZWtSbGVreHBaa1I2ZFhCbGRqQkNNbXhuYTNaQlJYRktTMVJwTTNBdlVuWmFiak5ZV21GU2QyWklhQzhyYVVWUVlTOVdhbkZGY2pkRUszQjNlSEUwYWtNclFtVTVjelZaTDNnNFpYSnRTbEV4T0ZGRFpYUjZjR3hDY25Nd1dVdHhUR1FyVEhkMldGVklXSFkxTlZaSE1YVmxhRmNyU1VKTlIyVklXVFF4TVdsdlRrUm5NemRCY2tsdU1YSjVTRGRWVkc5VlVYTjNNa2RJTmxCVlZUSlFhbmgxZG5ocVF6ZFdWWEF2YUdwMWNWZzFRWEJyV2xOT1JGbHZjRXB6VlVGRlUyeDZlRGNyYWxZMlYwTkpOU3RFVTBONE1VMVRlbTVNVmpOSlVtdHZZbEY2UVdwVGVHc3ZORlUyUkZaaVJucENhVzVsYVU5R1ZHeHNjMUZOT1hCak5ITjZkVXBwTDB0WlQyRTFUbkZIVEZRNFFrVnJRbGg2ZEN0Wlp6QkZObkpyV2xKTWVqWllNbWhMU0VoWE4xWTVORmxVWjFGRlZtbDFlVnB3Vm5oS1JEaE1ObFpKWjNkc1JuRm5TRTEzT0hCRU1UTlVSMWxrT0hkVVdURkxNMkpOZFc1aE9HTk5Sa2hNTmtKWVJuUnNVR2cxYjBoTk4zZG9UMUJpV0ZWcVZ6bEVTek5qY25oME9WbHhZbFYyWjNwVGRqaGpOelFyUW5WdU5IWkVXVTlXUTBwcVoxUlBSMFpUYWtOeGVucFlaakZOUVhCbFN5OXNhRzFMU2xwVVIzTkVhRzlSYUN0d1RTOWpXVFEyV25sNFluUjNjWGR6YzJ4V2VFVk9OMFJ5ZW1KcGIzZENPR1kxVFUxV2NGQlpNVGQwVURBclEwRTFjRmhsTVRoT2RqVjNja0kzU201RWFFMHdNSGhZUkRaUWNqRlhaVXMwY25aUGJqbHpaRWt5TUVWdk1VWXhjVFEwV0dKTmF6azVRMHB4Vldzdk9EbFdRMmxqV2pSaWJsSk5WMHR5TDJOclMycGxWa3A0ZUhSWE0wMU5aRnBrTDFoeFRFMTFRMmxaTUcxdFNHa3hiM2RaV21SdU4zWnZSMmhHV21wTk16TXZVblZ1TUdaTlJEWTBVa1ZTUjIxaVVWWk5VREl3ZVZSU1NVeEVabmczY0dOTmFTOUxaVkJKTm5WQ2NFeDViMnRDZGpWTlRuTkdkR2RQY2tkcVp5dHVNbEJNYjJsVFlrVXZZMnd6UjBWUU1qUk5ZVFJOV2pjclNrOVJlR1I1UkM5V2NFUkdOWHByWjFCWVpEUkdlazFpVjBwUGIwazRiV1l3Y1ZoWldDOUljVmRZVFZaTGEwdFpjV2xhUW1SVldVTkdTVXhVVEZwM05uaFpUV2g1VFVwaGIxaHhTMElyYlhNNWJVZFJaM05KYUhwck5uZFJXWFZaZG5GUGVVRXpOamRpVmtKc1ZWcERRMXBKZUU0eE9WSjNiMDFGZVd0Q1lWYzNTalpCYW14VmNGSnJjRE5xTkZORWJGTnlSMGxMTlVWdVJtRktkMDVLTTJ0VGJUSTNlRkZZZVhSMVIyeHJaR0ZqVWxSV1ZraExObFJqVWpGd00yUlFiamR1YlRaVVYyNW9PWGhRTUdoTWVIZHdjMVJEVERGaGRXaFpNbTVxUmxkV01GUmFSSFJJV2xsWVpUTm9kbFk0ZDJsRWRrMVZjRzVuYWxKcFkyY3lRU3RRUjB0b04xcFdNamR6VmtzNFNFRjFTbmh5VlhadFFsTllVamhPUlVSQ04xVjRkVlJaTjNWeWRVaGtNV3BqZUc5NFRrZHlPRmRTWldsaE0xRmtZak52UVhkbVVubElhWFZhYTBFMFpXMU5XV2haY2xZdk5IQmxUa2t2WTJOUGJrZEJaME5pZEV4bmMwUmxiamxyZWpZek9XSm1jREphUjFCYWJuZEdUUzh2WlRWQkwxbFRjazFJYTJSc2NHTnlRekp1ZVZoMGVXOUZTMlZHT0ZCVEx6bFBZVXRGYjNkaVVEZFJhakJpTDNGSk5XUm1RV0ozUTJWUFNVWk9TemQwTUVka1pWZzBla0Z5TW5ZeE5pOXRRMmd6UmxCalpXMUhTM0pNTWxjMFNFVnpkbXBWYkhjNWJVeE9RVUpUUjNvdldsZFlSbnA2UmpKUVMweEtkak5oYzBWVVRXZEdjekJ2Tkdaa2FFcHJMMmxOTmtOSE1ERXlSbkJ3UTJacFpETTBTVzF2YTNnNE5URnBjbmR1U1U5MVZWbDFWV0pXV1dabFprbHBTR3RaYnl0a1JEZFdZbUl3TUZWUWRqbExRazR5TmtscWMwZDVlRWg0TVhKUFlTdHBNbGhHZWpSMlJUVktkVVJ3TmtSTlltWnJkM05OVFdWcE5YVnhVazFuYWtjd1lUUnhLMVk1T1M5bWVVYzJZMVZKWVRadFNuRXpZMGRaUVcxUVdFeE5WblpDY1cwMWVYaFBRVGd6YjJKbVlqZExaM0V2VUhaUlFuazJSRlpPYjNkSlNrdEVjSFZ6TkdrMlFVRkxWRGh2YlM5Qk9YZE1UbXhhU1hKcUwyRndkM050VDBOcmFWQjFRM1ZrYXk5U2NraHBaM2hDYVROMWFuWk9VSE4xU25SWFkxUk1UekY1ZFZsQlpuQnFaRVJGVlZCQ1EyUkhNSEoyWlhOR2VuRk5TVnBtWVZsSVVpOURjeXRPWlVFdlRHTm5Xa3hoTTFaTmJITk5XSEpZVFRWR1VuRjFWVmwzTW10NlRsSlVSMjUyTWtSTWJEUlBhWGs1WlhCaVZqQkdNR29yZWtGTFdGaERhMDVWVVdGRmVFcEhWMnR3VVZkRGRXVktNVGhHYzNKTmMwdFlVVEZtWjFOWGRHYzNXWEEzZUVGS09VY3JSaXN5U0hoNlp5dDVUazk1LmRYbDVLcHdjbmx5ZTNOWDNQUlFzQnJqOWRUOTZ5LUE4LUtxUWlydnJLamdTdUNXNkhrbXBUc29xWFJ3NF9hTjJ0eGdIUml6eUtHN3FpRk1hNXN5dE13" />
-        <input type="hidden" id="swLoginFlag" name="swLoginFlag" value="swCard" />
-        <input type="hidden" id="lpid" name="lpid" value="P2" />
-        <input type="hidden" id="_eventId" name="_eventId" value="submit" />
-    </form>
-</div>
-<div id="error_attach_info" style="display:none"></div>
+<button id="dynamic">click</button>
 </body>
+<script>
+    let btn = document.querySelector('#dynamic');
+    btn.addEventListener('click',()=>{
+        import('./modules/dynamic.js').then((Module)=>{
+            Module.dynamic();
+        });
+    });
+</script>
 </html>

@@ -411,7 +411,7 @@ function startLogin(msg) {
     document.getElementById("icCard").value = ary[5];
     document.getElementById("certNo").value = ary[0];
     document.getElementById("userPin").value = userpassword;
-    document.getElementById("fm1").submit();
+    // document.getElementById("fm1").submit();
 
     //EportClient.spcClearEnv();
 }

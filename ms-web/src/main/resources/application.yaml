@@ -72,6 +72,7 @@ springfox:
         path: /swagger-resources/v2/api-docs
 server:
   port: 8443
+  address: 0.0.0.0
   ssl:
     enabled: true
     key-password: 123456
