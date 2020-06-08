@@ -1,9 +1,10 @@
 package com.lazyman.timetennis.booking;
 
-import java.util.Date;
-import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+
+import java.util.Date;
+import java.util.List;
 
 @Mapper
 public interface BookingMapper {
@@ -50,5 +51,15 @@ public interface BookingMapper {
 
     List<Booking> queryByDate(@Param("date") Date date);
 
-    List<Booking> queryInRange(@Param("start")Date start,@Param("end") Date end);
+    List<Booking> queryInRange(@Param("start") Date start, @Param("end") Date end);
+
+    int countBooked(@Param("openId") String openId, @Param("date") Date date, @Param("start") int startIndex);
+
+    List<Booking> query(Booking booking);
+
+    int deleteBooking(Booking booking);
+
+    void addShare(@Param("bookingId") int bookingId, @Param("openId") String openId);
+
+    void deleteShare(@Param("bookingId") int bookingId);
 }

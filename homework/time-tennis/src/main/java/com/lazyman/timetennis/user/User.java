@@ -73,7 +73,6 @@ public class User implements Serializable {
      *
      * @mbg.generated
      */
-    @JsonIgnore
     public String getOpenId() {
         return openId;
     }
