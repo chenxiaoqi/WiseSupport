@@ -21,35 +21,38 @@
             <property name="addRemarkComments" value="true"/>
         </commentGenerator>
 
-        <jdbcConnection driverClass="org.h2.Driver"
-                        connectionURL="jdbc:h2:tcp://localhost:8043/./ms-web/db/WiseSupport"
-                        userId="sa">
+        <jdbcConnection driverClass="com.mysql.jdbc.Driver"
+                        connectionURL="jdbc:mysql://119.45.20.186:3306/timetennis?serverTimezone=UTC"
+                        userId="timetennis"
+                        password="timetennis$444.com">
         </jdbcConnection>
 
         <javaTypeResolver>
             <property name="forceBigDecimals" value="false"/>
         </javaTypeResolver>
 
-        <javaModelGenerator targetPackage="com.wisesupport.test.mybatis" targetProject="src/test/java">
+        <javaModelGenerator targetPackage="com.lazyman.timetennis" targetProject="src/test/java">
             <property name="enableSubPackages" value="true"/>
             <property name="trimStrings" value="true"/>
         </javaModelGenerator>
 
-        <sqlMapGenerator targetPackage="com.wisesupport.test.mybatis" targetProject="src/test/java">
+        <sqlMapGenerator targetPackage="com.lazyman.timetennis" targetProject="src/test/java">
             <property name="enableSubPackages" value="true"/>
         </sqlMapGenerator>
 
-        <javaClientGenerator type="XMLMAPPER" targetPackage="com.wisesupport.test.mybatis"
+        <javaClientGenerator type="XMLMAPPER" targetPackage="com.lazyman.timetennis"
                              targetProject="src/test/java">
             <property name="enableSubPackages" value="true"/>
         </javaClientGenerator>
 
-        <table tableName="User">
+        <table tableName="tt_user">
+            <domainObjectRenamingRule searchString="^TT_" replaceString=""/>
+        </table>
+        <table tableName="tt_booking">
             <generatedKey column="id" sqlStatement="JDBC"/>
-            <domainObjectRenamingRule searchString="^T_" replaceString=""/>
+            <domainObjectRenamingRule searchString="^TT_" replaceString=""/>
             <columnOverride column="id" isGeneratedAlways="true"/>
         </table>
-
     </context>
 
 </generatorConfiguration>

@@ -5,9 +5,14 @@ spring:
   jackson:
     time-zone: GMT+8
   datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://119.45.20.186:3306/timetennis?serverTimezone=UTC
+    driver-class-name: com.mysql.jdbc.Driver
+    url: jdbc:mysql://119.45.20.186:3306/timetennis?useUnicode=true&characterEncoding=UTF-8
     username: timetennis
     password: timetennis$444.com
 server:
   port: 8090
+  address: 0.0.0.0
+
+wx:
+  appId: wxa87c26db862e6bbd
+  secret: ace15be8afc9c3072d94c217707fae17

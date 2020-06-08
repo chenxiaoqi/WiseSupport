@@ -6,7 +6,8 @@
         </encoder>
     </appender>
 
-    <logger name="org.apache.http" level="info"/>
+    <logger name="com.lazyman.timetennis" level="debug"/>
+    <logger name="com.wisesupport.commons" level="debug"/>
 
 
     <root level="info">
