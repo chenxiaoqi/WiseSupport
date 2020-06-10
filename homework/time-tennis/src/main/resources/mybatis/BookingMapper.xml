@@ -113,7 +113,11 @@
         left join tt_user d on c.open_id=d.open_id
         <where>
             <if test="openId!=null">a.open_id=#{openId}</if>
+            <if test="startDate!=null">
+                and a.date &gt;= #{startDate} and a.date &lt; #{endDate}
+            </if>
         </where>
+    order by a.update_time desc
     </select>
 
     <delete id="deleteBooking">

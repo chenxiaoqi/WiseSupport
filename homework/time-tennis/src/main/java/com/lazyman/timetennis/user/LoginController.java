@@ -3,6 +3,8 @@ package com.lazyman.timetennis.user;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.lazyman.timetennis.Constant;
+import com.lazyman.timetennis.SessionWatch;
+import com.sun.javafx.scene.traversal.TopMostTraversalEngine;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -21,6 +23,8 @@ import javax.servlet.http.HttpSession;
 import javax.validation.constraints.NotEmpty;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @RestController
 @Slf4j
@@ -79,9 +83,12 @@ public class LoginController {
         User dbUser = userMapper.selectByPrimaryKey(user.getOpenId());
         if (dbUser == null) {
             userMapper.insert(user);
+        } else {
+            userMapper.updateByPrimaryKey(user);
         }
-        //todo 保存头像
-        request.getSession().setAttribute("user", user);
+        session = request.getSession();
+        SessionWatch.register(user.getOpenId(), session);
+        session.setAttribute("user", userMapper.selectByPrimaryKey(user.getOpenId()));
         return user;
     }
 }

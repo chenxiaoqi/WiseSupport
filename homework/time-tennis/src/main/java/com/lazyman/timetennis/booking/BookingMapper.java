@@ -55,7 +55,7 @@ public interface BookingMapper {
 
     int countBooked(@Param("openId") String openId, @Param("date") Date date, @Param("start") int startIndex);
 
-    List<Booking> query(Booking booking);
+    List<Booking> query(@Param("openId") String openId, @Param("startDate") Date startDate, @Param("endDate") Date endDate);
 
     int deleteBooking(Booking booking);
 

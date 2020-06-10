@@ -33,6 +33,10 @@ public class UserBookingController {
                         @DateTimeFormat(pattern = "yyyy-MM-dd") Date date,
                         @Min(0) @Max(47) int timeIndexStart,
                         @Min(0) @Max(47) int timeIndexEnd) {
+        if (!user.getVip()) {
+            throw new BusinessException("您还不是会员,请联系管理员授权");
+        }
+
         Validate.isTrue(timeIndexEnd - timeIndexStart >= 1, "至少预定一个小时");
 
         Calendar now = DateUtils.truncate(Calendar.getInstance(), Calendar.DAY_OF_MONTH);
@@ -64,6 +68,7 @@ public class UserBookingController {
     }
 
     @DeleteMapping("/booking/{id}")
+    @Transactional
     public void cancelBooking(@SessionAttribute User user, @PathVariable int id) {
         Booking dbBooking = bookingMapper.selectByPrimaryKey(id);
         Validate.notNull(dbBooking, "订场信息不存在");
@@ -82,17 +87,6 @@ public class UserBookingController {
         booking.setId(id);
         bookingMapper.deleteBooking(booking);
         bookingMapper.deleteShare(id);
-    }
-
-    @GetMapping("/bookings")
-    public List<Booking> bookings(@SessionAttribute("user") User user) {
-        Booking booking = new Booking();
-        booking.setOpenId(user.getOpenId());
-        List<Booking> result = bookingMapper.query(booking);
-        result.forEach((item) -> {
-            item.setCancelAble(BookingTool.cancelAble(item));
-        });
-        return result;
     }
 
     @PostMapping("/share/booking/{bookingId}")

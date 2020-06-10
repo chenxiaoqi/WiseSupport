@@ -3,6 +3,7 @@ package com.wisesupport.commons.spring;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.web.bind.ServletRequestBindingException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -22,7 +23,11 @@ public class GlobalExceptionHandler {
     @ResponseBody
     public Map<String, String> handler(Throwable throwable, HttpServletRequest request, HttpServletResponse response) throws IOException {
         log.error("handle {} failed", request.getRequestURI(), throwable);
-        response.setStatus(500);
+        if (throwable instanceof ServletRequestBindingException && throwable.getMessage().startsWith("Missing session attribute")) {
+            response.setStatus(401);
+        }else {
+            response.setStatus(500);
+        }
         Map<String, String> result = new HashMap<>(1);
         result.put("code", "ServerError");
         result.put("error", throwable.getMessage());
