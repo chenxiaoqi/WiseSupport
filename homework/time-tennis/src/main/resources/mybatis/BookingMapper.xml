@@ -100,7 +100,7 @@
     <select id="countBooked" resultType="java.lang.Integer">
         select ifnull(sum(end-start+1),0) from tt_booking where open_id=#{openId} and (date &gt; #{date} or (date=#{date} and start&gt;=#{start}))
     </select>
-    <select id="query" resultMap="BaseResultMap">
+    <sql id="listSelect">
         select a.id, a.open_id, a.date, a.start, a.end,a.fee, a.charged, a.update_time,
         b.nickname,b.wx_nickname,b.avatar,b.vip,
         d.open_id as share_user_open_id,
@@ -111,6 +111,16 @@
         from tt_booking a inner join tt_user b on a.open_id=b.open_id
         left join booking_share c on a.id=c.booking_id
         left join tt_user d on c.open_id=d.open_id
+    </sql>
+    <select id="page" resultMap="BaseResultMap">
+        <include refid="listSelect"></include>
+        <where>
+            <if test="id!=null">a.id &lt; #{id}</if>
+        </where>
+        order by a.id desc limit 21
+    </select>
+    <select id="query" resultMap="BaseResultMap">
+        <include refid="listSelect"></include>
         <where>
             <if test="openId!=null">a.open_id=#{openId}</if>
             <if test="startDate!=null">

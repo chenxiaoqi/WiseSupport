@@ -40,6 +40,6 @@
         select a.id, a.operator_id,a.operation_type, a.description, a.update_time,b.open_id,b.wx_nickname,b.avatar
         from operation a ,tt_user b where a.operator_id=b.open_id
         <if test="start!=null">and a.update_time &lt; #{start}</if>
-        order by a.update_time desc limit 11
+        order by a.update_time desc limit 21
     </select>
 </mapper>

@@ -62,4 +62,6 @@ public interface BookingMapper {
     void addShare(@Param("bookingId") int bookingId, @Param("openId") String openId);
 
     void deleteShare(@Param("bookingId") int bookingId);
+
+    List<Booking> page(@Param("id") Integer id);
 }

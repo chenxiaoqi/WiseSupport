@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.constraints.Digits;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -41,11 +42,9 @@ public class BookingController implements ApplicationContextAware {
     }
 
     @GetMapping("/bookings")
-    public List<Booking> bookings(@SessionAttribute("user") User user, @DateTimeFormat(pattern = "yyyy-MM-dd") Date date) {
+    public List<Booking> bookings(@SessionAttribute("user") User user, Integer id) {
 
-        Date start = DateUtils.truncate(date, Calendar.MONTH);
-        Date end = DateUtils.addMonths(start, 1);
-        List<Booking> result = bookingMapper.query(null, start, end);
+        List<Booking> result = bookingMapper.page(id);
         result.forEach((item) -> {
             item.setCancelAble(BookingTool.cancelAble(item));
         });
