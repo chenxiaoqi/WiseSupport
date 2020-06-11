@@ -48,6 +48,9 @@
         <table tableName="tt_user">
             <domainObjectRenamingRule searchString="^TT_" replaceString=""/>
         </table>
+        <table tableName="operation">
+            <domainObjectRenamingRule searchString="^TT_" replaceString=""/>
+        </table>
         <table tableName="tt_booking">
             <generatedKey column="id" sqlStatement="JDBC"/>
             <domainObjectRenamingRule searchString="^TT_" replaceString=""/>

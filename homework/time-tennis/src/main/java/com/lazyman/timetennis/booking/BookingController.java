@@ -5,6 +5,9 @@ import com.lazyman.timetennis.user.User;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.time.DateUtils;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -17,9 +20,10 @@ import java.util.List;
 @RestController
 @Slf4j
 @Validated
-public class BookingController {
+public class BookingController implements ApplicationContextAware {
 
     private BookingMapper bookingMapper;
+    private ApplicationContext application;
 
     public BookingController(BookingMapper bookingMapper) {
         this.bookingMapper = bookingMapper;
@@ -66,5 +70,12 @@ public class BookingController {
         booking.setId(id);
         bookingMapper.deleteBooking(booking);
         bookingMapper.deleteShare(id);
+
+        application.publishEvent(new BookingCancelEvent(this, user, dbBooking));
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.application = applicationContext;
     }
 }

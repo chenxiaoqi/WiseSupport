@@ -1,7 +1,6 @@
 package com.lazyman.timetennis.booking;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.lazyman.timetennis.user.User;
 
 import java.io.Serializable;

@@ -117,7 +117,7 @@
                 and a.date &gt;= #{startDate} and a.date &lt; #{endDate}
             </if>
         </where>
-    order by a.update_time desc
+    order by a.update_time
     </select>
 
     <delete id="deleteBooking">

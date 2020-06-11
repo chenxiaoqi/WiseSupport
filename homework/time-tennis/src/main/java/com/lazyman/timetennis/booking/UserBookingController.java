@@ -5,6 +5,9 @@ import com.lazyman.timetennis.user.User;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.lang3.time.FastDateFormat;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,10 +21,13 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/user")
-public class UserBookingController {
+public class UserBookingController implements ApplicationContextAware {
 
     private static final FastDateFormat FORMAT = FastDateFormat.getInstance("yyyy-MM-dd");
+
     private BookingMapper bookingMapper;
+
+    private ApplicationContext application;
 
     public UserBookingController(BookingMapper bookingMapper) {
         this.bookingMapper = bookingMapper;
@@ -29,10 +35,10 @@ public class UserBookingController {
 
     @PostMapping("/booking")
     @Transactional
-    public void booking(@SessionAttribute("user") User user,
-                        @DateTimeFormat(pattern = "yyyy-MM-dd") Date date,
-                        @Min(0) @Max(47) int timeIndexStart,
-                        @Min(0) @Max(47) int timeIndexEnd) {
+    public synchronized void booking(@SessionAttribute("user") User user,
+                                     @DateTimeFormat(pattern = "yyyy-MM-dd") Date date,
+                                     @Min(0) @Max(47) int timeIndexStart,
+                                     @Min(0) @Max(47) int timeIndexEnd) {
         if (!user.getVip()) {
             throw new BusinessException("您还不是会员,请联系管理员授权");
         }
@@ -41,13 +47,19 @@ public class UserBookingController {
 
         Calendar now = DateUtils.truncate(Calendar.getInstance(), Calendar.DAY_OF_MONTH);
         if (date.getTime() < now.getTimeInMillis()) {
-            throw new BusinessException("预定日志错误: " + FORMAT.format(date));
+            throw new BusinessException("预定日期错误: " + FORMAT.format(date));
         }
 
         int nowTimeIndex = now.get(Calendar.HOUR_OF_DAY) * 2;
-        int count = bookingMapper.countBooked(user.getOpenId(), DateUtils.truncate(now.getTime(), Calendar.DAY_OF_MONTH), nowTimeIndex);
-        if (count + timeIndexEnd - timeIndexStart > 18) {
-            throw new BusinessException("累计预定不能超过9个小时,请照顾一下其他会员哦!");
+        if (BookingTool.isMemberTime(date, timeIndexStart, timeIndexEnd)) {
+            throw new BusinessException("会员活动时间不提供订场哦");
+        }
+
+        if (!user.getAdmin()) {
+            int count = bookingMapper.countBooked(user.getOpenId(), DateUtils.truncate(now.getTime(), Calendar.DAY_OF_MONTH), nowTimeIndex);
+            if (count + timeIndexEnd - timeIndexStart > 18) {
+                throw new BusinessException("累计预定不能超过9个小时,请照顾一下其他会员哦!");
+            }
         }
 
         List<Booking> bookings = bookingMapper.queryByDate(date);
@@ -63,8 +75,8 @@ public class UserBookingController {
         booking.setOpenId(user.getOpenId());
         booking.setFee(BookingTool.calcFee(date, timeIndexStart, timeIndexEnd));
         bookingMapper.insert(booking);
-
         bookingMapper.deleteShare(booking.getId());
+        application.publishEvent(new BookingEvent(this, user, booking));
     }
 
     @DeleteMapping("/booking/{id}")
@@ -81,16 +93,16 @@ public class UserBookingController {
             throw new BusinessException("预定场地必须提前两个小时取消,如有特殊需求请联系管理员");
         }
 
-
         Booking booking = new Booking();
         booking.setOpenId(user.getOpenId());
         booking.setId(id);
         bookingMapper.deleteBooking(booking);
         bookingMapper.deleteShare(id);
+        application.publishEvent(new BookingCancelEvent(this, user, dbBooking));
     }
 
     @PostMapping("/share/booking/{bookingId}")
-    public void shareBooking(@SessionAttribute("user") User user,@PathVariable int bookingId) {
+    public void shareBooking(@SessionAttribute("user") User user, @PathVariable int bookingId) {
         Booking booking = bookingMapper.selectByPrimaryKey(bookingId);
         Validate.notNull(booking);
 
@@ -104,8 +116,13 @@ public class UserBookingController {
         try {
             bookingMapper.addShare(booking.getId(), user.getOpenId());
         } catch (DuplicateKeyException e) {
-            throw new BusinessException("已经分摊过了");
+            throw new BusinessException("您已经分摊过了");
         }
+        application.publishEvent(new BookingShareEvent(this,user,booking));
+    }
 
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.application = applicationContext;
     }
 }

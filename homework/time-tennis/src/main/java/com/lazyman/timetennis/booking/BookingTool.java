@@ -1,13 +1,17 @@
 package com.lazyman.timetennis.booking;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.lang3.time.FastDateFormat;
 
 import java.text.ParseException;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Locale;
 
-final class BookingTool {
+public final class BookingTool {
+
+    private static final FastDateFormat DESC_FORMAT = FastDateFormat.getInstance("yyyy-MM-dd E", Locale.CHINA);
 
     private BookingTool() {
     }
@@ -42,7 +46,7 @@ final class BookingTool {
             //晚上
             if (i >= 37) {
                 fee = fee + 20;
-            }else{
+            } else {
                 Calendar calendar = Calendar.getInstance();
                 calendar.setTime(date);
                 int weekDay = calendar.get(Calendar.DAY_OF_WEEK);
@@ -51,7 +55,7 @@ final class BookingTool {
                     fee = fee + 15;
                 }
                 //工作日10
-                else{
+                else {
                     fee = fee + 10;
                 }
             }
@@ -61,6 +65,30 @@ final class BookingTool {
 
     public static void main(String[] args) throws ParseException {
         FastDateFormat format = FastDateFormat.getInstance("yyyy-MM-dd");
-        System.out.println(BookingTool.calcFee(format.parse("2020-06-6"),36,40));
+        System.out.println(BookingTool.calcFee(format.parse("2020-06-6"), 36, 40));
+    }
+
+    static boolean isMemberTime(Date date, int start, int end) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+        int weekDay = calendar.get(Calendar.DAY_OF_WEEK);
+        if (weekDay == Calendar.SUNDAY) {
+            return start <= 37;
+        } else {
+            if (weekDay == Calendar.WEDNESDAY) {
+                return end >= 38;
+            }
+        }
+        return false;
+    }
+
+    public static String toDescription(Booking booking) {
+        String builder = DESC_FORMAT.format(booking.getDate()) + ' ' +
+                StringUtils.leftPad(String.valueOf(booking.getStart() / 2), 2, '0') + ':' +
+                ((booking.getStart() & 1) == 0 ? "00" : "30") +
+                '~' +
+                StringUtils.leftPad(String.valueOf(booking.getEnd() / 2), 2, '0') + ':' +
+                ((booking.getEnd() & 1) == 0 ? "00" : "30");
+        return builder;
     }
 }
