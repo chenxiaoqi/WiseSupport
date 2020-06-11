@@ -28,7 +28,8 @@ public class MonthlyStatisticTask {
         this.template = template;
     }
 
-    @Scheduled(fixedDelay = 3600000)
+//    @Scheduled(fixedDelay = 3600000)
+    @Scheduled(cron = "0 0 1 1 1/1 ? ")
     @Transactional
     public void run() throws ParseException {
 //        Date end = DateUtils.truncate(new Date(), Calendar.MONTH);

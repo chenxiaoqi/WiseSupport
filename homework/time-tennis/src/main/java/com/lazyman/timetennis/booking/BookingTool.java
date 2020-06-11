@@ -44,7 +44,7 @@ public final class BookingTool {
         int fee = 0;
         for (int i = timeIndexStart; i <= timeIndexEnd; i++) {
             //晚上
-            if (i >= 37) {
+            if (i >= 38) {
                 fee = fee + 20;
             } else {
                 Calendar calendar = Calendar.getInstance();
@@ -87,8 +87,8 @@ public final class BookingTool {
                 StringUtils.leftPad(String.valueOf(booking.getStart() / 2), 2, '0') + ':' +
                 ((booking.getStart() & 1) == 0 ? "00" : "30") +
                 '~' +
-                StringUtils.leftPad(String.valueOf(booking.getEnd() / 2), 2, '0') + ':' +
-                ((booking.getEnd() & 1) == 0 ? "00" : "30");
+                StringUtils.leftPad(String.valueOf( (booking.getEnd()+1) / 2), 2, '0') + ':' +
+                (((booking.getEnd()+1) & 1) == 0 ? "00" : "30");
         return builder;
     }
 }
