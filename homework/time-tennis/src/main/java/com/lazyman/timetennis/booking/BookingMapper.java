@@ -64,4 +64,5 @@ public interface BookingMapper {
     void deleteShare(@Param("bookingId") int bookingId);
 
     List<Booking> page(@Param("id") Integer id);
+
 }

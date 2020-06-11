@@ -33,6 +33,5 @@ CREATE TABLE `operation`
     `update_time` timestamp   NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
     KEY `idx_update_time` (`update_time`)
-) ENGINE = InnoDB
-  DEFAULT CHARSET = UTF8l
+) ENGINE = InnoDB DEFAULT CHARSET = UTF8;
 

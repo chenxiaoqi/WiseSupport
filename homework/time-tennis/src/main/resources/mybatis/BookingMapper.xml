@@ -22,7 +22,7 @@
             <result column="vip" jdbcType="BIT" property="vip"/>
         </association>
         <collection property="shareUsers" ofType="com.lazyman.timetennis.user.User">
-            <id column="share_user_id" jdbcType="VARCHAR" property="openId"/>
+            <id column="share_user_open_id" jdbcType="VARCHAR" property="openId"/>
             <result column="share_user_nickname" jdbcType="VARCHAR" property="nickname"/>
             <result column="share_user_wx_nickname" jdbcType="VARCHAR" property="wxNickname"/>
             <result column="share_user_avatar" jdbcType="VARCHAR" property="avatar"/>
