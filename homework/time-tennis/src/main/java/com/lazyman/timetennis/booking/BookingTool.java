@@ -11,7 +11,7 @@ import java.util.Locale;
 
 public final class BookingTool {
 
-    private static final FastDateFormat DESC_FORMAT = FastDateFormat.getInstance("yyyy-MM-dd E", Locale.CHINA);
+    public static final FastDateFormat DESC_FORMAT = FastDateFormat.getInstance("yyyy-MM-dd E", Locale.CHINA);
 
     private BookingTool() {
     }
@@ -83,12 +83,18 @@ public final class BookingTool {
     }
 
     public static String toDescription(Booking booking) {
-        String builder = DESC_FORMAT.format(booking.getDate()) + ' ' +
-                StringUtils.leftPad(String.valueOf(booking.getStart() / 2), 2, '0') + ':' +
-                ((booking.getStart() & 1) == 0 ? "00" : "30") +
+        return toDescription(booking.getDate(), booking.getStart(), booking.getEnd());
+    }
+
+    public static String toDescription(Date date, int start, int end) {
+        return DESC_FORMAT.format(date) + ' ' +
+                toTime(start) +
                 '~' +
-                StringUtils.leftPad(String.valueOf( (booking.getEnd()+1) / 2), 2, '0') + ':' +
-                (((booking.getEnd()+1) & 1) == 0 ? "00" : "30");
-        return builder;
+                toTime(end + 1);
+    }
+
+    public static String toTime(int start) {
+        return StringUtils.leftPad(String.valueOf(start / 2), 2, '0') + ':' +
+                ((start & 1) == 0 ? "00" : "30");
     }
 }

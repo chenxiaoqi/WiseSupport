@@ -22,10 +22,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler
     @ResponseBody
     public Map<String, String> handler(Throwable throwable, HttpServletRequest request, HttpServletResponse response) throws IOException {
-        log.error("handle {} failed", request.getRequestURI(), throwable);
+
+
         if (throwable instanceof ServletRequestBindingException && throwable.getMessage().startsWith("Missing session attribute")) {
             response.setStatus(401);
+            log.debug("handle {} failed", request.getRequestURI(), throwable);
         }else {
+            log.error("handle {} failed", request.getRequestURI(), throwable);
             response.setStatus(500);
         }
         Map<String, String> result = new HashMap<>(1);

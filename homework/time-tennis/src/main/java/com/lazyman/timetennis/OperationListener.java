@@ -1,6 +1,8 @@
 package com.lazyman.timetennis;
 
-import com.lazyman.timetennis.booking.*;
+import com.lazyman.timetennis.booking.BaseBookingEvent;
+import com.lazyman.timetennis.booking.Booking;
+import com.lazyman.timetennis.booking.BookingTool;
 import com.lazyman.timetennis.log.Operation;
 import com.lazyman.timetennis.log.OperationMapper;
 import com.lazyman.timetennis.user.User;
@@ -34,7 +36,7 @@ public class OperationListener {
             String name = ou != null ? '[' + ou.getWxNickname() + "] " : "[?]";
             operation.setDescription(name + operation.getDescription());
         }
-        log.info("{} {} {}", operator.getOpenId(), operator.getWxNickname(), operation.getDescription());
+        log.info("{} {} {} {}", operator.getOpenId(), operator.getWxNickname(), event.getOperationType(), operation.getDescription());
         try {
             mapper.insert(operation);
         } catch (Exception e) {

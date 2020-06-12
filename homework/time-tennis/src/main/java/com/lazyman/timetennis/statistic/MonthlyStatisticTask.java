@@ -1,24 +1,30 @@
 package com.lazyman.timetennis.statistic;
 
+import com.lazyman.timetennis.Constant;
 import com.lazyman.timetennis.booking.Booking;
 import com.lazyman.timetennis.booking.BookingMapper;
+import com.lazyman.timetennis.booking.BookingTool;
 import com.lazyman.timetennis.user.User;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.time.DateUtils;
-import org.apache.commons.lang3.time.FastDateFormat;
+import org.apache.poi.hssf.usermodel.HSSFRow;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.CellType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
-import java.text.ParseException;
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 @Component
 @Slf4j
 public class MonthlyStatisticTask {
-    private static final FastDateFormat FORMAT = FastDateFormat.getInstance("yyyy-MM-dd");
     private BookingMapper mapper;
 
     private JdbcTemplate template;
@@ -29,16 +35,19 @@ public class MonthlyStatisticTask {
     }
 
 //    @Scheduled(fixedDelay = 3600000)
-    @Scheduled(cron = "0 0 1 1 1/1 ? ")
+    @Scheduled(cron = "${wx.stat-cron}")
     @Transactional
-    public void run() throws ParseException {
-//        Date end = DateUtils.truncate(new Date(), Calendar.MONTH);
-        Date end = DateUtils.truncate(FORMAT.parse("2020-07-11"), Calendar.MONTH);
+    public void run() throws IOException {
+        Date end = DateUtils.truncate(new Date(), Calendar.MONTH);
         Date start = DateUtils.addMonths(end, -1);
 
-        log.info("monthly statistic task start {}", FORMAT.format(start));
+        log.info("monthly statistic task start {}", Constant.FORMAT.format(start));
         List<Booking> bookings = mapper.query(null, start, end);
         Collection<Statistic> statistics = calc(bookings, start);
+
+        writeExcel(start, statistics);
+
+
         for (Statistic statistic : statistics) {
             template.update("insert into monthly_stat (month ,open_id,fee,hours,book_times)values(?,?,?,?,?)",
                     statistic.getMonth(),
@@ -46,10 +55,63 @@ public class MonthlyStatisticTask {
                     statistic.getFee(),
                     statistic.getHours(),
                     statistic.getBookTimes());
+            for (BookingBill bill : statistic.getBills()) {
+                template.update("insert into booking_bill (open_id, booking_id, fee,share, date, start, end) values (?,?,?,?,?,?,?)",
+                        statistic.getUser().getOpenId(),
+                        bill.getBookingId(),
+                        bill.getFee(),
+                        bill.isShare(),
+                        bill.getDate(),
+                        bill.getStart(),
+                        bill.getEnd());
+            }
         }
         for (Booking booking : bookings) {
             template.update("update tt_booking set charged= 1 where id=?", booking.getId());
         }
+
+    }
+
+    private void writeExcel(Date start, Collection<Statistic> stats) throws IOException {
+        HSSFWorkbook wb = new HSSFWorkbook();
+        HSSFSheet sheet = wb.createSheet("总览");
+        sheet.setColumnWidth(0, 256 * 20);
+        HSSFRow head = sheet.createRow(0);
+        head.createCell(0).setCellValue("网名");
+        head.createCell(1, CellType.STRING).setCellValue("消费");
+        int index = 1;
+        for (Statistic stat : stats) {
+            HSSFRow row = sheet.createRow(index);
+            String nickname = stat.getUser().getNickname() == null ? stat.getUser().getWxNickname() : stat.getUser().getWxNickname();
+            row.createCell(0, CellType.STRING).setCellValue(nickname);
+            row.createCell(1, CellType.NUMERIC).setCellValue(stat.getFee());
+
+            HSSFSheet billSheet = wb.createSheet(nickname);
+            billSheet.setColumnWidth(0, 256 * 16);
+            HSSFRow billHeadRow = billSheet.createRow(0);
+            billHeadRow.createCell(0, CellType.STRING).setCellValue("日期");
+            billHeadRow.createCell(1, CellType.STRING).setCellValue("星期");
+            billHeadRow.createCell(2, CellType.STRING).setCellValue("开始时间");
+            billHeadRow.createCell(3, CellType.STRING).setCellValue("结束时间");
+            billHeadRow.createCell(4, CellType.STRING).setCellValue("费用");
+            billHeadRow.createCell(5, CellType.STRING).setCellValue("是否分摊");
+
+            for (int i = 0; i < stat.getBills().size(); i++) {
+                BookingBill bill = stat.getBills().get(i);
+                HSSFRow bsr = billSheet.createRow(i + 1);
+                bsr.createCell(0, CellType.STRING).setCellValue(Constant.FORMAT.format(bill.getDate()));
+                bsr.createCell(1, CellType.STRING).setCellValue(Constant.FORMAT_WEEK.format(bill.getDate()));
+                bsr.createCell(2, CellType.STRING).setCellValue(BookingTool.toTime(bill.getStart()));
+                bsr.createCell(3, CellType.STRING).setCellValue(BookingTool.toTime(bill.getEnd() + 1));
+                bsr.createCell(4, CellType.NUMERIC).setCellValue(bill.getFee());
+                bsr.createCell(5, CellType.STRING).setCellValue(bill.isShare() ? "Y" : "N");
+            }
+            index++;
+        }
+        File dir = new File("bills");
+        FileUtils.forceMkdir(dir);
+        wb.write(new File(dir, Constant.FORMAT_MONTH.format(start) + ".xls"));
+        wb.close();
     }
 
     private Collection<Statistic> calc(List<Booking> bookings, Date start) {
@@ -58,20 +120,38 @@ public class MonthlyStatisticTask {
             Statistic statistic = putIfAbsent(mapping, booking.getOwner(), start);
             statistic.setBookTimes(statistic.getBookTimes() + 1);
             statistic.setHours(statistic.getHours() + booking.getEnd() - booking.getStart() + 1);
-            statistic.getBookings().add(booking);
-            if (CollectionUtils.isEmpty(booking.getShareUsers())) {
-                statistic.setFee(statistic.getFee() + booking.getFee());
-            } else {
+            BookingBill bill = new BookingBill(
+                    booking.getOpenId(),
+                    booking.getId(),
+                    booking.getFee(),
+                    false,
+                    booking.getDate(),
+                    booking.getStart(),
+                    booking.getEnd()
+            );
+
+            if (!CollectionUtils.isEmpty(booking.getShareUsers())) {
                 int average = booking.getFee() / (booking.getShareUsers().size() + 1);
-                statistic.setFee(statistic.getFee() + booking.getFee() - average * booking.getShareUsers().size());
+                bill.setFee(booking.getFee() - average * booking.getShareUsers().size());
+                bill.setShare(true);
                 for (User user : booking.getShareUsers()) {
                     Statistic ss = putIfAbsent(mapping, user, start);
                     ss.setFee(ss.getFee() + average);
                     ss.setHours(ss.getHours() + booking.getEnd() - booking.getStart() + 1);
                     ss.setBookTimes(ss.getBookTimes() + 1);
-                    ss.getBookings().add(booking);
+                    ss.getBills().add(
+                            new BookingBill(ss.getUser().getOpenId(),
+                                    booking.getId(),
+                                    average,
+                                    true,
+                                    booking.getDate(),
+                                    booking.getStart(),
+                                    booking.getEnd()
+                            ));
                 }
             }
+            statistic.getBills().add(bill);
+            statistic.setFee(statistic.getFee() + bill.getFee());
         }
         return mapping.values();
     }
