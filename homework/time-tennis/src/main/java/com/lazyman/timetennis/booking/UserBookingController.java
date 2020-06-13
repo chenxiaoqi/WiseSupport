@@ -106,6 +106,9 @@ public class UserBookingController implements ApplicationContextAware {
         Booking booking = bookingMapper.selectByPrimaryKey(bookingId);
         Validate.notNull(booking);
 
+        if (!user.getVip()) {
+            throw new BusinessException("您还不是会员,请联系管理员授权");
+        }
         if (booking.getOpenId().equals(user.getOpenId())) {
             throw new BusinessException("这个场地就是你定的哦");
         }
