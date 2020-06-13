@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.SessionAttribute;
 
+import javax.validation.constraints.Size;
 import java.util.Date;
 import java.util.List;
 
@@ -20,7 +21,7 @@ public class OperationController {
     }
 
     @GetMapping("/operations")
-    public List<Operation> operations(@SessionAttribute User user,@DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") @RequestParam(required = false) Date start) {
+    public List<Operation> operations(@SessionAttribute User user,@DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") @RequestParam(required = false) @Size(max = 32) Date start) {
         return mapper.selectAll(start);
     }
 }

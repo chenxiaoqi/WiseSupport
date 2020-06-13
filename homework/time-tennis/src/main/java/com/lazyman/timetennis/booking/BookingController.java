@@ -40,9 +40,8 @@ public class BookingController implements ApplicationContextAware {
     }
 
     @GetMapping("/bookings")
-    public List<Booking> bookings(@SessionAttribute("user") User user, Integer id) {
-
-        List<Booking> result = bookingMapper.page(id);
+    public List<Booking> bookings(@SessionAttribute("user") User user, String openId, Integer id) {
+        List<Booking> result = bookingMapper.page(openId,id);
         result.forEach((item) -> {
             item.setCancelAble(BookingTool.cancelAble(item));
         });

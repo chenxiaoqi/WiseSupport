@@ -115,7 +115,8 @@
     <select id="page" resultMap="BaseResultMap">
         <include refid="listSelect"></include>
         <where>
-            <if test="id!=null">a.id &lt; #{id}</if>
+            <if test="openId!=null">a.open_id=#{openId}</if>
+            <if test="id!=null">and a.id &lt; #{id}</if>
         </where>
         order by a.id desc limit 21
     </select>

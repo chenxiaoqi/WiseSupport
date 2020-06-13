@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.constraints.Size;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -46,7 +47,7 @@ public class BillController {
     }
 
     @GetMapping("/stat/{month}")
-    public List<Statistic> bill(@PathVariable @DateTimeFormat(pattern = "yyyy-MM") Date month) {
+    public List<Statistic> bill(@PathVariable @DateTimeFormat(pattern = "yyyy-MM")  Date month) {
         List<Statistic> sts = getStatistics(month);
         if (!sts.isEmpty()) {
             Statistic summary = new Statistic();
@@ -61,7 +62,7 @@ public class BillController {
     }
 
     @GetMapping("/bills")
-    public List<BookingBill> statDetail(@RequestParam(required = true) @DateTimeFormat(pattern = "yyyy-MM") Date month, @RequestParam() String openId) {
+    public List<BookingBill> statDetail(@RequestParam() @DateTimeFormat(pattern = "yyyy-MM") Date month, @RequestParam() @Size(max = 64) String openId) {
         return getBookingBills(month, openId);
     }
 
