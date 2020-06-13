@@ -8,7 +8,7 @@ spring:
     driver-class-name: com.mysql.jdbc.Driver
     url: jdbc:mysql://119.45.20.186:3306/timetennis?useUnicode=true&characterEncoding=UTF-8
     username: timetennis
-    password: timetennis$444.com
+    password: ${wx.mysql-password}
     hikari:
       connection-test-query: select 1
       idle-timeout: 60000

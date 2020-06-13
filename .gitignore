@@ -24,6 +24,7 @@ target
 *.iml
 .idea
 build
+password.properties
 
 node_modules
 dist
