@@ -7,19 +7,13 @@ public class BaseBookingEvent extends BaseEvent {
 
     private Booking booking;
 
-    private String operationType;
-
     public BaseBookingEvent(Object source, User operator, Booking booking,String operationType) {
-        super(source, operator);
+        super(source, operator, operationType);
         this.booking = booking;
-        this.operationType = operationType;
     }
 
     public Booking getBooking() {
         return booking;
     }
 
-    public String getOperationType() {
-        return operationType;
-    }
 }

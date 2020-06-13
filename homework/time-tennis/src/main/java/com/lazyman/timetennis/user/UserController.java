@@ -2,6 +2,7 @@ package com.lazyman.timetennis.user;
 
 import com.lazyman.timetennis.BusinessException;
 import com.lazyman.timetennis.SessionWatch;
+import org.apache.commons.lang3.Validate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,13 +27,20 @@ public class UserController {
         return userMapper.selectAll();
     }
 
+    @GetMapping("/user/{openId}")
+    public User user(@SessionAttribute User user, @PathVariable @Size(min = 4, max = 64) String openId) {
+        User u = userMapper.selectByPrimaryKey(openId);
+        Validate.notNull(u);
+        return u;
+    }
+
     @PostMapping("/user/grant_vip")
-    public void vip(@SessionAttribute User user,@RequestParam @NotEmpty @Size(min = 1,max = 64) String openId) {
+    public void vip(@SessionAttribute User user, @RequestParam @NotEmpty @Size(min = 1, max = 64) String openId) {
         switchVip(user, openId, true);
     }
 
     @PostMapping("/user/cancel_vip")
-    public void cancelVip(@SessionAttribute User user, @RequestParam @NotEmpty @Size(min = 1,max = 64)  String openId) {
+    public void cancelVip(@SessionAttribute User user, @RequestParam @NotEmpty @Size(min = 1, max = 64) String openId) {
         switchVip(user, openId, false);
     }
 
@@ -49,12 +57,12 @@ public class UserController {
     }
 
     @PostMapping("/user/grant_admin")
-    public void grantAdmin(@SessionAttribute User user,@RequestParam @NotEmpty @Size(min = 1,max = 64)  String openId) {
+    public void grantAdmin(@SessionAttribute User user, @RequestParam @NotEmpty @Size(min = 1, max = 64) String openId) {
         switchAdmin(user, openId, true);
     }
 
     @PostMapping("/user/cancel_admin")
-    public void cancelAdmin(@SessionAttribute User user,@RequestParam @NotEmpty @Size(min = 1,max = 64)  String openId) {
+    public void cancelAdmin(@SessionAttribute User user, @RequestParam @NotEmpty @Size(min = 1, max = 64) String openId) {
         switchAdmin(user, openId, false);
     }
 

@@ -65,6 +65,16 @@ public class User implements Serializable {
 
     private Boolean admin;
 
+    private int balance;
+
+    public int getBalance() {
+        return balance;
+    }
+
+    public void setBalance(int balance) {
+        this.balance = balance;
+    }
+
     public Boolean getAdmin() {
         return admin;
     }

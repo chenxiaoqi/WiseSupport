@@ -1,6 +1,7 @@
 package com.lazyman.timetennis.user;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -45,4 +46,6 @@ public interface UserMapper {
      * @mbg.generated
      */
     int updateByPrimaryKey(User record);
+
+    int charge(@Param("openId") String openId, @Param("discountFee") int discountFee);
 }

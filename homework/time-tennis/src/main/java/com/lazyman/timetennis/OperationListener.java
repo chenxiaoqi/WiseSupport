@@ -5,6 +5,7 @@ import com.lazyman.timetennis.booking.Booking;
 import com.lazyman.timetennis.booking.BookingTool;
 import com.lazyman.timetennis.log.Operation;
 import com.lazyman.timetennis.log.OperationMapper;
+import com.lazyman.timetennis.user.BalanceEvent;
 import com.lazyman.timetennis.user.User;
 import com.lazyman.timetennis.user.UserMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +38,10 @@ public class OperationListener {
             operation.setDescription(name + operation.getDescription());
         }
         log.info("{} {} {} {}", operator.getOpenId(), operator.getWxNickname(), event.getOperationType(), operation.getDescription());
+        save(operation);
+    }
+
+    private void save(Operation operation) {
         try {
             mapper.insert(operation);
         } catch (Exception e) {
@@ -44,4 +49,13 @@ public class OperationListener {
         }
     }
 
+    @EventListener(BalanceEvent.class)
+    public void onUser(BalanceEvent event) {
+        User user = event.getOperator();
+        Operation operation = new Operation();
+        operation.setOperatorId(user.getOpenId());
+        operation.setOperationType(event.getOperationType());
+        operation.setDescription(String.format("[%s]账户余额%s,充值%s元,充值后账户与额%s", event.getTarget().getWxNickname(), event.getBalance(), event.getFee(), event.getTarget().getBalance()));
+        save(operation);
+    }
 }
