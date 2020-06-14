@@ -46,8 +46,8 @@ public class MonthlyStatisticTask implements ApplicationContextAware {
         this.template = template;
     }
 
-    @Scheduled(fixedDelay = 3600000)
-//    @Scheduled(cron = "${wx.stat-cron}")
+    //    @Scheduled(fixedDelay = 3600000)
+    @Scheduled(cron = "${wx.stat-cron}")
     @Transactional
     public void run() {
         Date end = DateUtils.truncate(new Date(), Calendar.MONTH);
