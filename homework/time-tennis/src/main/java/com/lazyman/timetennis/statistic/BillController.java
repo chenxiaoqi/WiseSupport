@@ -11,10 +11,7 @@ import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.lang.NonNull;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.Size;
@@ -40,12 +37,12 @@ public class BillController {
     }
 
     @GetMapping("/stat/{month}")
-    public List<Statistic> bill(@PathVariable @DateTimeFormat(pattern = "yyyy-MM")  Date month) {
+    public List<Statistic> bill(@SessionAttribute User user, @PathVariable @DateTimeFormat(pattern = "yyyy-MM") Date month) {
         return getStatistics(month);
     }
 
     @GetMapping("/bills")
-    public List<BookingBill> statDetail(@RequestParam() @DateTimeFormat(pattern = "yyyy-MM") Date month, @RequestParam() @Size(max = 64) String openId) {
+    public List<BookingBill> statDetail(@SessionAttribute User user, @RequestParam() @DateTimeFormat(pattern = "yyyy-MM") Date month, @RequestParam() @Size(max = 64) String openId) {
         return getBookingBills(month, openId);
     }
 

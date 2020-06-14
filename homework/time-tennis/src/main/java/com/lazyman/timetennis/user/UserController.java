@@ -23,12 +23,12 @@ public class UserController {
     }
 
     @GetMapping("/users")
-    public List<User> users(@SessionAttribute User user) {
+    public List<User> users() {
         return userMapper.selectAll();
     }
 
     @GetMapping("/user/{openId}")
-    public User user(@SessionAttribute User user, @PathVariable @Size(min = 4, max = 64) String openId) {
+    public User user(@PathVariable @Size(min = 4, max = 64) String openId) {
         User u = userMapper.selectByPrimaryKey(openId);
         Validate.notNull(u);
         return u;
