@@ -18,4 +18,5 @@ public class Statistic {
     @JsonFormat(pattern = "yyyy-MM")
     private Date month;
     private List<BookingBill> bills = new ArrayList<>();
+    private int balance;
 }

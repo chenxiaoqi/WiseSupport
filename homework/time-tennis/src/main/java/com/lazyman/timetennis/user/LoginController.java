@@ -36,14 +36,22 @@ public class LoginController {
 
     private UserMapper userMapper;
 
+    private String superAdmin;
+
+    private String accountant;
+
     public LoginController(HttpClient client,
                            @Value("${wx.appId}") String appId,
                            @Value("${wx.secret}") String secret,
-                           UserMapper userMapper) {
+                           UserMapper userMapper,
+                           @Value("${wx.super-admin}") String superAdmin,
+                           @Value("${wx.accountant}") String accountant) {
         this.client = client;
         this.appId = appId;
         this.secret = secret;
         this.userMapper = userMapper;
+        this.superAdmin = superAdmin;
+        this.accountant = accountant;
     }
 
     @GetMapping("/login")
@@ -85,7 +93,11 @@ public class LoginController {
         }
         session = request.getSession();
         SessionWatch.register(user.getOpenId(), session);
-        session.setAttribute("user", userMapper.selectByPrimaryKey(user.getOpenId()));
-        return user;
+
+        dbUser = userMapper.selectByPrimaryKey(user.getOpenId());
+        dbUser.setSuperAdmin(user.getOpenId().equals(superAdmin));
+        dbUser.setAccountant(user.getOpenId().equals(accountant));
+        session.setAttribute("user", dbUser);
+        return dbUser;
     }
 }

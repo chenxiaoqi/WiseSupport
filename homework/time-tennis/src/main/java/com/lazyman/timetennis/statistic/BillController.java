@@ -6,10 +6,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.lang3.time.FastDateFormat;
-import org.apache.poi.hssf.usermodel.HSSFRow;
-import org.apache.poi.hssf.usermodel.HSSFSheet;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.ss.usermodel.CellType;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -24,10 +20,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.Size;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Calendar;
@@ -48,17 +41,7 @@ public class BillController {
 
     @GetMapping("/stat/{month}")
     public List<Statistic> bill(@PathVariable @DateTimeFormat(pattern = "yyyy-MM")  Date month) {
-        List<Statistic> sts = getStatistics(month);
-        if (!sts.isEmpty()) {
-            Statistic summary = new Statistic();
-            sts.forEach((item) -> {
-                summary.setHours(summary.getHours() + item.getHours());
-                summary.setFee(summary.getFee() + item.getFee());
-                summary.setBookTimes(summary.getBookTimes() + item.getBookTimes());
-            });
-            sts.add(summary);
-        }
-        return sts;
+        return getStatistics(month);
     }
 
     @GetMapping("/bills")
@@ -103,7 +86,7 @@ public class BillController {
 
     private List<Statistic> getStatistics(Date month) {
         Date start = DateUtils.truncate(month, Calendar.MONTH);
-        return template.query("select a.open_id,a.month,a.fee,a.hours,a.book_times,b.wx_nickname,b.nickname,b.avatar from monthly_stat a,tt_user b where a.open_id=b.open_id and a.month=?", new RowMapper<Statistic>() {
+        return template.query("select a.open_id,a.month,a.fee,a.hours,a.book_times,a.balance,b.wx_nickname,b.nickname,b.avatar from monthly_stat a,tt_user b where a.open_id=b.open_id and a.month=?", new RowMapper<Statistic>() {
             @Override
             public Statistic mapRow(@NonNull ResultSet rs, int rowNum) throws SQLException {
                 Statistic statistic = new Statistic();
@@ -111,6 +94,7 @@ public class BillController {
                 statistic.setMonth(rs.getDate("month"));
                 statistic.setFee(rs.getInt("fee"));
                 statistic.setHours(rs.getInt("hours"));
+                statistic.setBalance(rs.getInt("balance"));
                 statistic.setBookTimes(rs.getInt("book_times"));
                 User user = new User();
                 user.setWxNickname(rs.getString("wx_nickname"));

@@ -8,6 +8,7 @@ public class BaseEvent extends ApplicationEvent {
     public static final String OP_BOOK_CANCEL = "cb";
     public static final String OP_BOOK_SHARE = "sb";
     public static final String OP_CHARGE = "c";
+    public static final String OP_MDC = "mdc";
     private String operationType;
     private User operator;
 
