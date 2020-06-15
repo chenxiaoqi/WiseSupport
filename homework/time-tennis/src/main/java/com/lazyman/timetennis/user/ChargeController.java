@@ -50,7 +50,7 @@ public class ChargeController implements ApplicationContextAware {
         int discountFee;
         if (hasDiscount) {
             if (fee == 200) {
-                discountFee = 250;
+                discountFee = 260;
             } else if (fee == 500) {
                 discountFee = 750;
             } else if (fee == 1000) {
