@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CSS Demo</title>
+    <style>
+        html {
+            padding: 0 0;
+            height: 100%;
+            border: 10px green solid;
+        }
+
+        body {
+            margin: 0 0;
+            height: 100%;
+        }
+
+        * {
+            border: 1px red solid;
+            /*line-height: 100px;*/
+        }
+
+
+    </style>
+    <script>
+        function showAlert() {
+            document.getElementById("span1").innerText = 'hrr';
+            document.getElementById("span1").style.height = '50px';
+        }
+    </script>
+</head>
+<body>
+<div style="background-color: gray;height: 50px;padding:30px 30px">
+    <span>小程序</span><span style="float: right">文档</span><span style="float: right;margin-right: 30px">社区</span>
+</div>
+<div style="background-color: blue;width: 30%;height: 300px;float: left;">xx</div>
+<div style="background-color: blue;width: 69%;height: 300px;float: right">xx</div>
+</body>
+</html>

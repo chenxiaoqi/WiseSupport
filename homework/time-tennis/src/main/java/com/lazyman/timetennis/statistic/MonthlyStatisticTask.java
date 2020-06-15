@@ -50,7 +50,8 @@ public class MonthlyStatisticTask implements ApplicationContextAware {
     @Scheduled(cron = "${wx.stat-cron}")
     @Transactional
     public void run() {
-        Date end = DateUtils.truncate(new Date(), Calendar.MONTH);
+//        Date end = DateUtils.truncate(new Date(), Calendar.MONTH);
+        Date end = DateUtils.truncate(DateUtils.addMonths(new Date(), 1), Calendar.MONTH);
         Date start = DateUtils.addMonths(end, -1);
 
         log.info("monthly statistic task start {}", Constant.FORMAT.format(start));
