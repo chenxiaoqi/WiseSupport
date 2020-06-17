@@ -20,6 +20,6 @@ public class TimeTennis {
         new SpringApplicationBuilder()
                 .registerShutdownHook(true)
                 .sources(TimeTennis.class)
-                .run(args);
+                .run(args).registerShutdownHook();
     }
 }
