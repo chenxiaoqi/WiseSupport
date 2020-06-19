@@ -22,6 +22,7 @@ server:
 wx:
   appId: wxa87c26db862e6bbd
   secret: ace15be8afc9c3072d94c217707fae17
-  super-admin: oRKVW47X2MBoaiWq9hHF0PcgcxvM
-  accountant: oRKVW41OYxh849ISbWTgY0kLmmLI
+  super-admin: oRKVW4x8Mr1TFtcO9JRd5yk1IoTs
+  accountant: oRKVW4x8Mr1TFtcO9JRd5yk1IoTs
   stat-cron: 0 0 1 1 1/1 ?
+  cancel-times-limit: 2

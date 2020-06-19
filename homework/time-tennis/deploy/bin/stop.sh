@@ -1,1 +1,1 @@
-cat pid|xargs kill -2
+cat pid|xargs kill

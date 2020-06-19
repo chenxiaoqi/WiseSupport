@@ -3,3 +3,6 @@ spring:
     url: jdbc:mysql://10.206.0.5:3306/timetennis?useUnicode=true&characterEncoding=UTF-8
 logging:
   config: classpath:logback-spring-production.xml
+wx:
+  super-admin: oRKVW47X2MBoaiWq9hHF0PcgcxvM
+  accountant: oRKVW41OYxh849ISbWTgY0kLmmLI

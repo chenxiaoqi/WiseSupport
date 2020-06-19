@@ -6,10 +6,12 @@ import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,8 +31,14 @@ public class UserBookingController implements ApplicationContextAware {
 
     private ApplicationContext application;
 
-    public UserBookingController(BookingMapper bookingMapper) {
+    private int cancelTimeLimit;
+
+    private JdbcTemplate template;
+
+    public UserBookingController(BookingMapper bookingMapper, @Value("${wx.cancel-times-limit}") int cancelTimeLimit, JdbcTemplate template) {
         this.bookingMapper = bookingMapper;
+        this.cancelTimeLimit = cancelTimeLimit;
+        this.template = template;
     }
 
     @PostMapping("/booking")
@@ -93,12 +101,26 @@ public class UserBookingController implements ApplicationContextAware {
             throw new BusinessException("预定场地必须提前两个小时取消,如有特殊需求请联系管理员");
         }
 
+        checkCancelTimesLimit(user);
+
         Booking booking = new Booking();
         booking.setOpenId(user.getOpenId());
         booking.setId(id);
         bookingMapper.deleteBooking(booking);
         bookingMapper.deleteShare(id);
         application.publishEvent(new BookingCancelEvent(this, user, dbBooking));
+    }
+
+    private void checkCancelTimesLimit(User user) {
+        Date start = DateUtils.truncate(new Date(), Calendar.MONTH);
+        Date end = DateUtils.addMonths(start, 1);
+        Integer count = template.queryForObject("select count(1) from operation where operator_id=?  and operation_type='cb' and update_time>=? and update_time<?",
+                Integer.class, user.getOpenId(), start, end);
+        Validate.notNull(count);
+        if (count >= cancelTimeLimit) {
+            throw new BusinessException("您本月取消次数已用完,如特殊需求请联系管理员!");
+        }
+
     }
 
     @PostMapping("/share/booking/{bookingId}")
@@ -121,7 +143,7 @@ public class UserBookingController implements ApplicationContextAware {
         } catch (DuplicateKeyException e) {
             throw new BusinessException("您已经分摊过了");
         }
-        application.publishEvent(new BookingShareEvent(this,user,booking));
+        application.publishEvent(new BookingShareEvent(this, user, booking));
     }
 
     @Override
