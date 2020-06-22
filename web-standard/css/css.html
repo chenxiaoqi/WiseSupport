@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CSS Demo</title>
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+            font-size: 20px;
+            box-sizing: content-box;
+        }
+
+        body {
+            padding: 10px 10px;
+        }
+
+        .container {
+            /*resize: both;*/
+            /*overflow: auto;*/
+            border: 3px rebeccapurple solid;
+        }
+
+        .flex {
+            display: flex;
+            justify-content: center;
+            flex-wrap: nowrap;
+
+        }
+
+        .flex > div, .grid > div {
+            border: 3px chocolate dashed;
+            /*margin: 20px;*/
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .item {
+            border: 3px chocolate dashed;
+        }
+
+        p {
+            background-color: rgb(207, 232, 220);
+            border: 2px solid rgb(79, 185, 227);
+            padding: 10px;
+            margin: 10px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+<h1>font-size</h1>
+<div class="container" style="height: 20em">
+    xxx
+</div>
+<h1>flex</h1>
+<div class="container flex" style="width: 250px;">
+    <div style="width: 200px">box1</div>
+    <div style="width: 50px">box2</div>
+    <div style="width: 50px">box3</div>
+</div>
+<h1>column-width</h1>
+<div class="container" style="column-width: 100px">
+    <p class="item">p1</p>
+    <p class="item">p2</p>
+    <p class="item">p3</p>
+    <p class="item">p4</p>
+</div>
+<h1>position</h1>
+<div class="container" style="height: 200px;position: relative">
+    <p style="position: absolute;top: 60px;left: 60px">I am a absolute block level element.</p>
+    <p style="position: relative;top: -10px;left: -10px">I am a relative block level element.</p>
+    <p style="position: fixed;bottom: 0;right: 0">I am a fix block level element.</p>
+    <p style="position: sticky;top: 30px;left: 30px">I am a sticky block level element.</p>
+    <p>I am a normal block level element.</p>
+</div>
+<h1>grid</h1>
+<div class="container grid">
+    <div>box1</div>
+    <div>box2</div>
+    <div>box3</div>
+    <div>box4</div>
+</div>
+
+<h1>float</h1>
+<div class="container" style="width: 200px">
+    <div class="item" style="float: left;width: 50px;height: 50px">
+    </div>
+    <div>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla luctus aliquam dolor, eu lacinia lorem
+            placerat vulputate.
+        </p>
+    </div>
+</div>
+<h1>normal</h1>
+<div class="container">
+    <div class="item" style="margin: 20px">box1</div>
+    <div class="item" style="margin: 20px">box2</div>
+    <div class="item" style="margin: 20px">box3</div>
+    <div class="item" style="margin: 20px">box4</div>
+</div>
+<div class="container" style="width: 50px; white-space: nowrap;overflow: hidden;text-overflow: ellipsis;">
+    <span>xxxxxxxxxxxxxxxx</span>
+</div>
+</body>
+</html>
