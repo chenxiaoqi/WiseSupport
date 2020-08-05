@@ -70,6 +70,10 @@ public class UserBookingController implements ApplicationContextAware {
             }
         }
 
+        if (user.getBalance() <= 0) {
+            throw new BusinessException("账户余额不足");
+        }
+
         List<Booking> bookings = bookingMapper.queryByDate(date);
         for (Booking booking : bookings) {
             if (!(timeIndexStart < booking.getStart() && timeIndexEnd < booking.getStart() || timeIndexStart > booking.getEnd() && timeIndexEnd > booking.getEnd())) {

@@ -49,12 +49,32 @@
             margin: 10px;
             border-radius: 5px;
         }
+
+        #clipped {
+            clip-path: url(#cross);
+        }
     </style>
 </head>
 <body>
-<h1>font-size</h1>
-<div class="container" style="height: 20em">
-    xxx
+<h1>mask</h1>
+<div class="container">
+</div>
+<h1>clip-path</h1>
+<div class="container">
+    <img id="clipped" src="https://mdn.mozillademos.org/files/12668/MDN.svg"
+         alt="MDN logo">
+    <img src="https://mdn.mozillademos.org/files/12668/MDN.svg"
+         alt="MDN logo">
+    <svg height="0" width="0">
+        <defs>
+            <clipPath id="cross">
+                <rect y="110" x="137" width="90" height="90"/>
+                <rect x="0" y="110" width="90" height="90"/>
+                <rect x="137" y="0" width="90" height="90"/>
+                <rect x="0" y="0" width="90" height="90"/>
+            </clipPath>
+        </defs>
+    </svg>
 </div>
 <h1>flex</h1>
 <div class="container flex" style="width: 250px;">
