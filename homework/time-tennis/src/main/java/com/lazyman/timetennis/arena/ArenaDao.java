@@ -45,4 +45,17 @@ public class ArenaDao {
     }
 
 
+    public List<Arena> arenas(String openId) {
+        return template.query("select b.id,b.name,b.location,b.advance_book_days,b.book_start_hour,b.book_end_hour from arena_role a,arena b where a.arena_id=b.id and a.role='admin' and a.open_id=?", (rs, rowNum) -> {
+                    Arena arena = new Arena();
+                    arena.setId(rs.getInt("id"));
+                    arena.setName(rs.getString("name"));
+                    arena.setLocation(rs.getString("location"));
+                    arena.setAdvanceBookDays(rs.getInt("advance_book_days"));
+                    arena.setBookStartHour(rs.getInt("book_start_hour"));
+                    arena.setBookEndHour(rs.getInt("book_end_hour"));
+                    return arena;
+                },
+                openId);
+    }
 }
