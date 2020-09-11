@@ -8,6 +8,7 @@
 
     <logger name="com.lazyman.timetennis" level="debug"/>
     <logger name="com.wisesupport.commons" level="debug"/>
+    <logger name="org.springframework" level="debug"/>
 
 
     <root level="info">

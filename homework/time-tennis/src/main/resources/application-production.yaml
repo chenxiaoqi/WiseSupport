@@ -1,8 +1,7 @@
 spring:
   datasource:
     url: jdbc:mysql://localhost:3306/timetennis?useUnicode=true&characterEncoding=UTF-8
+    username: timetennis
+    password: ${wx.mysql-password}
 logging:
   config: classpath:logback-spring-production.xml
-wx:
-  super-admin: oRKVW47X2MBoaiWq9hHF0PcgcxvM
-  accountant: oRKVW41OYxh849ISbWTgY0kLmmLI
