@@ -6,22 +6,26 @@ spring:
     time-zone: GMT+8
   datasource:
     driver-class-name: com.mysql.jdbc.Driver
-    url: jdbc:mysql://119.45.20.186:3306/timetennis?useUnicode=true&characterEncoding=UTF-8
-    username: timetennis
-    password: ${wx.mysql-password}
+    url: jdbc:mysql://192.168.1.20:3306/timetennis?useUnicode=true&characterEncoding=UTF-8&useSSL=false
+    username: chenxiaoqi
+    password: chenxiaoqi
     hikari:
       connection-test-query: select 1
       idle-timeout: 60000
       max-lifetime: 300000
       maximum-pool-size: 5
       minimum-idle: 1
+  mvc:
+    static-path-pattern: /images/**
+  resources:
+    static-locations: file:images
 server:
-  port: 8090
+  port: 8080
   address: 0.0.0.0
 
 wx:
-  appId: wxa87c26db862e6bbd
-  secret: ace15be8afc9c3072d94c217707fae17
+  appId: wx39ac3fe4f8bc37b6
+  secret: 47b06252bc485f465dafb9cb5dec17d2
   super-admin: oRKVW4x8Mr1TFtcO9JRd5yk1IoTs
   accountant: oRKVW4x8Mr1TFtcO9JRd5yk1IoTs
   stat-cron: 0 0 1 1 1/1 ?

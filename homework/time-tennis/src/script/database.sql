@@ -94,3 +94,46 @@ create table tt_user
     balance     int         default 0                 not null
 )
     comment '用户信息' charset = utf8;
+
+create table arena
+(
+    id                int auto_increment primary key,
+    name              varchar(18)                         not null,
+    address           varchar(64)                         not null,
+    location          varchar(16)                         not null,
+    phone             varchar(16)                         not null,
+    images            varchar(64)                         not null,
+    introduction      varchar(128)                        null,
+    advance_book_days int       default 7                 not null,
+    book_start_hour   int                                 not null,
+    book_end_hour     int                                 not null,
+    book_style        int       default 1                 not null,
+    create_time       timestamp default CURRENT_TIMESTAMP not null
+)
+    comment '场馆' charset = utf8mb4;
+
+create table court
+(
+    id       int auto_increment,
+    arena_id int         not null,
+    name     varchar(16) not null,
+    fee      int         not null,
+    constraint court_pk
+        primary key (id)
+) charset = UTF8MB4;
+
+create table rule
+(
+    id         int auto_increment,
+    arena_id   int         not null,
+    name       varchar(32) not null,
+    type       int         not null default 1,
+    start_date varchar(10) null,
+    end_date   varchar(10) null,
+    week       int         null,
+    start_hour int         null,
+    end_hour   int         null,
+    fee        int         null,
+    constraint rule_pk
+        primary key (id)
+) charset = UTF8MB4;
