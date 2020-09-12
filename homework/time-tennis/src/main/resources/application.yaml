@@ -19,6 +19,10 @@ spring:
     static-path-pattern: /images/**
   resources:
     static-locations: file:images
+  servlet:
+    multipart:
+      max-request-size: 10MB
+      location: tmp
 server:
   port: 8080
   address: 0.0.0.0

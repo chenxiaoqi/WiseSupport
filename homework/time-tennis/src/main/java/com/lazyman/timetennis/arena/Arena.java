@@ -9,8 +9,11 @@ import java.util.List;
 public class Arena {
     private int id;
     private String name;
+    private int type;
     private String address;
-    private String location;
+    private String province;
+    private String city;
+    private String district;
     private String phone;
     private String introduction;
     private int advanceBookDays;

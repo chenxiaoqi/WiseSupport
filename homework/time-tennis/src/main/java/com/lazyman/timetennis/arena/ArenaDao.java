@@ -2,9 +2,16 @@ package com.lazyman.timetennis.arena;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.PreparedStatementCreatorFactory;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Types;
 import java.util.List;
+import java.util.Objects;
 
 @Component
 public class ArenaDao {
@@ -15,11 +22,11 @@ public class ArenaDao {
     }
 
     public List<Arena> arenas() {
-        return template.query("select id, name,location,images,book_style from arena", (rs, rowNum) -> {
+        return template.query("select id, name,district,images,book_style from arena", (rs, rowNum) -> {
             Arena arena = new Arena();
             arena.setId(rs.getInt("id"));
             arena.setName(rs.getString("name"));
-            arena.setLocation(rs.getString("location"));
+            arena.setDistrict(rs.getString("district"));
             arena.setBookStyle(rs.getInt("book_style"));
             arena.setImages(StringUtils.split(rs.getString("images"), ','));
             return arena;
@@ -27,35 +34,79 @@ public class ArenaDao {
     }
 
     public Arena load(int id) {
-        return template.queryForObject("select id,name,location,address,images,book_style,phone,introduction,advance_book_days,book_start_hour,book_end_hour from arena where id=?", (rs, rowNum) -> {
+        return template.queryForObject("select id,name,type,province,city,district,address,images,book_style,phone,introduction,advance_book_days,book_start_hour,book_end_hour from arena where id=?", (rs, rowNum) -> {
             Arena result = new Arena();
-            result.setId(rs.getInt("id"));
-            result.setName(rs.getString("name"));
-            result.setLocation(rs.getString("location"));
+            populateArenaProperties(rs, result);
+            result.setType(rs.getInt("type"));
             result.setAddress(rs.getString("address"));
             result.setImages(StringUtils.split(rs.getString("images"), ','));
             result.setBookStyle(rs.getInt("book_style"));
             result.setPhone(rs.getString("phone"));
             result.setIntroduction(rs.getString("introduction"));
-            result.setAdvanceBookDays(rs.getInt("advance_book_days"));
-            result.setBookStartHour(rs.getInt("book_start_hour"));
-            result.setBookEndHour(rs.getInt("book_end_hour"));
             return result;
         }, id);
     }
 
-
     public List<Arena> arenas(String openId) {
-        return template.query("select b.id,b.name,b.location,b.advance_book_days,b.book_start_hour,b.book_end_hour from arena_role a,arena b where a.arena_id=b.id and a.role='admin' and a.open_id=?", (rs, rowNum) -> {
+        return template.query("select b.id,b.name,b.province,b.city,b.district,b.advance_book_days,b.book_start_hour,b.book_end_hour from arena_role a,arena b where a.arena_id=b.id and a.role='admin' and a.open_id=?", (rs, rowNum) -> {
                     Arena arena = new Arena();
-                    arena.setId(rs.getInt("id"));
-                    arena.setName(rs.getString("name"));
-                    arena.setLocation(rs.getString("location"));
-                    arena.setAdvanceBookDays(rs.getInt("advance_book_days"));
-                    arena.setBookStartHour(rs.getInt("book_start_hour"));
-                    arena.setBookEndHour(rs.getInt("book_end_hour"));
+                    populateArenaProperties(rs, arena);
                     return arena;
                 },
                 openId);
+    }
+
+    private void populateArenaProperties(ResultSet rs, Arena result) throws SQLException {
+        result.setId(rs.getInt("id"));
+        result.setName(rs.getString("name"));
+        result.setProvince(rs.getString("province"));
+        result.setCity(rs.getString("city"));
+        result.setDistrict(rs.getString("district"));
+        result.setAdvanceBookDays(rs.getInt("advance_book_days"));
+        result.setBookStartHour(rs.getInt("book_start_hour"));
+        result.setBookEndHour(rs.getInt("book_end_hour"));
+    }
+
+    public int insert(Arena arena) {
+        String sql = "insert into arena (name, type, address, province, city, district, phone, introduction, advance_book_days, book_start_hour, book_end_hour) values (?,?,?,?,?,?,?,?,?,?,?)";
+        PreparedStatementCreatorFactory psf =
+                new PreparedStatementCreatorFactory(sql,
+                        Types.VARCHAR,
+                        Types.VARCHAR,
+                        Types.NVARCHAR,
+                        Types.NVARCHAR,
+                        Types.NVARCHAR,
+                        Types.NVARCHAR,
+                        Types.NVARCHAR,
+                        Types.NVARCHAR,
+                        Types.INTEGER,
+                        Types.INTEGER,
+                        Types.INTEGER);
+        psf.setReturnGeneratedKeys(true);
+        KeyHolder holder = new GeneratedKeyHolder();
+        template.update(psf.newPreparedStatementCreator(
+                new Object[]{
+                        arena.getName(),
+                        arena.getType(),
+                        arena.getAddress(),
+                        arena.getProvince(),
+                        arena.getCity(),
+                        arena.getDistrict(),
+                        arena.getPhone(),
+                        arena.getIntroduction(),
+                        arena.getAdvanceBookDays(),
+                        arena.getBookStartHour(),
+                        arena.getBookEndHour()
+                }
+        ), holder);
+        return Objects.requireNonNull(holder.getKey()).intValue();
+    }
+
+    public void updateImages(int id, String images) {
+        template.update("update arena set images=? where id=?", images, id);
+    }
+
+    public void setRole(int id, String openId, String role) {
+        template.update("insert into arena_role (arena_id, open_id, role) value (?,?,?)", id, openId, role);
     }
 }
