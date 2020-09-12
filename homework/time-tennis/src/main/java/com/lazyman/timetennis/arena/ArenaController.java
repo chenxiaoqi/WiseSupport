@@ -35,20 +35,23 @@ public class ArenaController {
     public Arena arenaDetail(@PathVariable int id) {
         Arena arena = arenaDao.load(id);
         List<Court> courts = courtDao.courts(arena.getId());
-        Object[] courtIds = courts.stream().map(Court::getId).toArray();
-        List<Rule> rules = ruleDao.courtRules(courtIds);
-        for (Court court : courts) {
-            for (Rule rule : rules) {
-                if (court.getId() == rule.getCourtId()) {
-                    if (rule.getType() == 1) {
-                        court.getDisableRules().add(rule);
-                    } else {
-                        court.getFeeRules().add(rule);
+        if (!courts.isEmpty()) {
+            Object[] courtIds = courts.stream().map(Court::getId).toArray();
+            List<Rule> rules = ruleDao.courtRules(courtIds);
+            for (Court court : courts) {
+                for (Rule rule : rules) {
+                    if (court.getId() == rule.getCourtId()) {
+                        if (rule.getType() == 1) {
+                            court.getDisableRules().add(rule);
+                        } else {
+                            court.getFeeRules().add(rule);
+                        }
                     }
                 }
             }
+            arena.setCourts(courts);
         }
-        arena.setCourts(courts);
+
         return arena;
     }
 }
