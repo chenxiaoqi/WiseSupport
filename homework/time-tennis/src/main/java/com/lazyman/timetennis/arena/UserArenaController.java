@@ -2,11 +2,12 @@ package com.lazyman.timetennis.arena;
 
 import com.lazyman.timetennis.BusinessException;
 import com.lazyman.timetennis.user.User;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.Assert;
 import org.springframework.util.MimeType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -20,16 +21,20 @@ import java.util.Objects;
 @RestController
 @RequestMapping("/mine")
 public class UserArenaController {
+    private static final String TEMP_FILE_PREFIX = "tmp_";
     private ArenaDao arenaDao;
 
     private RuleDao ruleDao;
 
     private CourtDao courtDao;
 
-    public UserArenaController(ArenaDao arenaDao, RuleDao ruleDao, CourtDao courtDao) {
+    private File imagesDir;
+
+    public UserArenaController(ArenaDao arenaDao, RuleDao ruleDao, CourtDao courtDao, @Value("${wx.images-path}") String imagesPath) {
         this.arenaDao = arenaDao;
         this.ruleDao = ruleDao;
         this.courtDao = courtDao;
+        this.imagesDir = new File(imagesPath);
     }
 
     @GetMapping("/arenas")
@@ -111,26 +116,75 @@ public class UserArenaController {
 
     @PostMapping("/upload")
     public String upload(MultipartFile image) throws IOException {
-        String tn = "tmp_" + System.currentTimeMillis() + "." + MimeType.valueOf(Objects.requireNonNull(image.getContentType())).getSubtype();
-        try (FileOutputStream out = new FileOutputStream("./images/" + tn)) {
+        String tn = TEMP_FILE_PREFIX + System.currentTimeMillis() + "." + MimeType.valueOf(Objects.requireNonNull(image.getContentType())).getSubtype();
+        try (FileOutputStream out = new FileOutputStream(new File(imagesDir, tn))) {
             IOUtils.copy(image.getInputStream(), out);
         }
         return tn;
     }
 
     @PostMapping("/arena")
-    @Transactional
-    public void addArena(@SessionAttribute User user, Arena arena) {
+    @Transactional(rollbackFor = {IOException.class, RuntimeException.class})
+    public void addArena(@SessionAttribute User user, Arena arena) throws IOException {
+        //todo 检查权限
         int id = arenaDao.insert(arena);
-        String[] images = StringUtils.split(arena.getImages()[0]);
+        String[] images = arena.getImages();
         String[] names = new String[images.length];
         for (int i = 0; i < images.length; i++) {
             String image = images[i];
             names[i] = id + "_" + i + "." + FilenameUtils.getExtension(image);
-            Assert.isTrue(new File("images", image).renameTo(new File("images", names[i])), "rename file failed");
+            moveFile(image, names[i]);
         }
         arenaDao.updateImages(id, StringUtils.join(names, ','));
         arenaDao.setRole(id, user.getOpenId(), "admin");
+    }
+
+    @PutMapping("/arena")
+    @Transactional(rollbackFor = {IOException.class, RuntimeException.class})
+    public void updateArena(@SessionAttribute User user, Arena arena) throws IOException {
+
+        String[] images = arena.getImages();
+        String[] names = new String[images.length];
+        for (int i = 0; i < images.length; i++) {
+            String image = images[i];
+            names[i] = arena.getId() + "_" + i + "." + FilenameUtils.getExtension(image);
+        }
+        arena.setImages(names);
+        arenaDao.update(arena);
+
+        //先把原来的文件换个名字
+        for (int i = 0; i < images.length; i++) {
+            String image = images[i];
+            long now = System.currentTimeMillis();
+            if (!image.startsWith(TEMP_FILE_PREFIX)) {
+                images[i] = "tmp_m" + now + i;
+                moveFile(image, images[i]);
+            }
+        }
+        for (int i = 0; i < images.length; i++) {
+            String image = images[i];
+            moveFile(image, names[i]);
+        }
+    }
+
+    @DeleteMapping("/arena")
+    @Transactional
+    public void deleteArena(@SessionAttribute User user, int id) {
+        //todo 权限
+        arenaDao.delete(id);
+
+        File[] files = imagesDir.listFiles((dir, name) -> name.startsWith(id + "_"));
+        if (files != null) {
+            for (File file : files) {
+                FileUtils.deleteQuietly(file);
+            }
+        }
+    }
+
+    private void moveFile(String image, String name) throws IOException {
+        File destFile = new File(imagesDir, name);
+        FileUtils.deleteQuietly(destFile);
+        FileUtils.moveFile(new File(imagesDir, image), destFile);
     }
 
     private void insertCourtRuleRelation(int id, String ruleIds) {

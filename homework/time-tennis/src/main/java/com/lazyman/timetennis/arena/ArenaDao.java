@@ -109,4 +109,30 @@ public class ArenaDao {
     public void setRole(int id, String openId, String role) {
         template.update("insert into arena_role (arena_id, open_id, role) value (?,?,?)", id, openId, role);
     }
+
+    public void update(Arena arena) {
+        String sql = "update arena set name=?,type=?,province=?,city=?,district=?,address=?,phone=?,advance_book_days=?,book_start_hour=?,book_end_hour=?,introduction=?,images=? where id=?";
+        template.update(sql,
+                arena.getName(),
+                arena.getType(),
+                arena.getProvince(),
+                arena.getCity(),
+                arena.getDistrict(),
+                arena.getAddress(),
+                arena.getPhone(),
+                arena.getAdvanceBookDays(),
+                arena.getBookStartHour(),
+                arena.getBookEndHour(),
+                arena.getIntroduction(),
+                StringUtils.join(arena.getImages(), ','),
+                arena.getId());
+    }
+
+    public void delete(int id) {
+        template.update("delete from arena_role where arena_id=?", id);
+        template.update("delete from rule where arena_id=?", id);
+        template.update("delete from arena where id=?", id);
+        template.update("delete from court_rule_r where court_id in(select id from court where arena_id=?)", id);
+        template.update("delete from court where arena_id=?", id);
+    }
 }
