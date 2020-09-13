@@ -18,7 +18,7 @@ spring:
   mvc:
     static-path-pattern: /images/**
   resources:
-    static-locations: file:images
+    static-locations: file:${wx.images-path}
   servlet:
     multipart:
       max-request-size: 10MB
@@ -34,3 +34,4 @@ wx:
   accountant: oRKVW4x8Mr1TFtcO9JRd5yk1IoTs
   stat-cron: 0 0 1 1 1/1 ?
   cancel-times-limit: 2
+  images-path: images
