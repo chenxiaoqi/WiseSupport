@@ -100,4 +100,12 @@ public class LoginController {
         session.setAttribute("user", dbUser);
         return dbUser;
     }
+
+    @GetMapping("/logout")
+    public void logout(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            session.invalidate();
+        }
+    }
 }
