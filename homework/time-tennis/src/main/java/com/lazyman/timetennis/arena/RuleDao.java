@@ -40,7 +40,6 @@ public class RuleDao {
         rule.setWeek((Integer) rs.getObject("week"));
         rule.setStartHour((Integer) rs.getObject("start_hour"));
         rule.setEndHour((Integer) rs.getObject("end_hour"));
-        rule.setArenaId(rs.getInt("arena_id"));
     }
 
     List<Rule> rules(int arenaId, Integer type) {
@@ -71,6 +70,7 @@ public class RuleDao {
         return template.queryForObject("select b.id,b.name,b.fee,b.type,b.start_date,b.end_date,b.week,b.start_hour,b.end_hour,b.arena_id from rule b where b.id=?", (rs, rowNum) -> {
             Rule rule = new Rule();
             populateRuleProperties(rs, rule);
+            rule.setArenaId(rs.getInt("arena_id"));
             return rule;
         }, id);
     }
