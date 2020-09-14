@@ -4,7 +4,6 @@ import com.lazyman.timetennis.BusinessException;
 import com.lazyman.timetennis.SessionWatch;
 import org.apache.commons.lang3.Validate;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -21,14 +20,11 @@ import javax.validation.constraints.Size;
 @RestController
 public class ChargeController implements ApplicationContextAware {
 
-    private String accountant;
-
     private UserMapper mapper;
     private ApplicationContext application;
     private JdbcTemplate template;
 
-    public ChargeController(@Value("${wx.accountant}") String accountant, UserMapper mapper, JdbcTemplate template) {
-        this.accountant = accountant;
+    public ChargeController(UserMapper mapper, JdbcTemplate template) {
         this.mapper = mapper;
         this.template = template;
     }
@@ -38,7 +34,7 @@ public class ChargeController implements ApplicationContextAware {
     public void charge(@SessionAttribute("user") User user,
                        @RequestParam @Size(min = 6, max = 64) String openId,
                        @Min(200) int fee, @Size(max = 64) String memo, @RequestParam(defaultValue = "true") boolean hasDiscount) {
-        if (!user.getOpenId().equals(accountant)) {
+        if (user.isAccountant()) {
             throw new BusinessException("没有权限");
         }
         User target = mapper.selectByPrimaryKey(openId);

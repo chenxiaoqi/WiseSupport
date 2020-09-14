@@ -30,8 +30,6 @@ server:
 wx:
   appId: wx39ac3fe4f8bc37b6
   secret: 47b06252bc485f465dafb9cb5dec17d2
-  super-admin: oRKVW4x8Mr1TFtcO9JRd5yk1IoTs
-  accountant: oRKVW4x8Mr1TFtcO9JRd5yk1IoTs
   stat-cron: 0 0 1 1 1/1 ?
   cancel-times-limit: 2
   images-path: images
