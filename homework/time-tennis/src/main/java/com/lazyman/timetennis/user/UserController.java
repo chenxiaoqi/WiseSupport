@@ -3,7 +3,6 @@ package com.lazyman.timetennis.user;
 import com.lazyman.timetennis.BusinessException;
 import com.lazyman.timetennis.SessionWatch;
 import org.apache.commons.lang3.Validate;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.constraints.NotEmpty;
@@ -15,16 +14,13 @@ public class UserController {
 
     private UserMapper userMapper;
 
-    private String superAdmin;
-
-    public UserController(UserMapper userMapper, @Value("${wx.super-admin}") String superAdmin) {
+    public UserController(UserMapper userMapper) {
         this.userMapper = userMapper;
-        this.superAdmin = superAdmin;
     }
 
     @GetMapping("/users")
-    public List<User> users() {
-        return userMapper.selectAll();
+    public List<User> users(String nickname) {
+        return userMapper.query(nickname);
     }
 
     @GetMapping("/user/{openId}")
@@ -67,7 +63,7 @@ public class UserController {
     }
 
     private void switchAdmin(User user, String openId, boolean flag) {
-        if (!user.getOpenId().equals(superAdmin)) {
+        if (!user.isSuperAdmin()) {
             throw new BusinessException("需要超级管理员权限");
         }
         User u = new User();

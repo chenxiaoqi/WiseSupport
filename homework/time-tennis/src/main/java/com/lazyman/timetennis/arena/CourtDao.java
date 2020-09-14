@@ -46,11 +46,12 @@ public class CourtDao {
     }
 
     Court load(int id) {
-        return template.queryForObject("select id,name,fee from court where id=?", (rs, rowNum) -> {
+        return template.queryForObject("select id,name,fee,arena_id from court where id=?", (rs, rowNum) -> {
             Court court = new Court();
             court.setId(rs.getInt("id"));
             court.setFee(rs.getInt("fee"));
             court.setName(rs.getString("name"));
+            court.setArenaId(rs.getInt("arena_id"));
             return court;
         }, id);
     }

@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.lazyman.timetennis.Constant;
 import com.lazyman.timetennis.SessionWatch;
+import com.lazyman.timetennis.admin.RoleDao;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -36,22 +37,17 @@ public class LoginController {
 
     private UserMapper userMapper;
 
-    private String superAdmin;
-
-    private String accountant;
+    private RoleDao roleDao;
 
     public LoginController(HttpClient client,
                            @Value("${wx.appId}") String appId,
                            @Value("${wx.secret}") String secret,
-                           UserMapper userMapper,
-                           @Value("${wx.super-admin}") String superAdmin,
-                           @Value("${wx.accountant}") String accountant) {
+                           UserMapper userMapper, RoleDao roleDao) {
         this.client = client;
         this.appId = appId;
         this.secret = secret;
         this.userMapper = userMapper;
-        this.superAdmin = superAdmin;
-        this.accountant = accountant;
+        this.roleDao = roleDao;
     }
 
     @GetMapping("/login")
@@ -95,8 +91,11 @@ public class LoginController {
         SessionWatch.register(user.getOpenId(), session);
 
         dbUser = userMapper.selectByPrimaryKey(user.getOpenId());
-        dbUser.setSuperAdmin(user.getOpenId().equals(superAdmin));
-        dbUser.setAccountant(user.getOpenId().equals(accountant));
+        dbUser.setSuperAdmin(roleDao.isSuperAdmin(user.getOpenId()));
+        dbUser.setArenaAdmin(roleDao.isAreaAdmin(user.getOpenId()));
+
+        //todo 兼容老版本
+        dbUser.setAccountant(roleDao.isAccountant(user.getOpenId()));
         session.setAttribute("user", dbUser);
         return dbUser;
     }

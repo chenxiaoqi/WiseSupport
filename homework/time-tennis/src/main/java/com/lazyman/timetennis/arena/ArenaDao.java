@@ -135,4 +135,8 @@ public class ArenaDao {
         template.update("delete from court_rule_r where court_id in(select id from court where arena_id=?)", id);
         template.update("delete from court where arena_id=?", id);
     }
+
+    public boolean isArenaAdmin(String openId, int arenaId) {
+        return Objects.requireNonNull(template.query("select 1 from arena_role where open_id=? and arena_id=? and role='admin'", ResultSet::next, openId, arenaId));
+    }
 }

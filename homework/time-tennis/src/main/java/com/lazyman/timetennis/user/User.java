@@ -31,6 +31,16 @@ public class User implements Serializable {
 
     private boolean superAdmin;
 
+    private boolean arenaAdmin;
+
+    public boolean isArenaAdmin() {
+        return arenaAdmin;
+    }
+
+    public void setArenaAdmin(boolean arenaAdmin) {
+        this.arenaAdmin = arenaAdmin;
+    }
+
     public boolean isAccountant() {
         return accountant;
     }

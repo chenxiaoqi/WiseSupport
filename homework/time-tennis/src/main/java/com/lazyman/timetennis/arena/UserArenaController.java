@@ -6,6 +6,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MimeType;
@@ -39,18 +40,22 @@ public class UserArenaController {
 
     @GetMapping("/arenas")
     public List<Arena> arenas(@SessionAttribute User user) {
+        checkPrivileges(user);
         return arenaDao.arenas(user.getOpenId());
     }
 
     @GetMapping("/rules")
     public List<Rule> rules(@SessionAttribute User user, int arenaId, Integer type) {
-        //todo 检查用户是不是有权限
+        checkPrivileges(user);
+        checkArenaPrivileges(user, arenaId);
         return ruleDao.rules(arenaId, type);
     }
 
     @DeleteMapping("/rule")
     public void deleteRule(@SessionAttribute User user, int id) {
-        //todo 检查用户权限
+        Rule rule = ruleDao.load(id);
+        Validate.notNull(rule);
+        checkArenaPrivileges(user, rule.getArenaId());
         if (ruleDao.used(id)) {
             throw new BusinessException("该规则已经被使用,请先到场地中删除");
         }
@@ -59,31 +64,37 @@ public class UserArenaController {
 
     @GetMapping("/rule/{id}")
     public Rule rule(@SessionAttribute User user, @PathVariable int id) {
+        checkPrivileges(user);
         return ruleDao.load(id);
     }
 
     @PutMapping("/rule")
     public void updateRule(@SessionAttribute User user, Rule rule) {
-        //todo 权限
+        Rule dbRule = ruleDao.load(rule.getId());
+        Validate.notNull(dbRule);
+        checkArenaPrivileges(user, dbRule.getArenaId());
         ruleDao.update(rule);
     }
 
     @PostMapping("/rule")
     public void insertRule(@SessionAttribute User user, Rule rule) {
-        //todo 权限
+        checkArenaPrivileges(user, rule.getArenaId());
         ruleDao.insert(rule);
     }
 
     @DeleteMapping("/court")
     @Transactional
     public void deleteCourt(@SessionAttribute User user, int id) {
-        //todo 权限
+        Court court = courtDao.load(id);
+        Validate.notNull(court);
+        checkArenaPrivileges(user, court.getArenaId());
         ruleDao.deleteCourtRelation(id);
         courtDao.delete(id);
     }
 
     @GetMapping("/court/{id}")
     public Court court(@SessionAttribute User user, @PathVariable int id) {
+        checkPrivileges(user);
         Court court = courtDao.load(id);
         List<Rule> rules = ruleDao.courtRules(new Object[]{id});
         for (Rule rule : rules) {
@@ -99,23 +110,25 @@ public class UserArenaController {
     @PostMapping("/court")
     @Transactional
     public void addCourt(@SessionAttribute User user, int arenaId, String name, int fee, String ruleIds) {
-        //todo 权限
+        checkArenaPrivileges(user, arenaId);
         int courtId = courtDao.insert(arenaId, name, fee);
-
         insertCourtRuleRelation(courtId, ruleIds);
     }
 
     @PutMapping("/court")
     @Transactional
     public void updateCourt(@SessionAttribute User user, int id, String name, int fee, String ruleIds) {
-        //todo 权限
+        Court court = courtDao.load(id);
+        Validate.notNull(court);
+        checkArenaPrivileges(user, court.getArenaId());
         courtDao.update(id, name, fee);
         ruleDao.deleteCourtRelation(id);
         insertCourtRuleRelation(id, ruleIds);
     }
 
     @PostMapping("/upload")
-    public String upload(MultipartFile image) throws IOException {
+    public String upload(@SessionAttribute User user, MultipartFile image) throws IOException {
+        checkPrivileges(user);
         String tn = TEMP_FILE_PREFIX + System.currentTimeMillis() + "." + MimeType.valueOf(Objects.requireNonNull(image.getContentType())).getSubtype();
         try (FileOutputStream out = new FileOutputStream(new File(imagesDir, tn))) {
             IOUtils.copy(image.getInputStream(), out);
@@ -126,7 +139,7 @@ public class UserArenaController {
     @PostMapping("/arena")
     @Transactional(rollbackFor = {IOException.class, RuntimeException.class})
     public void addArena(@SessionAttribute User user, Arena arena) throws IOException {
-        //todo 检查权限
+        checkPrivileges(user);
         int id = arenaDao.insert(arena);
         String[] images = arena.getImages();
         String[] names = new String[images.length];
@@ -142,7 +155,7 @@ public class UserArenaController {
     @PutMapping("/arena")
     @Transactional(rollbackFor = {IOException.class, RuntimeException.class})
     public void updateArena(@SessionAttribute User user, Arena arena) throws IOException {
-
+        checkArenaPrivileges(user, arena.getId());
         String[] images = arena.getImages();
         String[] names = new String[images.length];
         for (int i = 0; i < images.length; i++) {
@@ -170,7 +183,7 @@ public class UserArenaController {
     @DeleteMapping("/arena")
     @Transactional
     public void deleteArena(@SessionAttribute User user, int id) {
-        //todo 权限
+        checkArenaPrivileges(user, id);
         arenaDao.delete(id);
 
         File[] files = imagesDir.listFiles((dir, name) -> name.startsWith(id + "_"));
@@ -194,6 +207,19 @@ public class UserArenaController {
                 String rId = rIds[i];
                 ruleDao.insertCourtRelation(id, Integer.parseInt(rId), i);
             }
+        }
+    }
+
+    private void checkPrivileges(User user) {
+        if (!user.isArenaAdmin()) {
+            throw new BusinessException("对不起,您没有权限没有权限");
+        }
+    }
+
+    private void checkArenaPrivileges(User user, int arenaId) {
+        checkPrivileges(user);
+        if (!arenaDao.isArenaAdmin(user.getOpenId(), arenaId)) {
+            throw new BusinessException("对不起,您不是该场馆管理员");
         }
     }
 }
