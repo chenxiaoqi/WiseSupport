@@ -127,8 +127,8 @@ public class UserArenaController {
     }
 
     @PostMapping("/upload")
-    public String upload(@SessionAttribute User user, MultipartFile image) throws IOException {
-        checkPrivileges(user);
+    public String upload(MultipartFile image) throws IOException {
+//        checkPrivileges(user);
         String tn = TEMP_FILE_PREFIX + System.currentTimeMillis() + "." + MimeType.valueOf(Objects.requireNonNull(image.getContentType())).getSubtype();
         try (FileOutputStream out = new FileOutputStream(new File(imagesDir, tn))) {
             IOUtils.copy(image.getInputStream(), out);

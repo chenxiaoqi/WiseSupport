@@ -34,6 +34,8 @@ public class DevConfiguration {
                             user.setVip(true);
                             user.setSuperAdmin(true);
                             user.setArenaAdmin(true);
+                            user.setAdmin(false);
+                            user.setBalance(9000);
                             user.setAvatar("https://thirdwx.qlogo.cn/mmopen/vi_32/Q0j4TwGTfTLjkGHQyGTY0odH1vpklJl2MR6yGZmVodH1bx8tCJ6YNMGJUhHx4grkm9uuqaXDhUt2kuicGFeKAXQ/132");
                             session.setAttribute(Constant.SK_USER, user);
                         }
