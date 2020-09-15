@@ -23,11 +23,11 @@
         </association>
         <association property="arena" javaType="com.lazyman.timetennis.arena.Arena">
             <id column="arena_id" jdbcType="INTEGER" property="id"/>
-            <result column="name" jdbcType="VARCHAR" property="name"/>
+            <result column="arena_name" jdbcType="VARCHAR" property="name"/>
         </association>
         <association property="court" javaType="com.lazyman.timetennis.arena.Court">
             <id column="court_id" jdbcType="INTEGER" property="id"/>
-            <result column="name" jdbcType="VARCHAR" property="name"/>
+            <result column="court_name" jdbcType="VARCHAR" property="name"/>
         </association>
         <collection property="shareUsers" ofType="com.lazyman.timetennis.user.User">
             <id column="share_user_open_id" jdbcType="VARCHAR" property="openId"/>
@@ -88,25 +88,50 @@
     </select>
 
     <select id="queryByDate" resultMap="BaseResultMap">
-        select id, open_id, date, start, end,fee, charged, update_time
-        from tt_booking where date = #{date}
+        select id,
+               open_id,
+               date,
+               start,
+               end,
+               fee,
+               charged,
+               update_time
+        from tt_booking
+        where date = #{date}
     </select>
 
     <select id="queryInRange" resultMap="BaseResultMap">
-        select a.id, a.open_id, a.date,a.court_id, a.start, a.end,a.fee, a.charged, a.update_time,
-       b.nickname,b.wx_nickname,b.avatar,b.vip,
-       d.open_id as share_user_open_id,
-       d.nickname as share_user_nickname,
-       d.wx_nickname as share_user_wx_nickname,
-       d.avatar as share_user_avatar,
-       d.vip as share_user_vip
-        from tt_booking a inner join tt_user b on a.open_id=b.open_id
-                  left join booking_share c on a.id=c.booking_id
-                  left join tt_user d on c.open_id=d.open_id
-        where a.arena_id=#{arenaId} and a.date &gt;=#{start} and a.date &lt;=#{end}
+        select a.id,
+               a.open_id,
+               a.date,
+               a.court_id,
+               a.start,
+               a.end,
+               a.fee,
+               a.charged,
+               a.update_time,
+               b.nickname,
+               b.wx_nickname,
+               b.avatar,
+               b.vip,
+               d.open_id     as share_user_open_id,
+               d.nickname    as share_user_nickname,
+               d.wx_nickname as share_user_wx_nickname,
+               d.avatar      as share_user_avatar,
+               d.vip         as share_user_vip
+        from tt_booking a
+                 inner join tt_user b on a.open_id = b.open_id
+                 left join booking_share c on a.id = c.booking_id
+                 left join tt_user d on c.open_id = d.open_id
+        where a.arena_id = #{arenaId}
+          and a.date &gt;= #{start}
+          and a.date &lt;= #{end}
     </select>
     <select id="countBooked" resultType="java.lang.Integer">
-        select ifnull(sum(end-start+1),0) from tt_booking where open_id=#{openId} and (date &gt; #{date} or (date=#{date} and start&gt;=#{start}))
+        select ifnull(sum(end - start + 1), 0)
+        from tt_booking
+        where open_id = #{openId}
+          and (date &gt; #{date} or (date = #{date} and start &gt;= #{start}))
     </select>
     <select id="page" resultMap="BaseResultMap">
         select a.id, a.open_id, a.date, a.start, a.end,a.fee, a.charged, a.update_time,
@@ -142,7 +167,7 @@
                 and a.date &gt;= #{startDate} and a.date &lt; #{endDate}
             </if>
         </where>
-    order by a.update_time
+        order by a.update_time
     </select>
 
     <delete id="deleteBooking">
@@ -156,10 +181,36 @@
     </delete>
 
     <insert id="addShare">
-        insert into booking_share(booking_id, open_id) values (#{bookingId},#{openId})
+        insert into booking_share(booking_id, open_id)
+        values (#{bookingId}, #{openId})
     </insert>
 
     <delete id="deleteShare">
-        delete from booking_share where booking_id=#{bookingId}
+        delete
+        from booking_share
+        where booking_id = #{bookingId}
     </delete>
+    <select id="userBookings" resultMap="BaseResultMap">
+        select a.id, a.open_id, a.date, a.start, a.end,a.fee, a.charged, a.update_time,
+        d.open_id as share_user_open_id,
+        d.nickname as share_user_nickname,
+        d.wx_nickname as share_user_wx_nickname,
+        d.avatar as share_user_avatar,
+        d.vip as share_user_vip,
+        e.name as arena_name,
+        f.name as court_name
+        from (select id, open_id, date,arena_id,court_id, start, end,fee, charged, update_time from tt_booking
+        <where>
+            open_id=#{openId}
+            <if test="history">and date &lt; #{now}</if>
+            <if test="!history">and date &gt;= #{now}</if>
+        </where>
+        <if test="history">order by date desc</if>
+        <if test="!history">order by date asc</if>
+        limit 50) a
+        left join booking_share c on a.id=c.booking_id
+        left join tt_user d on c.open_id=d.open_id
+        left join arena e on a.arena_id=e.id
+        left join court f on a.court_id=f.id
+    </select>
 </mapper>

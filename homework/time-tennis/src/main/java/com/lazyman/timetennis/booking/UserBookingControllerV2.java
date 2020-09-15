@@ -3,6 +3,7 @@ package com.lazyman.timetennis.booking;
 import com.lazyman.timetennis.BusinessException;
 import com.lazyman.timetennis.arena.*;
 import com.lazyman.timetennis.user.User;
+import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.SessionAttribute;
 
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -67,8 +69,9 @@ public class UserBookingControllerV2 {
     }
 
     @GetMapping("/mine/bookings")
-    public List<Booking> bookings(String openId) {
-        return bookingMapper.userBookings(openId);
+    public List<Booking> bookings(@SessionAttribute User user, Boolean history) {
+        Calendar now = Calendar.getInstance();
+        return bookingMapper.userBookings(user.getOpenId(), DateUtils.truncate(now, Calendar.DAY_OF_MONTH).getTime(), history != null && history);
     }
 
 }
