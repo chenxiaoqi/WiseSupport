@@ -6,3 +6,6 @@ alter table tt_booking
 
 create index idx_date_arena_id
     on tt_booking (arena_id, date);
+
+create index idx_open_id_date
+    on tt_booking (open_id, date);
