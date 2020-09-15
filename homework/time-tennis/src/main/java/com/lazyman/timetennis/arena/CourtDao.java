@@ -18,7 +18,7 @@ public class CourtDao {
         this.template = template;
     }
 
-    List<Court> courts(int id) {
+    public List<Court> courts(int id) {
         return template.query("select id,name,fee from court where arena_id=?", (rs, rowNum) -> {
             Court court = new Court();
             court.setId(rs.getInt("id"));
@@ -45,7 +45,7 @@ public class CourtDao {
         template.update("update court set name=?,fee=? where id=?", name, fee, id);
     }
 
-    Court load(int id) {
+    public Court load(int id) {
         return template.queryForObject("select id,name,fee,arena_id from court where id=?", (rs, rowNum) -> {
             Court court = new Court();
             court.setId(rs.getInt("id"));

@@ -1,5 +1,8 @@
 package com.lazyman.timetennis.booking;
 
+import com.lazyman.timetennis.Constant;
+import com.lazyman.timetennis.arena.CourtDao;
+import com.lazyman.timetennis.arena.Rule;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.lang3.time.FastDateFormat;
@@ -7,6 +10,7 @@ import org.apache.commons.lang3.time.FastDateFormat;
 import java.text.ParseException;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 public final class BookingTool {
@@ -40,46 +44,78 @@ public final class BookingTool {
         return true;
     }
 
-    static int calcFee(Date date, int timeIndexStart, int timeIndexEnd) {
+    static int calcFee(List<Rule> rules, Date date, int timeIndexStart, int timeIndexEnd, CourtDao courtDao, int courtId) {
+        String dateString = Constant.FORMAT.format(date);
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+        int week = calendar.get(Calendar.DAY_OF_WEEK) - 1;
         int fee = 0;
         for (int i = timeIndexStart; i <= timeIndexEnd; i++) {
-            //晚上
-            if (i >= 36) {
-                fee = fee + 20;
+            Rule find = null;
+            for (Rule rule : rules) {
+                if (rule.getType() == 2) {
+                    if (rule.getStartDate() == null || dateString.compareTo(rule.getStartDate()) >= 0 && dateString.compareTo(rule.getEndDate()) < 0) {
+                        if (rule.getWeek() == null || week == rule.getWeek()) {
+                            if (rule.getStartHour() == null || i >= rule.getStartHour() * 2 && i < rule.getEndHour() * 2) {
+                                find = rule;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            if (find != null) {
+                fee = fee + find.getFee() / 2;
             } else {
-                Calendar calendar = Calendar.getInstance();
-                calendar.setTime(date);
-                int weekDay = calendar.get(Calendar.DAY_OF_WEEK);
-                //周末白天30
-                if (weekDay == 1 || weekDay == 7) {
-                    fee = fee + 15;
-                }
-                //工作日10
-                else {
-                    fee = fee + 10;
-                }
+                fee = fee + courtDao.load(courtId).getFee() / 2;
             }
         }
         return fee;
     }
 
-    public static void main(String[] args) throws ParseException {
-        FastDateFormat format = FastDateFormat.getInstance("yyyy-MM-dd");
-        System.out.println(BookingTool.calcFee(format.parse("2020-06-6"), 36, 40));
-    }
-
-    static boolean isMemberTime(Date date, int start, int end) {
+    static int calcFeeV2(List<Rule> rules, Date date, int timeIndexStart, CourtDao courtDao, int courtId) {
+        String dateString = Constant.FORMAT.format(date);
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(date);
-        int weekDay = calendar.get(Calendar.DAY_OF_WEEK);
-        if (weekDay == Calendar.SUNDAY) {
-            return start <= 37;
-        } else {
-            if (weekDay == Calendar.WEDNESDAY) {
-                return end >= 38;
+        int week = calendar.get(Calendar.DAY_OF_WEEK) - 1;
+        Rule find = null;
+        for (Rule rule : rules) {
+            if (rule.getType() == 2) {
+                if (rule.getStartDate() == null || dateString.compareTo(rule.getStartDate()) >= 0 && dateString.compareTo(rule.getEndDate()) < 0) {
+                    if (rule.getWeek() == null || week == rule.getWeek()) {
+                        if (rule.getStartHour() == null || timeIndexStart >= rule.getStartHour() * 2 && timeIndexStart < rule.getEndHour() * 2) {
+                            find = rule;
+                            break;
+                        }
+                    }
+                }
             }
         }
-        return false;
+        return find != null ? find.getFee() : courtDao.load(courtId).getFee();
+    }
+
+    public static void main(String[] args) throws ParseException {
+
+    }
+
+    static boolean isBookable(List<Rule> rules, Date date, int start, int end) {
+        String dateString = Constant.FORMAT.format(date);
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+        int week = calendar.get(Calendar.DAY_OF_WEEK) - 1;
+        for (Rule rule : rules) {
+            if (rule.getType() == 1) {
+                if (rule.getStartDate() == null || dateString.compareTo(rule.getStartDate()) >= 0 && dateString.compareTo(rule.getEndDate()) < 0) {
+
+                    if (rule.getWeek() == null || week == rule.getWeek()) {
+                        if (rule.getStartHour() == null || start >= rule.getStartHour() * 2 && end < rule.getEndHour() * 2) {
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+        return true;
     }
 
     public static String toDescription(Booking booking) {

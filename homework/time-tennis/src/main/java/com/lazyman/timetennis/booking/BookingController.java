@@ -1,13 +1,18 @@
 package com.lazyman.timetennis.booking;
 
 import com.lazyman.timetennis.BusinessException;
+import com.lazyman.timetennis.arena.Arena;
+import com.lazyman.timetennis.arena.ArenaDao;
 import com.lazyman.timetennis.user.User;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.lang.NonNull;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -22,29 +27,44 @@ import java.util.List;
 public class BookingController implements ApplicationContextAware {
 
     private BookingMapper bookingMapper;
+
     private ApplicationContext application;
 
-    public BookingController(BookingMapper bookingMapper) {
+    private int defaultArenaId;
+
+    private ArenaDao arenaDao;
+
+    public BookingController(BookingMapper bookingMapper, @Value("${wx.default-arena-id}") int defaultArenaId, ArenaDao arenaDao) {
         this.bookingMapper = bookingMapper;
+        this.defaultArenaId = defaultArenaId;
+        this.arenaDao = arenaDao;
     }
 
     @GetMapping("/recentBookings")
-    public List<Booking> recentBookings() {
-        Date start = DateUtils.truncate(new Date(), Calendar.DAY_OF_MONTH);
-        Date end = DateUtils.addDays(start, 13);
-        List<Booking> result = bookingMapper.queryInRange(start, end);
-        result.forEach(item -> {
-            item.setCancelAble(BookingTool.cancelAble(item));
-        });
+    public List<Booking> recentBookings(Integer arenaId, @DateTimeFormat(pattern = "yyyy-MM-dd") Date date) {
+        Date start;
+        Date end;
+        if (arenaId == null) {
+            arenaId = defaultArenaId;
+        }
+        if (date == null) {
+            Arena arena = arenaDao.load(arenaId);
+            start = DateUtils.truncate(new Date(), Calendar.DAY_OF_MONTH);
+            end = DateUtils.addDays(start, arena.getAdvanceBookDays() - 1);
+        } else {
+            start = date;
+            end = date;
+        }
+
+        List<Booking> result = bookingMapper.queryInRange(arenaId, start, end);
+        result.forEach(item -> item.setCancelAble(BookingTool.cancelAble(item)));
         return result;
     }
 
     @GetMapping("/bookings")
     public List<Booking> bookings(String openId, Integer id) {
-        List<Booking> result = bookingMapper.page(openId,id);
-        result.forEach((item) -> {
-            item.setCancelAble(BookingTool.cancelAble(item));
-        });
+        List<Booking> result = bookingMapper.page(openId, id);
+        result.forEach((item) -> item.setCancelAble(BookingTool.cancelAble(item)));
         return result;
     }
 
@@ -71,7 +91,7 @@ public class BookingController implements ApplicationContextAware {
     }
 
     @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+    public void setApplicationContext(@NonNull ApplicationContext applicationContext) throws BeansException {
         this.application = applicationContext;
     }
 }

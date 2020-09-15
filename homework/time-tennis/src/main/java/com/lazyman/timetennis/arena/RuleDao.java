@@ -15,7 +15,7 @@ public class RuleDao {
         this.template = template;
     }
 
-    List<Rule> courtRules(Object[] courtIds) {
+    public List<Rule> courtRules(Object[] courtIds) {
         StringBuilder sql = new StringBuilder("select a.court_id,b.id,b.name,b.fee,b.type,b.start_date,b.end_date,b.week,b.start_hour,b.end_hour from court_rule_r a,rule b where a.rule_id=b.id and a.court_id in(");
         sql.append("?");
         for (int i = 1; i < courtIds.length; i++) {

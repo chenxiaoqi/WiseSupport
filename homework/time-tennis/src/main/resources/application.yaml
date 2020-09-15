@@ -33,3 +33,5 @@ wx:
   stat-cron: 0 0 1 1 1/1 ?
   cancel-times-limit: 2
   images-path: images
+  default-arena-id: 2
+  default-court-id: 7
