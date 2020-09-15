@@ -28,8 +28,8 @@ server:
   address: 0.0.0.0
 
 wx:
-  appId: wx39ac3fe4f8bc37b6
-  secret: 47b06252bc485f465dafb9cb5dec17d2
+  appId: wx632c18a7a2865f2d
+  secret: e9a4e19c885258ec828e5422469c3b08
   stat-cron: 0 0 1 1 1/1 ?
   cancel-times-limit: 2
   images-path: images
