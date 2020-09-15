@@ -51,7 +51,7 @@ public interface BookingMapper {
 
     List<Booking> queryByDate(@Param("date") Date date);
 
-    List<Booking> queryInRange(@Param("start") Date start, @Param("end") Date end);
+    List<Booking> queryInRange(@Param("arenaId") Integer arenaId, @Param("start") Date start, @Param("end") Date end);
 
     int countBooked(@Param("openId") String openId, @Param("date") Date date, @Param("start") int startIndex);
 
@@ -65,4 +65,5 @@ public interface BookingMapper {
 
     List<Booking> page(@Param("openId") String openId, @Param("id") Integer id);
 
+    List<Booking> userBookings(@Param("openId") String openId);
 }

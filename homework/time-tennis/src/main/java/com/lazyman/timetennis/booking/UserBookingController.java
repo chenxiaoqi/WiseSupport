@@ -1,6 +1,7 @@
 package com.lazyman.timetennis.booking;
 
 import com.lazyman.timetennis.BusinessException;
+import com.lazyman.timetennis.arena.*;
 import com.lazyman.timetennis.user.User;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.time.DateUtils;
@@ -35,10 +36,26 @@ public class UserBookingController implements ApplicationContextAware {
 
     private JdbcTemplate template;
 
-    public UserBookingController(BookingMapper bookingMapper, @Value("${wx.cancel-times-limit}") int cancelTimeLimit, JdbcTemplate template) {
+    private int defaultArenaId;
+
+    private int defaultCourtId;
+
+    private RuleDao ruleDao;
+
+    private CourtDao courtDao;
+
+    public UserBookingController(BookingMapper bookingMapper,
+                                 @Value("${wx.cancel-times-limit}") int cancelTimeLimit,
+                                 @Value("${wx.default-arena-id}") int defaultArenaId,
+                                 @Value("${wx.default-court-id}") int defaultCourtId,
+                                 JdbcTemplate template, RuleDao ruleDao, CourtDao courtDao) {
         this.bookingMapper = bookingMapper;
         this.cancelTimeLimit = cancelTimeLimit;
         this.template = template;
+        this.defaultArenaId = defaultArenaId;
+        this.defaultCourtId = defaultCourtId;
+        this.ruleDao = ruleDao;
+        this.courtDao = courtDao;
     }
 
     @PostMapping("/booking")
@@ -59,8 +76,9 @@ public class UserBookingController implements ApplicationContextAware {
         }
 
         int nowTimeIndex = now.get(Calendar.HOUR_OF_DAY) * 2;
-        if (BookingTool.isMemberTime(date, timeIndexStart, timeIndexEnd)) {
-            throw new BusinessException("会员活动时间不提供订场哦");
+        List<Rule> rules = ruleDao.courtRules(new Object[]{defaultCourtId});
+        if (!BookingTool.isBookable(rules, date, timeIndexStart, timeIndexEnd)) {
+            throw new BusinessException("该事件段不可预定");
         }
 
         if (!user.getAdmin()) {
@@ -81,11 +99,17 @@ public class UserBookingController implements ApplicationContextAware {
             }
         }
         Booking booking = new Booking();
+        Arena arena = new Arena();
+        arena.setId(defaultArenaId);
+        booking.setArena(arena);
+        Court court = new Court();
+        court.setId(defaultCourtId);
+        booking.setCourt(court);
         booking.setDate(date);
         booking.setStart(timeIndexStart);
         booking.setEnd(timeIndexEnd);
         booking.setOpenId(user.getOpenId());
-        booking.setFee(BookingTool.calcFee(date, timeIndexStart, timeIndexEnd));
+        booking.setFee(BookingTool.calcFee(rules, date, timeIndexStart, timeIndexEnd, courtDao, defaultCourtId));
         bookingMapper.insert(booking);
         bookingMapper.deleteShare(booking.getId());
         application.publishEvent(new BookingEvent(this, user, booking));
