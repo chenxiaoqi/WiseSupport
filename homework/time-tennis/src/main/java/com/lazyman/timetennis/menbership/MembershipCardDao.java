@@ -2,8 +2,10 @@ package com.lazyman.timetennis.menbership;
 
 import com.lazyman.timetennis.arena.Arena;
 import org.apache.commons.lang3.Validate;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCreatorFactory;
+import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
@@ -11,6 +13,7 @@ import org.springframework.stereotype.Component;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
@@ -58,7 +61,7 @@ public class MembershipCardDao {
         }, openId);
     }
 
-    List<MembershipCardMeta> byArenaId(String arenaId) {
+    public List<MembershipCardMeta> byArenaId(String arenaId) {
         return template.query("select b.id,b.name,b.open_id,b.initial_balance,b.discount,b.price,b.extend_month,b.status from membership_card_meta_arena_r a,membership_card_meta b where a.meta_id=b.id and a.arena_id =?", (rs, rowNum) -> {
             MembershipCardMeta meta = new MembershipCardMeta();
             populateMeta(rs, meta);
@@ -103,6 +106,23 @@ public class MembershipCardDao {
 
     public void deleteMetaArenaRelation(int metaId) {
         template.update("delete from membership_card_meta_arena_r where meta_id=?", metaId);
+    }
+
+    public void createMembershipCard(String openId, MembershipCardMeta meta, String code, Date expireDate) {
+        template.update("insert into membership_card(code, open_id, balance, meta_id,expire_date) values (?,?,?,?,?)", code, openId, meta.getInitialBalance(), meta.getId(), expireDate);
+    }
+
+    public String maxMembershipCardCode(int metaId) {
+        return template.query("select max(code) from membership_card where meta_id=?", new ResultSetExtractor<String>() {
+            @Override
+            public String extractData(ResultSet rs) throws SQLException, DataAccessException {
+                if (rs.next()) {
+                    return rs.getString(1);
+                } else {
+                    return null;
+                }
+            }
+        }, metaId);
     }
 }
 
