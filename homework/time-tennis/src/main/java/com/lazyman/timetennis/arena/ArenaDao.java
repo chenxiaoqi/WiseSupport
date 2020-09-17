@@ -134,6 +134,7 @@ public class ArenaDao {
         template.update("delete from arena where id=?", id);
         template.update("delete from court_rule_r where court_id in(select id from court where arena_id=?)", id);
         template.update("delete from court where arena_id=?", id);
+        //todo 会员卡,会员卡用户 场馆上线后就不允许删除？
     }
 
     public boolean isArenaAdmin(String openId, int arenaId) {

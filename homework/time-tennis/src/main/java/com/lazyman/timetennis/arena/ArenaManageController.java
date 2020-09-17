@@ -21,7 +21,7 @@ import java.util.Objects;
 
 @RestController
 @RequestMapping("/mine")
-public class UserArenaController {
+public class ArenaManageController {
     private static final String TEMP_FILE_PREFIX = "tmp_";
     private ArenaDao arenaDao;
 
@@ -31,7 +31,7 @@ public class UserArenaController {
 
     private File imagesDir;
 
-    public UserArenaController(ArenaDao arenaDao, RuleDao ruleDao, CourtDao courtDao, @Value("${wx.images-path}") String imagesPath) {
+    public ArenaManageController(ArenaDao arenaDao, RuleDao ruleDao, CourtDao courtDao, @Value("${wx.images-path}") String imagesPath) {
         this.arenaDao = arenaDao;
         this.ruleDao = ruleDao;
         this.courtDao = courtDao;

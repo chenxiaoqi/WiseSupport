@@ -1,7 +1,9 @@
-package com.lazyman.timetennis.booking;
+package com.lazyman.timetennis.user.book;
 
 import com.lazyman.timetennis.BusinessException;
 import com.lazyman.timetennis.arena.*;
+import com.lazyman.timetennis.booking.Booking;
+import com.lazyman.timetennis.booking.BookingMapper;
 import com.lazyman.timetennis.user.User;
 import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -39,14 +41,25 @@ public class UserBookingControllerV2 {
                                      int[] startTimes,
                                      int totalFee) {
         //todo 有未完成支付的不让预定
+
+        List<Booking> bookings = bookingMapper.queryByDate(date);
+
         int tf = 0;
         for (int i = 0; i < courtIds.length; i++) {
             int courtId = courtIds[i];
             int startTime = startTimes[i];
+            int endTime = startTimes[i] + 1;
+
             List<Rule> rules = ruleDao.courtRules(new Object[]{courtId});
             if (!BookingTool.isBookable(rules, date, startTime, startTime + 1)) {
                 throw new BusinessException("时间段不可预定");
             }
+            for (Booking booking : bookings) {
+                if (!(startTime < booking.getStart() && endTime < booking.getStart() || startTime > booking.getEnd() && endTime > booking.getEnd())) {
+                    throw new BusinessException("对不起,该时间段已被预定");
+                }
+            }
+
             int fee = BookingTool.calcFeeV2(rules, date, startTime, courtDao, courtId);
             Booking booking = new Booking();
             Arena arena = new Arena();
@@ -57,7 +70,7 @@ public class UserBookingControllerV2 {
             booking.setCourt(court);
             booking.setDate(date);
             booking.setStart(startTime);
-            booking.setEnd(startTime + 1);
+            booking.setEnd(endTime);
             booking.setOpenId(user.getOpenId());
             booking.setFee(fee);
             bookingMapper.insert(booking);

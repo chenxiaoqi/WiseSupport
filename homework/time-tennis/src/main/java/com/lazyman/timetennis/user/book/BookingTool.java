@@ -1,8 +1,9 @@
-package com.lazyman.timetennis.booking;
+package com.lazyman.timetennis.user.book;
 
 import com.lazyman.timetennis.Constant;
 import com.lazyman.timetennis.arena.CourtDao;
 import com.lazyman.timetennis.arena.Rule;
+import com.lazyman.timetennis.booking.Booking;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.lang3.time.FastDateFormat;

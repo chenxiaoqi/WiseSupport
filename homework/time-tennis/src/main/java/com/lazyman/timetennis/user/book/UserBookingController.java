@@ -1,7 +1,9 @@
-package com.lazyman.timetennis.booking;
+package com.lazyman.timetennis.user.book;
 
 import com.lazyman.timetennis.BusinessException;
 import com.lazyman.timetennis.arena.*;
+import com.lazyman.timetennis.booking.Booking;
+import com.lazyman.timetennis.booking.BookingMapper;
 import com.lazyman.timetennis.user.User;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.time.DateUtils;
@@ -78,7 +80,7 @@ public class UserBookingController implements ApplicationContextAware {
         int nowTimeIndex = now.get(Calendar.HOUR_OF_DAY) * 2;
         List<Rule> rules = ruleDao.courtRules(new Object[]{defaultCourtId});
         if (!BookingTool.isBookable(rules, date, timeIndexStart, timeIndexEnd)) {
-            throw new BusinessException("该事件段不可预定");
+            throw new BusinessException("对不起,该时间段已被预定");
         }
 
         if (!user.getAdmin()) {
