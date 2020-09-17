@@ -110,7 +110,7 @@ create table arena
     book_style        int       default 1                 not null,
     create_time       timestamp default CURRENT_TIMESTAMP not null
 )
-    comment '场馆' charset = utf8mb4;
+    comment '场馆' charset = utf8;
 
 create table court
 (
@@ -120,7 +120,7 @@ create table court
     fee      int         not null,
     constraint court_pk
         primary key (id)
-) charset = UTF8MB4;
+) charset = UTF8;
 
 create table rule
 (
@@ -136,4 +136,4 @@ create table rule
     fee        int         null,
     constraint rule_pk
         primary key (id)
-) charset = UTF8MB4;
+) charset = UTF8;
