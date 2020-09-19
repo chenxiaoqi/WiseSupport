@@ -35,6 +35,6 @@ public class PayDao {
     }
 
     void updateStatus(String tradNo, String status, String transactionId) {
-        template.update("update trade set status=?,transaction_id where trade_no=?", status, tradNo, transactionId);
+        template.update("update trade set status=?,transaction_id=? where trade_no=?", status, tradNo, transactionId);
     }
 }
