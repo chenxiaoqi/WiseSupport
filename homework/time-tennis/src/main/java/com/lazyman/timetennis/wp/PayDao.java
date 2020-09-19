@@ -22,7 +22,7 @@ public class PayDao {
     }
 
     public Trade load(String tradNo) {
-        return template.queryForObject("select trade_no,mch_id,fee,status,prepare_id,open_id from trade", (rs, rowNum) -> {
+        return template.queryForObject("select trade_no,mch_id,fee,status,prepare_id,open_id from trade where trade_no=?", (rs, rowNum) -> {
             Trade trade = new Trade();
             trade.setTradeNo(rs.getString("trade_no"));
             trade.setFee(rs.getInt("fee"));
