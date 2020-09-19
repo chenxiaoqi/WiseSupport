@@ -5,3 +5,6 @@ spring:
     password: ${wx.mysql-password}
 logging:
   config: classpath:logback-spring-production.xml
+
+wx:
+  pay-use-sandbox: true

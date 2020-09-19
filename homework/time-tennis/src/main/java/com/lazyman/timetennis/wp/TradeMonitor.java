@@ -38,6 +38,7 @@ public class TradeMonitor {
                 status = "ok";
             }
         } else {
+            log.error("trade {} in failed status {}", tradNo, tradeNotify.get("result_code"));
             status = "fail";
         }
         payDao.updateStatus(tradNo, status, transactionId);
