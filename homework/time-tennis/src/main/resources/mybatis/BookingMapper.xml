@@ -90,6 +90,8 @@
     <select id="queryByDate" resultMap="BaseResultMap">
         select id,
                open_id,
+               court_id,
+               arena_id,
                date,
                start,
                end,
