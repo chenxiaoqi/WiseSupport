@@ -78,8 +78,10 @@ public class UserBookingControllerV2 {
                 throw new BusinessException("时间段不可预定");
             }
             for (Booking booking : bookings) {
-                if (!(startTime < booking.getStart() && endTime < booking.getStart() || startTime > booking.getEnd() && endTime > booking.getEnd())) {
-                    throw new BusinessException("对不起,该时间段已被预定");
+                if (courtId == booking.getCourt().getId()) {
+                    if (!(startTime < booking.getStart() && endTime < booking.getStart() || startTime > booking.getEnd() && endTime > booking.getEnd())) {
+                        throw new BusinessException("对不起,该时间段已被预定");
+                    }
                 }
             }
 
