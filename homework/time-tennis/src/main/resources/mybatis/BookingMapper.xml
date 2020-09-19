@@ -98,6 +98,7 @@
                update_time
         from tt_booking
         where date = #{date}
+          and arena_id = #{arenaId}
     </select>
 
     <select id="queryInRange" resultMap="BaseResultMap">

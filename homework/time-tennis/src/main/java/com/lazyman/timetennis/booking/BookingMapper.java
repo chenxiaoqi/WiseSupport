@@ -49,7 +49,7 @@ public interface BookingMapper {
     int updateByPrimaryKey(Booking record);
 
 
-    List<Booking> queryByDate(@Param("date") Date date);
+    List<Booking> queryByDate(@Param("date") Date date, @Param("arenaId") int arenaId);
 
     List<Booking> queryInRange(@Param("arenaId") Integer arenaId, @Param("start") Date start, @Param("end") Date end);
 
