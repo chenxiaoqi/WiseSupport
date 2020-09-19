@@ -40,7 +40,7 @@ public class LoginController {
     private RoleDao roleDao;
 
     public LoginController(HttpClient client,
-                           @Value("${wx.appId}") String appId,
+                           @Value("${wx.app-id}") String appId,
                            @Value("${wx.secret}") String secret,
                            UserMapper userMapper, RoleDao roleDao) {
         this.client = client;

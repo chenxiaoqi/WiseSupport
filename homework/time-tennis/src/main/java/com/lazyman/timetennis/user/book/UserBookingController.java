@@ -94,7 +94,7 @@ public class UserBookingController implements ApplicationContextAware {
             throw new BusinessException("账户余额不足");
         }
 
-        List<Booking> bookings = bookingMapper.queryByDate(date);
+        List<Booking> bookings = bookingMapper.queryByDate(date, defaultArenaId);
         for (Booking booking : bookings) {
             if (!(timeIndexStart < booking.getStart() && timeIndexEnd < booking.getStart() || timeIndexStart > booking.getEnd() && timeIndexEnd > booking.getEnd())) {
                 throw new BusinessException("订场时间重合");

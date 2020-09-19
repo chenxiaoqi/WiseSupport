@@ -19,9 +19,7 @@ public class SpringConfiguration {
     @Bean(destroyMethod = "close")
     public CloseableHttpClient httpClient() throws KeyStoreException, NoSuchAlgorithmException, KeyManagementException {
 
-        SSLContext context = SSLContextBuilder
-                .create()
-                .loadTrustMaterial(null, (x509Certificates, s) -> true).build();
+        SSLContext context = SSLContextBuilder.create().build();
         return HttpClientBuilder.create()
                 .setSSLContext(context)
                 .setDefaultCookieStore(new BasicCookieStore())

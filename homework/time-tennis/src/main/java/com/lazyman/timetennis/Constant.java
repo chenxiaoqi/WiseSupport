@@ -12,5 +12,11 @@ public interface Constant {
 
     FastDateFormat FORMAT_MONTH = FastDateFormat.getInstance("yyyy-MM");
 
+    FastDateFormat FORMAT_COMPACT = FastDateFormat.getInstance("yyyyMMddHHmmss");
+
+    String PRODUCT_BOOKING = "BO";
+
+    String PRODUCT_CARD = "CA";
+
 
 }
