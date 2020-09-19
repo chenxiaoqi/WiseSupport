@@ -32,15 +32,15 @@ public class TradeMonitor {
         String status;
         if ("SUCCESS".equals(tradeNotify.get("result_code"))) {
             if (totalFee != trade.getFee()) {
-                status = "fm";
+                status = "fnm";
                 log.error("trade {} fee not match expect {}, actual{}", tradNo, trade.getFee(), totalFee);
             } else {
                 status = "ok";
             }
         } else {
-            log.error("trade {} in failed status {}", tradNo, tradeNotify.get("result_code"));
             status = "fail";
         }
+        log.info("update trade {} status from {} to {}", tradNo, trade.getStatus(), status);
         payDao.updateStatus(tradNo, status, transactionId);
         //todo 支付失败的要取消场地预定
         return status;
