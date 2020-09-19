@@ -42,6 +42,8 @@ public class WePayController {
         monitor.onNotify(params);
 
         Map<String, String> result = new HashMap<>();
+        result.put("return_code", "SUCCESS");
+        result.put("return_msg", "OK");
         response.getWriter().write(pay.generateXml(result));
     }
 }
