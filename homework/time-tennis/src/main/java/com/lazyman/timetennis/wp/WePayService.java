@@ -79,7 +79,7 @@ public class WePayService {
                         @Value("${wx.pay-use-sandbox}") boolean useSandbox,
                         @Value("${wx.pay-notify-url}") String notifyUrl,
                         @Value("${wx.pay-sp-bill-create-ip}") String spBillCreateIp,
-                        @Value("${wx.mch-id}") String platformMchId, TradeMonitor monitor, HttpClient httpClient) {
+                        @Value("${wx.mch-id}") String platformMchId, HttpClient httpClient) {
         this.appId = appId;
         this.signKey = signKey;
         this.useSandbox = useSandbox;
@@ -121,7 +121,7 @@ public class WePayService {
         }
     }
 
-    public TreeMap<String, String> queryTrade(String tradNo, String mchId) {
+    TreeMap<String, String> queryTrade(String tradNo, String mchId) {
         TreeMap<String, String> params = new TreeMap<>();
         params.put("appid", appId);
         params.put("mch_id", mchId);
@@ -135,7 +135,7 @@ public class WePayService {
         }
     }
 
-    private String getSignKey() throws TransformerException, IOException {
+    private String getSignKey() throws IOException {
         TreeMap<String, String> params = new TreeMap<>();
         params.put("mch_id", platformMchId);
         params.put("nonce_str", SecurityUtils.randomSeq(32));
@@ -145,7 +145,7 @@ public class WePayService {
 
     private TreeMap<String, String> sendRequest(TreeMap<String, String> params, String url) throws IOException {
         params.put("sign", createSign(params));
-        log.debug("we pay request params {}", params);
+        log.debug("we pay request params {} => {}", url, params);
 
         HttpUriRequest post = RequestBuilder.post(useSandbox ? PAY_PREFIX + "/sandboxnew" + url : PAY_PREFIX + url)
                 .setEntity(new StringEntity(generateXml(params), StandardCharsets.UTF_8))
@@ -154,10 +154,10 @@ public class WePayService {
             TreeMap<String, String> result = parse(response.getEntity().getContent());
             String returnCode = result.get("return_code");
             if (!"SUCCESS".equals(returnCode)) {
-                log.error("pay failed {}", result);
+                log.error("pay failed {} => {}", url, result);
                 throw new IllegalStateException(result.get("return_msg"));
             } else {
-                log.debug("we pay result {}", result);
+                log.debug("we pay result {} => {}", url, result);
             }
             //todo 校验返回签名
             return result;
