@@ -2,10 +2,8 @@ package com.lazyman.timetennis.menbership;
 
 import com.lazyman.timetennis.arena.Arena;
 import org.apache.commons.lang3.Validate;
-import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCreatorFactory;
-import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
@@ -87,7 +85,7 @@ public class MembershipCardDao {
         }, id);
     }
 
-    public List<Arena> arenas(int metaId) {
+    List<Arena> arenas(int metaId) {
         return template.query("select b.id,b.name from membership_card_meta_arena_r a,arena b where a.arena_id=b.id and a.meta_id=?", (rs, rowNum) -> {
             Arena arena = new Arena();
             arena.setId(rs.getInt("id"));
@@ -100,11 +98,11 @@ public class MembershipCardDao {
         return template.update("update membership_card_meta set status=? where id=? and open_id=?", status, id, openId);
     }
 
-    public void addMetaArenaRelation(int metaId, String arenaId) {
+    void addMetaArenaRelation(int metaId, String arenaId) {
         template.update("insert into membership_card_meta_arena_r (arena_id, meta_id) value (?,?)", arenaId, metaId);
     }
 
-    public void deleteMetaArenaRelation(int metaId) {
+    void deleteMetaArenaRelation(int metaId) {
         template.update("delete from membership_card_meta_arena_r where meta_id=?", metaId);
     }
 
@@ -113,16 +111,45 @@ public class MembershipCardDao {
     }
 
     public String maxMembershipCardCode(int metaId) {
-        return template.query("select max(code) from membership_card where meta_id=?", new ResultSetExtractor<String>() {
-            @Override
-            public String extractData(ResultSet rs) throws SQLException, DataAccessException {
-                if (rs.next()) {
-                    return rs.getString(1);
-                } else {
-                    return null;
-                }
+        return template.query("select max(code) from membership_card where meta_id=?", rs -> {
+            if (rs.next()) {
+                return rs.getString(1);
+            } else {
+                return null;
             }
         }, metaId);
+    }
+
+    public List<MembershipCard> userCardsInArena(String openId, int arenaId) {
+        return template.query("select a.code,a.balance,a.expire_date, c.name from membership_card a,membership_card_meta_arena_r b,membership_card_meta c where a.meta_id=b.meta_id and a.meta_id=c.id and a.open_id=? and b.arena_id=?", (rs, rowNum) -> {
+            MembershipCard card = new MembershipCard();
+            populateCard(card, rs);
+
+            MembershipCardMeta meta = new MembershipCardMeta();
+            meta.setName(rs.getString("name"));
+            card.setMeta(meta);
+
+            return card;
+        }, openId, arenaId);
+    }
+
+    public MembershipCard loadCard(String code) {
+        return template.queryForObject("select code,open_id,balance,expire_date from membership_card where code=?", (rs, rowNum) -> {
+            MembershipCard card = new MembershipCard();
+            populateCard(card, rs);
+            card.setOpenId(rs.getString("open_id"));
+            return card;
+        }, code);
+    }
+
+    private void populateCard(MembershipCard card, ResultSet rs) throws SQLException {
+        card.setCode(rs.getString("code"));
+        card.setBalance(rs.getInt("balance"));
+        card.setExpireDate(rs.getDate("expire_date"));
+    }
+
+    public int chargeFee(String code, int fee) {
+        return template.update("update membership_card set balance=balance-? where balance>=? and code=?", fee, fee, code);
     }
 }
 

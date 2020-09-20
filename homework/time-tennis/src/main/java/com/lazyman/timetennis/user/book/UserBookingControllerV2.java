@@ -6,9 +6,10 @@ import com.lazyman.timetennis.arena.*;
 import com.lazyman.timetennis.booking.Booking;
 import com.lazyman.timetennis.booking.BookingMapper;
 import com.lazyman.timetennis.core.SecurityUtils;
+import com.lazyman.timetennis.menbership.MembershipCard;
+import com.lazyman.timetennis.menbership.MembershipCardDao;
 import com.lazyman.timetennis.user.User;
 import com.lazyman.timetennis.wp.PayDao;
-import com.lazyman.timetennis.wp.Trade;
 import com.lazyman.timetennis.wp.WePayService;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.time.DateUtils;
@@ -38,13 +39,16 @@ public class UserBookingControllerV2 {
 
     private PayDao payDao;
 
+    private MembershipCardDao mcDao;
 
     public UserBookingControllerV2(@Value("${wx.app-id}") String appId,
                                    @Value("${wx.mch-id}") String platformMchId,
                                    RuleDao ruleDao,
                                    CourtDao courtDao,
                                    BookingMapper bookingMapper,
-                                   WePayService pay, PayDao payDao) {
+                                   WePayService pay,
+                                   PayDao payDao,
+                                   MembershipCardDao mcDao) {
         this.appId = appId;
         this.platformMchId = platformMchId;
         this.ruleDao = ruleDao;
@@ -52,6 +56,7 @@ public class UserBookingControllerV2 {
         this.bookingMapper = bookingMapper;
         this.pay = pay;
         this.payDao = payDao;
+        this.mcDao = mcDao;
     }
 
     @PostMapping("/user/v2/booking")
@@ -61,9 +66,9 @@ public class UserBookingControllerV2 {
                                                     int arenaId,
                                                     int[] courtIds,
                                                     int[] startTimes,
-                                                    int totalFee) {
+                                                    int totalFee,
+                                                    String code) {
         //todo 有未完成支付的不让预定
-
         List<Booking> bookings = bookingMapper.queryByDate(date, arenaId);
 
         int tf = 0;
@@ -106,6 +111,21 @@ public class UserBookingControllerV2 {
             throw new BusinessException("对不起,总费用不匹配,请联系管理员处理!");
         }
 
+        if (code != null) {
+            membershipCardPay(user, code, totalFee);
+            return null;
+        } else {
+            return wePay(user, arenaId, totalFee, bookingIds);
+        }
+    }
+
+    @GetMapping("/mine/bookings")
+    public List<Booking> bookings(@SessionAttribute User user, Boolean history) {
+        Calendar now = Calendar.getInstance();
+        return bookingMapper.userBookings(user.getOpenId(), DateUtils.truncate(now, Calendar.DAY_OF_MONTH).getTime(), history != null && history);
+    }
+
+    private Map<String, String> wePay(User user, int arenaId, int totalFee, List<Integer> bookingIds) {
         String productType = Constant.PRODUCT_BOOKING;
         String tradeNo = pay.creatTradeNo(Constant.PRODUCT_BOOKING);
 
@@ -120,30 +140,20 @@ public class UserBookingControllerV2 {
         params.put("package", "prepay_id=" + prepayId);
         params.put("signType", "MD5");
 
-        params.put("paySign", pay.creatSign(params));
+        params.put("paySign", pay.createSign(params));
 
         //返回tradeNo让前台拿可以查询
         params.put("tradeNo", tradeNo);
         return params;
     }
 
-    @GetMapping("/user/v2/trade_status")
-    public String queryTradeStatus(@SessionAttribute User user, String tradNo) {
-        Trade trade = payDao.load(tradNo);
-        Validate.isTrue(user.getOpenId().equals(trade.getOpenId()));
-        String status;
-        if (trade.getStatus().equals("wp")) {
-            status = pay.queryTrade(tradNo, trade.getMchId());
-        } else {
-            status = trade.getStatus();
+    private void membershipCardPay(User user, String code, int totalFee) {
+        MembershipCard card = mcDao.loadCard(code);
+        if (!card.getOpenId().equals(user.getOpenId())) {
+            throw new BusinessException("不是您的卡");
         }
-        return status;
-    }
-
-    @GetMapping("/mine/bookings")
-    public List<Booking> bookings(@SessionAttribute User user, Boolean history) {
-        Calendar now = Calendar.getInstance();
-        return bookingMapper.userBookings(user.getOpenId(), DateUtils.truncate(now, Calendar.DAY_OF_MONTH).getTime(), history != null && history);
+        Validate.isTrue(mcDao.chargeFee(code, totalFee) == 1, "余额不足");
+        //todo 记录消费日志
     }
 
 }
