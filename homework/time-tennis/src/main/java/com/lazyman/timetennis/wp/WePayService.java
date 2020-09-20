@@ -5,6 +5,7 @@ import com.lazyman.timetennis.core.SecurityUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.apache.http.client.HttpClient;
@@ -71,8 +72,6 @@ public class WePayService {
 
     private String platformMchId;
 
-    private TradeMonitor monitor;
-
     private HttpClient httpClient;
 
     public WePayService(@Value("${wx.app-id}") String appId,
@@ -80,7 +79,7 @@ public class WePayService {
                         @Value("${wx.pay-use-sandbox}") boolean useSandbox,
                         @Value("${wx.pay-notify-url}") String notifyUrl,
                         @Value("${wx.pay-sp-bill-create-ip}") String spBillCreateIp,
-                        @Value("${wx.mch-id}") String platformMchId, HttpClient httpClient) {
+                        @Value("${wx.mch-id}") String platformMchId, TradeMonitor monitor, HttpClient httpClient) {
         this.appId = appId;
         this.signKey = signKey;
         this.useSandbox = useSandbox;
@@ -122,7 +121,7 @@ public class WePayService {
         }
     }
 
-    public String queryTrade(String tradNo, String mchId) {
+    public TreeMap<String, String> queryTrade(String tradNo, String mchId) {
         TreeMap<String, String> params = new TreeMap<>();
         params.put("appid", appId);
         params.put("mch_id", mchId);
@@ -130,8 +129,7 @@ public class WePayService {
         params.put("nonce_str", SecurityUtils.randomSeq(32));
         params.put("sign_type", "MD5");
         try {
-            Map<String, String> result = sendRequest(params, "/pay/orderquery");
-            return monitor.onNotify(result);
+            return sendRequest(params, "/pay/orderquery");
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
@@ -145,15 +143,15 @@ public class WePayService {
         return Objects.requireNonNull(result.get("sandbox_signkey"));
     }
 
-    private Map<String, String> sendRequest(TreeMap<String, String> params, String url) throws IOException {
-        params.put("sign", creatSign(params));
+    private TreeMap<String, String> sendRequest(TreeMap<String, String> params, String url) throws IOException {
+        params.put("sign", createSign(params));
         log.debug("we pay request params {}", params);
 
         HttpUriRequest post = RequestBuilder.post(useSandbox ? PAY_PREFIX + "/sandboxnew" + url : PAY_PREFIX + url)
                 .setEntity(new StringEntity(generateXml(params), StandardCharsets.UTF_8))
                 .build();
         return httpClient.execute(post, response -> {
-            Map<String, String> result = parse(response.getEntity().getContent());
+            TreeMap<String, String> result = parse(response.getEntity().getContent());
             String returnCode = result.get("return_code");
             if (!"SUCCESS".equals(returnCode)) {
                 log.error("pay failed {}", result);
@@ -161,13 +159,17 @@ public class WePayService {
             } else {
                 log.debug("we pay result {}", result);
             }
+            //todo 校验返回签名
             return result;
         });
     }
 
-    public String creatSign(TreeMap<String, String> params) {
+    public String createSign(TreeMap<String, String> params) {
         StringBuilder builder = new StringBuilder();
         for (Map.Entry<String, String> entry : params.entrySet()) {
+            if (StringUtils.isEmpty(entry.getValue())) {
+                continue;
+            }
             builder.append(entry.getKey()).append('=').append(entry.getValue()).append('&');
         }
         builder.append("key=").append(this.useSandbox ? sandboxSignKey : signKey);

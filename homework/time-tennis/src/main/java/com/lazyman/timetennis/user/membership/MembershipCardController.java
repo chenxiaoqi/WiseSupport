@@ -1,6 +1,7 @@
 package com.lazyman.timetennis.user.membership;
 
 import com.lazyman.timetennis.BusinessException;
+import com.lazyman.timetennis.menbership.MembershipCard;
 import com.lazyman.timetennis.menbership.MembershipCardDao;
 import com.lazyman.timetennis.menbership.MembershipCardMeta;
 import com.lazyman.timetennis.user.User;
@@ -46,5 +47,10 @@ public class MembershipCardController {
         } catch (DuplicateKeyException e) {
             throw new BusinessException("你已经购买了该会员卡");
         }
+    }
+
+    @GetMapping("/user/arena/cards")
+    public List<MembershipCard> userCardsInArena(@SessionAttribute User user, @RequestParam int arenaId) {
+        return mcDao.userCardsInArena(user.getOpenId(), arenaId);
     }
 }
