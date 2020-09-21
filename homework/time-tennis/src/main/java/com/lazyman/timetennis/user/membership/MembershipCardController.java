@@ -1,10 +1,10 @@
 package com.lazyman.timetennis.user.membership;
 
-import com.lazyman.timetennis.BusinessException;
 import com.lazyman.timetennis.menbership.MembershipCard;
 import com.lazyman.timetennis.menbership.MembershipCardDao;
 import com.lazyman.timetennis.menbership.MembershipCardMeta;
 import com.lazyman.timetennis.user.User;
+import com.wisesupport.commons.exceptions.BusinessException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.time.DateUtils;
@@ -27,6 +27,15 @@ public class MembershipCardController {
     @GetMapping("/metas")
     public List<MembershipCardMeta> metas(String arenaId) {
         return mcDao.byArenaId(arenaId).stream().filter(meta -> meta.getStatus().equals("ol")).collect(Collectors.toList());
+    }
+
+    @GetMapping("/user/cards")
+    public List<MembershipCard> useCards(@SessionAttribute User user) {
+        List<MembershipCard> cards = mcDao.userCards(user.getOpenId());
+        for (MembershipCard card : cards) {
+            card.getMeta().setArenas(mcDao.arenas(card.getMeta().getId()));
+        }
+        return cards;
     }
 
     @PostMapping("/purchase")
