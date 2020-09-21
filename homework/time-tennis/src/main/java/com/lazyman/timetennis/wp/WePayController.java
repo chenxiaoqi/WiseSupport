@@ -47,10 +47,12 @@ public class WePayController {
         if (params.get("result_code").equals("SUCCESS")) {
             params.put("trade_state", "SUCCESS");
         } else {
-            params.put("trade_state", "NOTIFY-FAIL");
+            params.put("trade_state", "notify-fail");
         }
-        tradeService.onNotify(null, params);
-
+        String status = tradeService.onNotify(null, params);
+        if (!"ok".equals(status)) {
+            payDao.deleteTradeBooking(params.get("out_trade_no"));
+        }
         Map<String, String> result = new HashMap<>();
         result.put("return_code", "SUCCESS");
         result.put("return_msg", "OK");

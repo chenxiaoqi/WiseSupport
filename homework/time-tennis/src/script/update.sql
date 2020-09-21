@@ -37,3 +37,12 @@ drop index idx_open_id on trade;
 create index idx_status
     on trade (status);
 
+alter table trade_booking_r
+    add court_id int not null;
+
+alter table trade_booking_r
+    add start int not null;
+
+alter table trade_booking_r
+    add end int not null;
+
