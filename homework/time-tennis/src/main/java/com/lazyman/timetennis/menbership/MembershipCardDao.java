@@ -129,7 +129,7 @@ public class MembershipCardDao {
     }
 
     public List<MembershipCard> userCards(String openId) {
-        return template.query("select a.code,a.open_id,a.balance,a.expire_date,b.id as meta_id, b.name,b.discount,b.id as meta_id from membership_card a,membership_card_meta b where a.meta_id=b.id and a.open_id=?", (rs, rowNum) -> {
+        return template.query("select a.code,a.open_id,a.balance,a.expire_date,a.meta_id, b.name,b.discount,b.id as meta_id from membership_card a,membership_card_meta b where a.meta_id=b.id and a.open_id=?", (rs, rowNum) -> {
             MembershipCard card = new MembershipCard();
             populateCard(card, rs);
             return card;
@@ -141,7 +141,7 @@ public class MembershipCardDao {
     }
 
     public MembershipCard loadCard(String code) {
-        return template.queryForObject("select a.code,a.open_id,a.balance,a.expire_date,b.name,b.discount from membership_card a,membership_card_meta b where a.meta_id=b.id and a.code=?", (rs, rowNum) -> {
+        return template.queryForObject("select a.code,a.meta_id,a.open_id,a.balance,a.expire_date,b.name,b.discount from membership_card a,membership_card_meta b where a.meta_id=b.id and a.code=?", (rs, rowNum) -> {
             MembershipCard card = new MembershipCard();
             populateCard(card, rs);
             return card;
