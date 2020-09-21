@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Objects;
 
 @Component
 public class PayDao {
@@ -62,6 +63,10 @@ public class PayDao {
             }
         }, -tradeExpireMinutes);
 
+    }
+
+    public boolean hasWaitForPay(String openId) {
+        return Objects.requireNonNull(template.query("select 1 from trade where open_id=? and status='wp' limit 1", ResultSet::next, openId));
     }
 
     private void populateTrade(ResultSet rs, Trade trade) throws SQLException {

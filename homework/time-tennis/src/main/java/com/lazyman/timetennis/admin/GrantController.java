@@ -1,7 +1,7 @@
 package com.lazyman.timetennis.admin;
 
-import com.lazyman.timetennis.BusinessException;
 import com.lazyman.timetennis.user.User;
+import com.wisesupport.commons.exceptions.BusinessException;
 import org.apache.commons.lang3.Validate;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.web.bind.annotation.*;

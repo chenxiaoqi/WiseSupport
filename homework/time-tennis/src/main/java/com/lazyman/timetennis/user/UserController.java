@@ -1,7 +1,7 @@
 package com.lazyman.timetennis.user;
 
-import com.lazyman.timetennis.BusinessException;
 import com.lazyman.timetennis.SessionWatch;
+import com.wisesupport.commons.exceptions.BusinessException;
 import org.apache.commons.lang3.Validate;
 import org.springframework.web.bind.annotation.*;
 

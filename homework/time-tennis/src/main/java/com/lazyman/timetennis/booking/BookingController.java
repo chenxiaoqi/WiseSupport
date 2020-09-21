@@ -1,11 +1,11 @@
 package com.lazyman.timetennis.booking;
 
-import com.lazyman.timetennis.BusinessException;
 import com.lazyman.timetennis.arena.Arena;
 import com.lazyman.timetennis.arena.ArenaDao;
 import com.lazyman.timetennis.user.User;
 import com.lazyman.timetennis.user.book.BookingCancelEvent;
 import com.lazyman.timetennis.user.book.BookingTool;
+import com.wisesupport.commons.exceptions.BusinessException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.time.DateUtils;

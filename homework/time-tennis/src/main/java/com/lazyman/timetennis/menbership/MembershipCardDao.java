@@ -85,7 +85,7 @@ public class MembershipCardDao {
         }, id);
     }
 
-    List<Arena> arenas(int metaId) {
+    public List<Arena> arenas(int metaId) {
         return template.query("select b.id,b.name from membership_card_meta_arena_r a,arena b where a.arena_id=b.id and a.meta_id=?", (rs, rowNum) -> {
             Arena arena = new Arena();
             arena.setId(rs.getInt("id"));
@@ -121,23 +121,29 @@ public class MembershipCardDao {
     }
 
     public List<MembershipCard> userCardsInArena(String openId, int arenaId) {
-        return template.query("select a.code,a.balance,a.expire_date, c.name from membership_card a,membership_card_meta_arena_r b,membership_card_meta c where a.meta_id=b.meta_id and a.meta_id=c.id and a.open_id=? and b.arena_id=?", (rs, rowNum) -> {
+        return template.query("select a.code,a.open_id,a.balance,a.expire_date,c.id as meta_id, c.name,c.discount from membership_card a,membership_card_meta_arena_r b,membership_card_meta c where a.meta_id=b.meta_id and a.meta_id=c.id and a.open_id=? and b.arena_id=?", (rs, rowNum) -> {
             MembershipCard card = new MembershipCard();
             populateCard(card, rs);
-
-            MembershipCardMeta meta = new MembershipCardMeta();
-            meta.setName(rs.getString("name"));
-            card.setMeta(meta);
-
             return card;
         }, openId, arenaId);
     }
 
-    public MembershipCard loadCard(String code) {
-        return template.queryForObject("select code,open_id,balance,expire_date from membership_card where code=?", (rs, rowNum) -> {
+    public List<MembershipCard> userCards(String openId) {
+        return template.query("select a.code,a.open_id,a.balance,a.expire_date,b.id as meta_id, b.name,b.discount,b.id as meta_id from membership_card a,membership_card_meta b where a.meta_id=b.id and a.open_id=?", (rs, rowNum) -> {
             MembershipCard card = new MembershipCard();
             populateCard(card, rs);
-            card.setOpenId(rs.getString("open_id"));
+            return card;
+        }, openId);
+    }
+
+    public int chargeFee(String code, int fee) {
+        return template.update("update membership_card set balance=balance-? where balance>=? and code=?", fee, fee, code);
+    }
+
+    public MembershipCard loadCard(String code) {
+        return template.queryForObject("select a.code,a.open_id,a.balance,a.expire_date,b.name,b.discount from membership_card a,membership_card_meta b where a.meta_id=b.id and a.code=?", (rs, rowNum) -> {
+            MembershipCard card = new MembershipCard();
+            populateCard(card, rs);
             return card;
         }, code);
     }
@@ -146,10 +152,12 @@ public class MembershipCardDao {
         card.setCode(rs.getString("code"));
         card.setBalance(rs.getInt("balance"));
         card.setExpireDate(rs.getDate("expire_date"));
-    }
 
-    public int chargeFee(String code, int fee) {
-        return template.update("update membership_card set balance=balance-? where balance>=? and code=?", fee, fee, code);
+        MembershipCardMeta meta = new MembershipCardMeta();
+        meta.setName(rs.getString("name"));
+        meta.setDiscount(rs.getInt("discount"));
+        meta.setId(rs.getInt("meta_id"));
+        card.setMeta(meta);
     }
 }
 

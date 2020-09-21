@@ -1,8 +1,8 @@
 package com.wisesupport.commons.spring;
 
+import com.wisesupport.commons.exceptions.BusinessException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.ServletRequestBindingException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -27,8 +27,12 @@ public class GlobalExceptionHandler {
         if (throwable instanceof ServletRequestBindingException && throwable.getMessage().startsWith("Missing session attribute")) {
             response.setStatus(401);
             log.debug("handle {} failed", request.getRequestURI(), throwable);
-        }else {
-            log.error("handle {} failed", request.getRequestURI(), throwable);
+        } else {
+            if (throwable instanceof BusinessException) {
+                log.debug("handle {} failed", request.getRequestURI(), throwable);
+            } else {
+                log.error("handle {} failed", request.getRequestURI(), throwable);
+            }
             response.setStatus(500);
         }
         Map<String, String> result = new HashMap<>(1);

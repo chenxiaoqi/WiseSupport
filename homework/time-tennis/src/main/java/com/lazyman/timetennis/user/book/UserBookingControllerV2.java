@@ -1,6 +1,5 @@
 package com.lazyman.timetennis.user.book;
 
-import com.lazyman.timetennis.BusinessException;
 import com.lazyman.timetennis.Constant;
 import com.lazyman.timetennis.arena.*;
 import com.lazyman.timetennis.booking.Booking;
@@ -11,6 +10,7 @@ import com.lazyman.timetennis.menbership.MembershipCardDao;
 import com.lazyman.timetennis.user.User;
 import com.lazyman.timetennis.wp.PayDao;
 import com.lazyman.timetennis.wp.WePayService;
+import com.wisesupport.commons.exceptions.BusinessException;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -68,7 +68,10 @@ public class UserBookingControllerV2 {
                                                     int[] startTimes,
                                                     int totalFee,
                                                     String code) {
-        //todo 有未完成支付的不让预定
+        if (code == null && payDao.hasWaitForPay(user.getOpenId())) {
+            throw new BusinessException("您有一个未支付的预定待系统确认,请稍后再试!");
+        }
+
         List<Booking> bookings = bookingMapper.queryByDate(date, arenaId);
 
         int tf = 0;
@@ -152,7 +155,10 @@ public class UserBookingControllerV2 {
         if (!card.getOpenId().equals(user.getOpenId())) {
             throw new BusinessException("不是您的卡");
         }
-        Validate.isTrue(mcDao.chargeFee(code, totalFee) == 1, "余额不足");
+        totalFee = totalFee * card.getMeta().getDiscount() / 100;
+        if (totalFee != 0) {
+            Validate.isTrue(mcDao.chargeFee(code, totalFee) == 1, "余额不足");
+        }
         //todo 记录消费日志
     }
 

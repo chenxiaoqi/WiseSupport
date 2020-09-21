@@ -1,7 +1,7 @@
 package com.lazyman.timetennis.arena;
 
-import com.lazyman.timetennis.BusinessException;
 import com.lazyman.timetennis.user.User;
+import com.wisesupport.commons.exceptions.BusinessException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
