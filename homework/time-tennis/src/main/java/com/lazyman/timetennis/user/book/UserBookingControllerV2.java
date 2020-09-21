@@ -63,6 +63,7 @@ public class UserBookingControllerV2 {
                                                     int arenaId,
                                                     int[] courtIds,
                                                     int[] startTimes,
+                                                    int[] endTimes,
                                                     int totalFee,
                                                     @RequestParam(defaultValue = "1") int style,
                                                     String code) {
@@ -77,7 +78,7 @@ public class UserBookingControllerV2 {
         for (int i = 0; i < courtIds.length; i++) {
             int courtId = courtIds[i];
             int startTime = startTimes[i];
-            int endTime = startTimes[i] + 1;
+            int endTime = endTimes[i];
 
             List<Rule> rules = ruleDao.courtRules(new Object[]{courtId});
             if (!BookingTool.isBookable(rules, date, startTime, startTime + 1)) {
@@ -90,8 +91,12 @@ public class UserBookingControllerV2 {
                     }
                 }
             }
-
-            int fee = style == 2 ? BookingTool.calcFeeV2(rules, date, startTime, courtDao, courtId) : BookingTool.calcFee(rules, date, startTime, endTime, courtDao, courtId);
+            int fee;
+            if (style == 2) {
+                fee = BookingTool.calcFeeV2(rules, date, startTime, courtDao, courtId);
+            } else {
+                fee = BookingTool.calcFee(rules, date, startTime, endTime, courtDao, courtId);
+            }
             Booking booking = new Booking();
             Arena arena = new Arena();
             arena.setId(arenaId);

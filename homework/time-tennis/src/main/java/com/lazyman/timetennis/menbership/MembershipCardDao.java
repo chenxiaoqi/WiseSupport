@@ -152,6 +152,7 @@ public class MembershipCardDao {
         card.setCode(rs.getString("code"));
         card.setBalance(rs.getInt("balance"));
         card.setExpireDate(rs.getDate("expire_date"));
+        card.setOpenId(rs.getString("open_id"));
 
         MembershipCardMeta meta = new MembershipCardMeta();
         meta.setName(rs.getString("name"));
