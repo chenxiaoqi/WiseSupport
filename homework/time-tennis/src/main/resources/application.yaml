@@ -35,7 +35,7 @@ wx:
   pay-use-sandbox: true
   pay-sp-bill-create-ip: 124.70.154.176
   pay-notify-url: https://vn.xiaoqicloud.cn/pay/notify
-  pay-expire-minutes: 10
+  pay-expire-minutes: 5
   stat-cron: 0 0 1 1 1/1 ?
   cancel-times-limit: 2
   images-path: images

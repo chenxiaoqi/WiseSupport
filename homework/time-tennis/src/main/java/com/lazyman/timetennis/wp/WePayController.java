@@ -44,6 +44,11 @@ public class WePayController {
             return;
         }
 
+        if (params.get("result_code").equals("SUCCESS")) {
+            params.put("trade_state", "SUCCESS");
+        } else {
+            params.put("trade_state", "NOTIFY-FAIL");
+        }
         tradeService.onNotify(null, params);
 
         Map<String, String> result = new HashMap<>();
