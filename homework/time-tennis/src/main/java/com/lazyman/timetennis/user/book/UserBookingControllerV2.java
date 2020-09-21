@@ -72,7 +72,7 @@ public class UserBookingControllerV2 {
         List<Booking> bookings = bookingMapper.queryByDate(date, arenaId);
 
         int tf = 0;
-        List<Integer> bookingIds = new ArrayList<>();
+        List<Booking> nbs = new ArrayList<>();
         for (int i = 0; i < courtIds.length; i++) {
             int courtId = courtIds[i];
             int startTime = startTimes[i];
@@ -104,7 +104,7 @@ public class UserBookingControllerV2 {
             booking.setOpenId(user.getOpenId());
             booking.setFee(fee);
             bookingMapper.insert(booking);
-            bookingIds.add(booking.getId());
+            nbs.add(booking);
             tf = tf + fee;
         }
         if (tf != totalFee) {
@@ -115,7 +115,7 @@ public class UserBookingControllerV2 {
             membershipCardPay(user, code, totalFee);
             return null;
         } else {
-            return wePay(user, arenaId, totalFee, bookingIds);
+            return wePay(user, arenaId, totalFee, nbs);
         }
     }
 
@@ -125,13 +125,13 @@ public class UserBookingControllerV2 {
         return bookingMapper.userBookings(user.getOpenId(), DateUtils.truncate(now, Calendar.DAY_OF_MONTH).getTime(), history != null && history);
     }
 
-    private Map<String, String> wePay(User user, int arenaId, int totalFee, List<Integer> bookingIds) {
+    private Map<String, String> wePay(User user, int arenaId, int totalFee, List<Booking> nbs) {
         String productType = Constant.PRODUCT_BOOKING;
         String tradeNo = pay.creatTradeNo(Constant.PRODUCT_BOOKING);
 
         //todo 商户ID要用场地对应商户ID，而不是平台的商户ID
         String prepayId = pay.prepay(this.platformMchId, user.getOpenId(), tradeNo, String.valueOf(totalFee), "场地预定");
-        payDao.createTrade(tradeNo, user.getOpenId(), productType, prepayId, totalFee, arenaId, bookingIds, this.platformMchId);
+        payDao.createTrade(tradeNo, user.getOpenId(), productType, prepayId, totalFee, arenaId, nbs, this.platformMchId);
 
         TreeMap<String, String> params = new TreeMap<>();
         params.put("appId", appId);

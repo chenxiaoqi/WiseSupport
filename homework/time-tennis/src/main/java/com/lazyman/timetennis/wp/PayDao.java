@@ -1,5 +1,6 @@
 package com.lazyman.timetennis.wp;
 
+import com.lazyman.timetennis.booking.Booking;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -20,18 +21,18 @@ public class PayDao {
         this.template = template;
     }
 
-    public void createTrade(String tradeNo, String openId, String productType, String prepayId, int totalFee, int arenaId, List<Integer> bookingIds, String mchId) {
+    public void createTrade(String tradeNo, String openId, String productType, String prepayId, int totalFee, int arenaId, List<Booking> bookings, String mchId) {
         template.update("insert into trade (trade_no, open_id, product_type, prepare_id, fee,mch_id) values (?,?,?,?,?,?)",
                 tradeNo, openId, productType, prepayId, totalFee, mchId);
-        for (int bookingId : bookingIds) {
-            template.update("insert into trade_booking_r (trade_no, booking_id, arena_id) values (?,?,?)", tradeNo, bookingId, arenaId);
+        for (Booking booking : bookings) {
+            template.update("insert into trade_booking_r (trade_no, booking_id, arena_id,court_id,start,end) values (?,?,?,?,?,?)",
+                    tradeNo, booking.getId(), arenaId, booking.getCourt().getId(), booking.getStart(), booking.getEnd());
         }
     }
 
     public void deleteTradeBooking(String tradeNo) {
         //todo 删除share表?
         template.update("delete from tt_booking where id in(select b.booking_id from trade a,trade_booking_r b where a.trade_no=b.trade_no and a.trade_no=?)", tradeNo);
-        template.update("delete from trade_booking_r where trade_no=?", tradeNo);
     }
 
     public Trade load(String tradNo) {
