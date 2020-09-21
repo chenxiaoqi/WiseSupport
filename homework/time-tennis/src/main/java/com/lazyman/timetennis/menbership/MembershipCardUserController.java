@@ -1,8 +1,5 @@
-package com.lazyman.timetennis.user.membership;
+package com.lazyman.timetennis.menbership;
 
-import com.lazyman.timetennis.menbership.MembershipCard;
-import com.lazyman.timetennis.menbership.MembershipCardDao;
-import com.lazyman.timetennis.menbership.MembershipCardMeta;
 import com.lazyman.timetennis.user.User;
 import com.wisesupport.commons.exceptions.BusinessException;
 import org.apache.commons.lang3.StringUtils;
@@ -16,11 +13,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/mc")
-public class MembershipCardController {
+@RequestMapping("/user/mc")
+public class MembershipCardUserController {
     private MembershipCardDao mcDao;
 
-    public MembershipCardController(MembershipCardDao mcDao) {
+    public MembershipCardUserController(MembershipCardDao mcDao) {
         this.mcDao = mcDao;
     }
 
@@ -29,7 +26,7 @@ public class MembershipCardController {
         return mcDao.byArenaId(arenaId).stream().filter(meta -> meta.getStatus().equals("ol")).collect(Collectors.toList());
     }
 
-    @GetMapping("/user/cards")
+    @GetMapping("/cards")
     public List<MembershipCard> useCards(@SessionAttribute User user) {
         List<MembershipCard> cards = mcDao.userCards(user.getOpenId());
         for (MembershipCard card : cards) {
@@ -58,7 +55,7 @@ public class MembershipCardController {
         }
     }
 
-    @GetMapping("/user/arena/cards")
+    @GetMapping("/arena/cards")
     public List<MembershipCard> userCardsInArena(@SessionAttribute User user, @RequestParam int arenaId) {
         return mcDao.userCardsInArena(user.getOpenId(), arenaId);
     }
