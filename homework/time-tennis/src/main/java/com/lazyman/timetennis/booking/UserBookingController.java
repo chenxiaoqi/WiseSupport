@@ -1,8 +1,6 @@
-package com.lazyman.timetennis.user.book;
+package com.lazyman.timetennis.booking;
 
 import com.lazyman.timetennis.arena.*;
-import com.lazyman.timetennis.booking.Booking;
-import com.lazyman.timetennis.booking.BookingMapper;
 import com.lazyman.timetennis.user.User;
 import com.wisesupport.commons.exceptions.BusinessException;
 import org.apache.commons.lang3.Validate;

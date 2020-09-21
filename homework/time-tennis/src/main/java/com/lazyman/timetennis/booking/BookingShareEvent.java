@@ -1,7 +1,6 @@
-package com.lazyman.timetennis.user.book;
+package com.lazyman.timetennis.booking;
 
 import com.lazyman.timetennis.BaseEvent;
-import com.lazyman.timetennis.booking.Booking;
 import com.lazyman.timetennis.user.User;
 
 public class BookingShareEvent extends BaseBookingEvent {

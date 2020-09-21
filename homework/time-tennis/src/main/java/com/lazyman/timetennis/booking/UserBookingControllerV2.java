@@ -1,9 +1,7 @@
-package com.lazyman.timetennis.user.book;
+package com.lazyman.timetennis.booking;
 
 import com.lazyman.timetennis.Constant;
 import com.lazyman.timetennis.arena.*;
-import com.lazyman.timetennis.booking.Booking;
-import com.lazyman.timetennis.booking.BookingMapper;
 import com.lazyman.timetennis.core.SecurityUtils;
 import com.lazyman.timetennis.menbership.MembershipCard;
 import com.lazyman.timetennis.menbership.MembershipCardDao;
