@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.lazyman.timetennis.Constant;
 import com.lazyman.timetennis.SessionWatch;
-import com.lazyman.timetennis.admin.RoleDao;
+import com.lazyman.timetennis.privilege.RoleDao;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;

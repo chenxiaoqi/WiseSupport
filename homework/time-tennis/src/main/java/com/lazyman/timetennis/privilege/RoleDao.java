@@ -1,4 +1,4 @@
-package com.lazyman.timetennis.admin;
+package com.lazyman.timetennis.privilege;
 
 import com.lazyman.timetennis.user.User;
 import org.springframework.jdbc.core.JdbcTemplate;

@@ -1,4 +1,4 @@
-package com.lazyman.timetennis.admin;
+package com.lazyman.timetennis.privilege;
 
 import com.lazyman.timetennis.user.User;
 import com.wisesupport.commons.exceptions.BusinessException;
@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/mine/grant")
+@RequestMapping("/manage/privilege")
 public class GrantController {
 
     private RoleDao roleDao;

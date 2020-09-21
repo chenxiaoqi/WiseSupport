@@ -2,12 +2,14 @@ package com.lazyman.timetennis.arena;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
 @RestController
-public class ArenaController {
+@RequestMapping("/user")
+public class ArenaUserController {
 
     private ArenaDao arenaDao;
 
@@ -15,7 +17,7 @@ public class ArenaController {
 
     private RuleDao ruleDao;
 
-    public ArenaController(ArenaDao arenaDao, CourtDao courtDao, RuleDao ruleDao) {
+    public ArenaUserController(ArenaDao arenaDao, CourtDao courtDao, RuleDao ruleDao) {
         this.arenaDao = arenaDao;
         this.courtDao = courtDao;
         this.ruleDao = ruleDao;

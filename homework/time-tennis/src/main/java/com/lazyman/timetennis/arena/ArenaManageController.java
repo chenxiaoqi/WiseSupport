@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Objects;
 
 @RestController
-@RequestMapping("/mine")
+@RequestMapping("/manage")
 public class ArenaManageController {
     private static final String TEMP_FILE_PREFIX = "tmp_";
     private ArenaDao arenaDao;
@@ -36,6 +36,11 @@ public class ArenaManageController {
         this.ruleDao = ruleDao;
         this.courtDao = courtDao;
         this.imagesDir = new File(imagesPath);
+    }
+
+    @GetMapping("/arena/{id}")
+    public Arena arena(@PathVariable int id) {
+        return arenaDao.load(id);
     }
 
     @GetMapping("/arenas")
