@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/mine/mc")
+@RequestMapping("/manage/mc")
 public class MembershipCardManageController {
     private MembershipCardDao mcDao;
 
