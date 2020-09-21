@@ -44,5 +44,8 @@ alter table trade_booking_r
     add start int not null;
 
 alter table trade_booking_r
+    add date int not null after court_id;
+
+alter table trade_booking_r
     add end int not null;
 

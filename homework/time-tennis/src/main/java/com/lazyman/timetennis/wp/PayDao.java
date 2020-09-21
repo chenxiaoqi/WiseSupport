@@ -25,8 +25,8 @@ public class PayDao {
         template.update("insert into trade (trade_no, open_id, product_type, prepare_id, fee,mch_id) values (?,?,?,?,?,?)",
                 tradeNo, openId, productType, prepayId, totalFee, mchId);
         for (Booking booking : bookings) {
-            template.update("insert into trade_booking_r (trade_no, booking_id, arena_id,court_id,start,end) values (?,?,?,?,?,?)",
-                    tradeNo, booking.getId(), arenaId, booking.getCourt().getId(), booking.getStart(), booking.getEnd());
+            template.update("insert into trade_booking_r (trade_no, booking_id, arena_id,court_id,start,end,date) values (?,?,?,?,?,?,?)",
+                    tradeNo, booking.getId(), arenaId, booking.getCourt().getId(), booking.getStart(), booking.getEnd(), booking.getDate());
         }
     }
 
