@@ -30,3 +30,10 @@ alter table membership_card
 create index idx_meta_id
     on membership_card (meta_id);
 
+drop index idx_create_time_status on trade;
+
+drop index idx_open_id on trade;
+
+create index idx_status
+    on trade (status);
+
