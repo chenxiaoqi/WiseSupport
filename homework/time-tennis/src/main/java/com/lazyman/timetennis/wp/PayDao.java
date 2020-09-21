@@ -42,15 +42,6 @@ public class PayDao {
         }, tradNo);
     }
 
-    private void populateTrade(ResultSet rs, Trade trade) throws SQLException {
-        trade.setTradeNo(rs.getString("trade_no"));
-        trade.setFee(rs.getInt("fee"));
-        trade.setStatus(rs.getString("status"));
-        trade.setPrepareId(rs.getString("prepare_id"));
-        trade.setOpenId(rs.getString("open_id"));
-        trade.setMchId(rs.getString("mch_id"));
-    }
-
     void updateStatus(String tradNo, String status, String transactionId) {
         template.update("update trade set status=?,transaction_id=? where trade_no=?", status, transactionId, tradNo);
     }
@@ -68,7 +59,16 @@ public class PayDao {
             } else {
                 return null;
             }
-        }, tradeExpireMinutes);
+        }, -tradeExpireMinutes);
 
+    }
+
+    private void populateTrade(ResultSet rs, Trade trade) throws SQLException {
+        trade.setTradeNo(rs.getString("trade_no"));
+        trade.setFee(rs.getInt("fee"));
+        trade.setStatus(rs.getString("status"));
+        trade.setPrepareId(rs.getString("prepare_id"));
+        trade.setOpenId(rs.getString("open_id"));
+        trade.setMchId(rs.getString("mch_id"));
     }
 }
