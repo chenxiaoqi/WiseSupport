@@ -39,21 +39,26 @@ public class TradeTask {
         Trade trade;
         while ((trade = payDao.pollWaitForPay()) != null) {
             final Trade ft = trade;
-            TreeMap<String, String> wpTrade = pay.queryTrade(ft.getTradeNo(), ft.getMchId());
-            tt.execute(new TransactionCallbackWithoutResult() {
-                @Override
-                protected void doInTransactionWithoutResult(TransactionStatus tt) {
-                    String status = tradeService.onNotify(ft, wpTrade);
-                    if (status.equals("ok")) {
-                        //订单已经支付完成了,应该不可能
-                        log.warn("trade {} complete in task", ft.getTradeNo());
-                        return;
+            try {
+                TreeMap<String, String> wpTrade = pay.queryTrade(ft.getTradeNo(), ft.getMchId());
+                tt.execute(new TransactionCallbackWithoutResult() {
+                    @Override
+                    protected void doInTransactionWithoutResult(TransactionStatus tt) {
+                        String status = tradeService.onNotify(ft, wpTrade);
+                        if (status.equals("ok")) {
+                            //订单已经支付完成了,应该不可能
+                            log.warn("trade {} complete in task", ft.getTradeNo());
+                            return;
+                        }
+                        pay.closeTrad(ft.getTradeNo(), ft.getMchId());
+                        payDao.updateStatus(ft.getTradeNo(), "ebt");
+                        payDao.deleteTradeBooking(ft.getTradeNo());
+                        log.info("delete user {} bookings trade {} in stats {} ", ft.getOpenId(), ft.getTradeNo(), ft.getStatus());
                     }
-                    pay.closeTrad(ft.getTradeNo(), ft.getMchId());
-                    payDao.updateStatus(ft.getTradeNo(), "ebt");
-                    payDao.deleteTradeBooking(ft.getTradeNo());
-                }
-            });
+                });
+            } catch (Exception e) {
+                log.error("deal trade {} failed.", ft.getTradeNo(), e);
+            }
             count++;
         }
         log.info("trade task process {} records in {}s", count, (System.currentTimeMillis() - start) / 1000);
