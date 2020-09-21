@@ -19,13 +19,13 @@ import java.util.TreeMap;
 public class WePayController {
     private WePayService pay;
 
-    private TradeMonitor monitor;
+    private TradeService tradeService;
 
     private PayDao payDao;
 
-    public WePayController(WePayService pay, TradeMonitor monitor, PayDao payDao) {
+    public WePayController(WePayService pay, TradeService tradeService, PayDao payDao) {
         this.pay = pay;
-        this.monitor = monitor;
+        this.tradeService = tradeService;
         this.payDao = payDao;
     }
 
@@ -44,7 +44,7 @@ public class WePayController {
             return;
         }
 
-        monitor.onNotify(params);
+        tradeService.onNotify(null, params);
 
         Map<String, String> result = new HashMap<>();
         result.put("return_code", "SUCCESS");
@@ -61,7 +61,7 @@ public class WePayController {
         String status;
         if (trade.getStatus().equals("wp")) {
             //失败删除场地预定？？
-            return monitor.onNotify(pay.queryTrade(tradeNo, trade.getMchId()));
+            return tradeService.onNotify(trade, pay.queryTrade(tradeNo, trade.getMchId()));
         } else {
             status = trade.getStatus();
         }

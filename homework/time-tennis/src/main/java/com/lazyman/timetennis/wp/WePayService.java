@@ -72,6 +72,8 @@ public class WePayService {
 
     private String platformMchId;
 
+    private int tradeExpireMinutes;
+
     private HttpClient httpClient;
 
     public WePayService(@Value("${wx.app-id}") String appId,
@@ -79,18 +81,21 @@ public class WePayService {
                         @Value("${wx.pay-use-sandbox}") boolean useSandbox,
                         @Value("${wx.pay-notify-url}") String notifyUrl,
                         @Value("${wx.pay-sp-bill-create-ip}") String spBillCreateIp,
-                        @Value("${wx.mch-id}") String platformMchId, HttpClient httpClient) {
+                        @Value("${wx.mch-id}") String platformMchId,
+                        @Value("${wx.pay-expire-minutes}") int tradeExpireMinutes,
+                        HttpClient httpClient) {
         this.appId = appId;
         this.signKey = signKey;
         this.useSandbox = useSandbox;
         this.notifyUrl = notifyUrl;
         this.spBillCreateIp = spBillCreateIp;
         this.platformMchId = platformMchId;
+        this.tradeExpireMinutes = tradeExpireMinutes;
         this.httpClient = httpClient;
     }
 
     @PostConstruct
-    public void init() throws TransformerException, IOException {
+    public void init() throws IOException {
         if (this.useSandbox) {
             this.sandboxSignKey = getSignKey();
         }
@@ -109,7 +114,7 @@ public class WePayService {
         params.put("spbill_create_ip", spBillCreateIp);
         Date now = new Date();
         params.put("time_start", Constant.FORMAT_COMPACT.format(now));
-        params.put("time_expire", Constant.FORMAT_COMPACT.format(DateUtils.addMinutes(now, 10)));
+        params.put("time_expire", Constant.FORMAT_COMPACT.format(DateUtils.addMinutes(now, tradeExpireMinutes)));
         params.put("notify_url", notifyUrl);
         params.put("trade_type", "JSAPI");
         params.put("openid", openId);
@@ -121,7 +126,7 @@ public class WePayService {
         }
     }
 
-    TreeMap<String, String> queryTrade(String tradNo, String mchId) {
+    public TreeMap<String, String> queryTrade(String tradNo, String mchId) {
         TreeMap<String, String> params = new TreeMap<>();
         params.put("appid", appId);
         params.put("mch_id", mchId);
@@ -130,6 +135,33 @@ public class WePayService {
         params.put("sign_type", "MD5");
         try {
             return sendRequest(params, "/pay/orderquery");
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    public void closeTrad(String tradeNo, String mchId) {
+        TreeMap<String, String> params = new TreeMap<>();
+        params.put("appid", appId);
+        params.put("mch_id", mchId);
+        params.put("out_trade_no", tradeNo);
+        params.put("nonce_str", SecurityUtils.randomSeq(32));
+        params.put("sign_type", "MD5");
+        try {
+            TreeMap<String, String> result = sendRequest(params, "/pay/closeorder");
+            String code = result.get("result_code");
+            if (!"SUCCESS".equals(code)) {
+                code = result.get("err_code");
+                if ("ORDERPAID".equals(code)) {
+                    log.warn("wired in close a trade {} already paid", tradeNo);
+                    throw new IllegalStateException("close a already paid trade");
+                } else if ("ORDERCLOSED".equals(code)) {
+                    log.warn("trade already closed {}", tradeNo);
+                } else {
+                    log.error("close trade {} failed in status {}", tradeNo, code);
+                    throw new IllegalStateException("close trade fail status " + code);
+                }
+            }
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
@@ -155,7 +187,7 @@ public class WePayService {
             String returnCode = result.get("return_code");
             if (!"SUCCESS".equals(returnCode)) {
                 log.error("pay failed {} => {}", url, result);
-                throw new IllegalStateException(result.get("return_msg"));
+                throw new IllegalStateException(result.get("retmsg"));
             } else {
                 log.debug("we pay result {} => {}", url, result);
             }
