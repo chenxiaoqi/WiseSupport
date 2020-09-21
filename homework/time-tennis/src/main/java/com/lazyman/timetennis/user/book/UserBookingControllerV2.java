@@ -16,10 +16,7 @@ import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.SessionAttribute;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
@@ -67,6 +64,7 @@ public class UserBookingControllerV2 {
                                                     int[] courtIds,
                                                     int[] startTimes,
                                                     int totalFee,
+                                                    @RequestParam(defaultValue = "1") int style,
                                                     String code) {
         if (code == null && payDao.hasWaitForPay(user.getOpenId())) {
             throw new BusinessException("您有一个未支付的预定待系统确认,请稍后再试!");
@@ -93,7 +91,7 @@ public class UserBookingControllerV2 {
                 }
             }
 
-            int fee = BookingTool.calcFeeV2(rules, date, startTime, courtDao, courtId);
+            int fee = style == 2 ? BookingTool.calcFeeV2(rules, date, startTime, courtDao, courtId) : BookingTool.calcFee(rules, date, startTime, endTime, courtDao, courtId);
             Booking booking = new Booking();
             Arena arena = new Arena();
             arena.setId(arenaId);
