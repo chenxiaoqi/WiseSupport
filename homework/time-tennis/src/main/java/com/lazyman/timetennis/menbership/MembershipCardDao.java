@@ -59,12 +59,32 @@ public class MembershipCardDao {
         }, openId);
     }
 
-    public List<MembershipCardMeta> byArenaId(String arenaId) {
+    List<MembershipCardMeta> byArenaId(String arenaId) {
         return template.query("select b.id,b.name,b.open_id,b.initial_balance,b.discount,b.price,b.extend_month,b.status from membership_card_meta_arena_r a,membership_card_meta b where a.meta_id=b.id and a.arena_id =?", (rs, rowNum) -> {
             MembershipCardMeta meta = new MembershipCardMeta();
             populateMeta(rs, meta);
             return meta;
         }, arenaId);
+    }
+
+    MembershipCardMeta getMetaByTradeNo(String tradeNo) {
+        return template.query("select a.id,a.name,a.open_id,a.initial_balance,a.discount,a.price,a.extend_month,a.status from trade_membership_card_meta_r b, membership_card_meta a where b.meta_id=a.id and  b.trade_no=? limit 1", rs -> {
+            if (rs.next()) {
+                MembershipCardMeta meta = new MembershipCardMeta();
+                populateMeta(rs, meta);
+                return meta;
+            } else {
+                return null;
+            }
+        }, tradeNo);
+    }
+
+    MembershipCardMeta loadMeta(int id) {
+        return template.queryForObject("select id,name,open_id,initial_balance,discount,price,extend_month,status from membership_card_meta a where id=?", (rs, rowNum) -> {
+            MembershipCardMeta meta = new MembershipCardMeta();
+            populateMeta(rs, meta);
+            return meta;
+        }, id);
     }
 
     private void populateMeta(ResultSet rs, MembershipCardMeta meta) throws SQLException {
@@ -77,15 +97,7 @@ public class MembershipCardDao {
         meta.setStatus(rs.getString("status"));
     }
 
-    public MembershipCardMeta loadMeta(int id) {
-        return template.queryForObject("select id,name,open_id,initial_balance,discount,price,extend_month,status from membership_card_meta a where id=?", (rs, rowNum) -> {
-            MembershipCardMeta meta = new MembershipCardMeta();
-            populateMeta(rs, meta);
-            return meta;
-        }, id);
-    }
-
-    public List<Arena> arenas(int metaId) {
+    List<Arena> arenas(int metaId) {
         return template.query("select b.id,b.name from membership_card_meta_arena_r a,arena b where a.arena_id=b.id and a.meta_id=?", (rs, rowNum) -> {
             Arena arena = new Arena();
             arena.setId(rs.getInt("id"));
@@ -106,11 +118,11 @@ public class MembershipCardDao {
         template.update("delete from membership_card_meta_arena_r where meta_id=?", metaId);
     }
 
-    public void createMembershipCard(String openId, MembershipCardMeta meta, String code, Date expireDate) {
+    void createMembershipCard(String openId, MembershipCardMeta meta, String code, Date expireDate) {
         template.update("insert into membership_card(code, open_id, balance, meta_id,expire_date) values (?,?,?,?,?)", code, openId, meta.getInitialBalance(), meta.getId(), expireDate);
     }
 
-    public String maxMembershipCardCode(int metaId) {
+    String maxMembershipCardCode(int metaId) {
         return template.query("select max(code) from membership_card where meta_id=?", rs -> {
             if (rs.next()) {
                 return rs.getString(1);
@@ -120,7 +132,7 @@ public class MembershipCardDao {
         }, metaId);
     }
 
-    public List<MembershipCard> userCardsInArena(String openId, int arenaId) {
+    List<MembershipCard> userCardsInArena(String openId, int arenaId) {
         return template.query("select a.code,a.open_id,a.balance,a.expire_date,c.id as meta_id, c.name,c.discount from membership_card a,membership_card_meta_arena_r b,membership_card_meta c where a.meta_id=b.meta_id and a.meta_id=c.id and a.open_id=? and b.arena_id=?", (rs, rowNum) -> {
             MembershipCard card = new MembershipCard();
             populateCard(card, rs);
@@ -128,7 +140,7 @@ public class MembershipCardDao {
         }, openId, arenaId);
     }
 
-    public List<MembershipCard> userCards(String openId) {
+    List<MembershipCard> userCards(String openId) {
         return template.query("select a.code,a.open_id,a.balance,a.expire_date,a.meta_id, b.name,b.discount,b.id as meta_id from membership_card a,membership_card_meta b where a.meta_id=b.id and a.open_id=?", (rs, rowNum) -> {
             MembershipCard card = new MembershipCard();
             populateCard(card, rs);
@@ -148,6 +160,10 @@ public class MembershipCardDao {
         }, code);
     }
 
+    boolean hasMeta(String openId, int metaId) {
+        return Objects.requireNonNull(template.query("select 1 from membership_card where open_id=? and meta_id=? limit 1", ResultSet::next, openId, metaId));
+    }
+
     private void populateCard(MembershipCard card, ResultSet rs) throws SQLException {
         card.setCode(rs.getString("code"));
         card.setBalance(rs.getInt("balance"));
@@ -159,6 +175,14 @@ public class MembershipCardDao {
         meta.setDiscount(rs.getInt("discount"));
         meta.setId(rs.getInt("meta_id"));
         card.setMeta(meta);
+    }
+
+    boolean hasWaitPay(String openId, int metaId) {
+        return Objects.requireNonNull(template.query("select 1 from trade a,trade_membership_card_meta_r b where a.trade_no=b.trade_no and a.open_id=? and a.status='wp' and b.meta_id=? limit 1", ResultSet::next, openId, metaId));
+    }
+
+    void createTradeMembershipCardRelation(String tradeNo, int metaId) {
+        template.update("insert into trade_membership_card_meta_r(trade_no, meta_id) values (?,?)", tradeNo, metaId);
     }
 }
 

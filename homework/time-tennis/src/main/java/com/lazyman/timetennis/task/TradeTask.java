@@ -1,10 +1,11 @@
 package com.lazyman.timetennis.task;
 
-import com.lazyman.timetennis.wp.PayDao;
-import com.lazyman.timetennis.wp.Trade;
-import com.lazyman.timetennis.wp.TradeService;
-import com.lazyman.timetennis.wp.WePayService;
+import com.lazyman.timetennis.wp.*;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+import org.springframework.lang.NonNull;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.TransactionStatus;
@@ -15,7 +16,7 @@ import java.util.TreeMap;
 
 @Component
 @Slf4j
-public class TradeTask {
+public class TradeTask implements ApplicationContextAware {
     private PayDao payDao;
 
     private WePayService pay;
@@ -24,13 +25,14 @@ public class TradeTask {
 
     private TransactionTemplate tt;
 
+    private ApplicationContext context;
+
     public TradeTask(PayDao payDao, WePayService pay, TradeService tradeService, TransactionTemplate tt) {
         this.payDao = payDao;
         this.pay = pay;
         this.tradeService = tradeService;
         this.tt = tt;
     }
-
 
     @Scheduled(fixedRate = 120000)
     public void run() {
@@ -48,12 +50,14 @@ public class TradeTask {
                         if (status.equals("ok")) {
                             //订单已经支付完成了,应该不可能
                             log.warn("trade {} complete in task", ft.getTradeNo());
-                            return;
+                        } else {
+                            //任务只处理状态时 wp 的,这里直接设置成 end by task
+                            pay.closeTrad(ft.getTradeNo(), ft.getMchId());
+                            status = "ebt";
+                            payDao.updateStatus(ft.getTradeNo(), status);
                         }
-                        pay.closeTrad(ft.getTradeNo(), ft.getMchId());
-                        payDao.updateStatus(ft.getTradeNo(), "ebt");
-                        payDao.deleteTradeBooking(ft.getTradeNo());
-                        log.info("delete user {} bookings trade {} in stats {} ", ft.getOpenId(), ft.getTradeNo(), ft.getStatus());
+                        ft.setStatus(status);
+                        context.publishEvent(new TradeEvent(this, ft));
                     }
                 });
             } catch (Exception e) {
@@ -64,4 +68,8 @@ public class TradeTask {
         log.info("trade task process {} records in {}s", count, (System.currentTimeMillis() - start) / 1000);
     }
 
+    @Override
+    public void setApplicationContext(@NonNull ApplicationContext context) throws BeansException {
+        this.context = context;
+    }
 }

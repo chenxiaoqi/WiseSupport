@@ -101,7 +101,7 @@ public class WePayService {
         }
     }
 
-    public String prepay(String mchId, String openId, String tradNo, String fee, String desc) {
+    String prepay(String mchId, String openId, String tradNo, String fee, String desc) {
         TreeMap<String, String> params = new TreeMap<>();
         params.put("appid", appId);
         params.put("mch_id", mchId);
@@ -171,6 +171,7 @@ public class WePayService {
         TreeMap<String, String> params = new TreeMap<>();
         params.put("mch_id", platformMchId);
         params.put("nonce_str", SecurityUtils.randomSeq(32));
+        params.put("sign_type", "MD5");
         Map<String, String> result = sendRequest(params, "/pay/getsignkey");
         return Objects.requireNonNull(result.get("sandbox_signkey"));
     }
@@ -196,7 +197,7 @@ public class WePayService {
         });
     }
 
-    public String createSign(TreeMap<String, String> params) {
+    String createSign(TreeMap<String, String> params) {
         StringBuilder builder = new StringBuilder();
         for (Map.Entry<String, String> entry : params.entrySet()) {
             if (StringUtils.isEmpty(entry.getValue())) {
