@@ -82,10 +82,10 @@ public class WePayController implements ApplicationContextAware {
         if (trade.getStatus().equals("wp")) {
             status = tradeService.onNotify(trade, pay.queryTrade(tradeNo, trade.getMchId()));
             trade.setStatus(status);
-            //todo 是否要发送时间,删除预定
         } else {
             status = trade.getStatus();
         }
+        context.publishEvent(new TradeEvent(this, trade));
         return status;
     }
 
