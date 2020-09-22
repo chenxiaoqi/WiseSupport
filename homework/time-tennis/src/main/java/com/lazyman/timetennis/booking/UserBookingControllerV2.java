@@ -141,8 +141,12 @@ public class UserBookingControllerV2 extends BasePayController implements Applic
         if (!card.getOpenId().equals(user.getOpenId())) {
             throw new BusinessException("不是您的卡");
         }
+        if (card.getExpireDate().getTime() < System.currentTimeMillis()) {
+            throw new BusinessException("卡已经过期");
+        }
         totalFee = totalFee * card.getMeta().getDiscount() / 100;
         if (totalFee != 0) {
+
             Validate.isTrue(mcDao.chargeFee(code, totalFee) == 1, "余额不足");
         }
         //todo 记录消费日志

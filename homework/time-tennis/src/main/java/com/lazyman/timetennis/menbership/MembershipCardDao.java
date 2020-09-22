@@ -141,9 +141,10 @@ public class MembershipCardDao {
     }
 
     List<MembershipCard> userCards(String openId) {
-        return template.query("select a.code,a.open_id,a.balance,a.expire_date,a.meta_id, b.name,b.discount,b.id as meta_id from membership_card a,membership_card_meta b where a.meta_id=b.id and a.open_id=?", (rs, rowNum) -> {
+        return template.query("select a.code,a.open_id,a.balance,a.expire_date,a.meta_id, b.name,b.discount,b.id as meta_id,b.initial_balance from membership_card a,membership_card_meta b where a.meta_id=b.id and a.open_id=?", (rs, rowNum) -> {
             MembershipCard card = new MembershipCard();
             populateCard(card, rs);
+            card.getMeta().setInitialBalance(rs.getInt("initial_balance"));
             return card;
         }, openId);
     }
