@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.*;
 
 @RestController
+@RequestMapping("/user/v2")
 public class UserBookingControllerV2 {
     private String appId;
 
@@ -54,7 +55,7 @@ public class UserBookingControllerV2 {
         this.mcDao = mcDao;
     }
 
-    @PostMapping("/user/v2/booking")
+    @PostMapping("/booking")
     @Transactional
     public synchronized Map<String, String> booking(@SessionAttribute("user") User user,
                                                     @DateTimeFormat(pattern = "yyyy-MM-dd") Date date,
@@ -123,7 +124,7 @@ public class UserBookingControllerV2 {
         }
     }
 
-    @GetMapping("/mine/bookings")
+    @GetMapping("/bookings")
     public List<Booking> bookings(@SessionAttribute User user, Boolean history) {
         Calendar now = Calendar.getInstance();
         return bookingMapper.userBookings(user.getOpenId(), DateUtils.truncate(now, Calendar.DAY_OF_MONTH).getTime(), history != null && history);
