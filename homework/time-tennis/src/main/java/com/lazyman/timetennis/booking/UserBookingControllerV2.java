@@ -2,16 +2,17 @@ package com.lazyman.timetennis.booking;
 
 import com.lazyman.timetennis.Constant;
 import com.lazyman.timetennis.arena.*;
-import com.lazyman.timetennis.core.SecurityUtils;
 import com.lazyman.timetennis.menbership.MembershipCard;
 import com.lazyman.timetennis.menbership.MembershipCardDao;
 import com.lazyman.timetennis.user.User;
-import com.lazyman.timetennis.wp.PayDao;
-import com.lazyman.timetennis.wp.WePayService;
+import com.lazyman.timetennis.wp.BasePayController;
+import com.lazyman.timetennis.wp.Trade;
+import com.lazyman.timetennis.wp.TradeEvent;
 import com.wisesupport.commons.exceptions.BusinessException;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.time.DateUtils;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationListener;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -20,10 +21,8 @@ import java.util.*;
 
 @RestController
 @RequestMapping("/user/v2")
-public class UserBookingControllerV2 {
-    private String appId;
-
-    private String platformMchId;
+@Slf4j
+public class UserBookingControllerV2 extends BasePayController implements ApplicationListener<TradeEvent> {
 
     private RuleDao ruleDao;
 
@@ -31,27 +30,15 @@ public class UserBookingControllerV2 {
 
     private BookingMapper bookingMapper;
 
-    private WePayService pay;
-
-    private PayDao payDao;
-
     private MembershipCardDao mcDao;
 
-    public UserBookingControllerV2(@Value("${wx.app-id}") String appId,
-                                   @Value("${wx.mch-id}") String platformMchId,
-                                   RuleDao ruleDao,
+    public UserBookingControllerV2(RuleDao ruleDao,
                                    CourtDao courtDao,
                                    BookingMapper bookingMapper,
-                                   WePayService pay,
-                                   PayDao payDao,
                                    MembershipCardDao mcDao) {
-        this.appId = appId;
-        this.platformMchId = platformMchId;
         this.ruleDao = ruleDao;
         this.courtDao = courtDao;
         this.bookingMapper = bookingMapper;
-        this.pay = pay;
-        this.payDao = payDao;
         this.mcDao = mcDao;
     }
 
@@ -120,7 +107,7 @@ public class UserBookingControllerV2 {
             membershipCardPay(user, code, totalFee);
             return null;
         } else {
-            return wePay(user, arenaId, totalFee, nbs);
+            return wePay(user, totalFee, nbs);
         }
     }
 
@@ -130,26 +117,23 @@ public class UserBookingControllerV2 {
         return bookingMapper.userBookings(user.getOpenId(), DateUtils.truncate(now, Calendar.DAY_OF_MONTH).getTime(), history != null && history);
     }
 
-    private Map<String, String> wePay(User user, int arenaId, int totalFee, List<Booking> nbs) {
+    @Override
+    @Transactional
+    public void onApplicationEvent(TradeEvent te) {
+        Trade trade = te.getTrade();
+        if (!Constant.PRODUCT_BOOKING.equals(trade.getProductType())) {
+            return;
+        }
+        log.info("receive booking trade[{}] event, in status {}", trade.getTradeNo(), trade.getStatus());
+        if (!("ok".equals(trade.getStatus()) || "wp".equals(trade.getStatus()))) {
+            payDao.deleteTradeBooking(trade.getTradeNo());
+        }
+    }
+
+    private Map<String, String> wePay(User user, int totalFee, List<Booking> nbs) {
         String productType = Constant.PRODUCT_BOOKING;
-        String tradeNo = pay.creatTradeNo(Constant.PRODUCT_BOOKING);
+        return preparePay(user.getOpenId(), productType, totalFee, "场地预定", tradeNo -> payDao.createTradeBookingRelation(tradeNo, nbs));
 
-        //todo 商户ID要用场地对应商户ID，而不是平台的商户ID
-        String prepayId = pay.prepay(this.platformMchId, user.getOpenId(), tradeNo, String.valueOf(totalFee), "场地预定");
-        payDao.createTrade(tradeNo, user.getOpenId(), productType, prepayId, totalFee, arenaId, nbs, this.platformMchId);
-
-        TreeMap<String, String> params = new TreeMap<>();
-        params.put("appId", appId);
-        params.put("timeStamp", String.valueOf(System.currentTimeMillis() / 1000));
-        params.put("nonceStr", SecurityUtils.randomSeq(32));
-        params.put("package", "prepay_id=" + prepayId);
-        params.put("signType", "MD5");
-
-        params.put("paySign", pay.createSign(params));
-
-        //返回tradeNo让前台拿可以查询
-        params.put("tradeNo", tradeNo);
-        return params;
     }
 
     private void membershipCardPay(User user, String code, int totalFee) {
@@ -163,5 +147,4 @@ public class UserBookingControllerV2 {
         }
         //todo 记录消费日志
     }
-
 }

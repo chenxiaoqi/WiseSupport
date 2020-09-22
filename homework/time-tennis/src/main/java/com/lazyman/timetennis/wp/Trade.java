@@ -15,4 +15,6 @@ public class Trade {
     private int fee;
 
     private String openId;
+
+    private String productType;
 }

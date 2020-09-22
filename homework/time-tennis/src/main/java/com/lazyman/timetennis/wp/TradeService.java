@@ -20,9 +20,6 @@ public class TradeService {
         String tradNo = tradeNotify.get("out_trade_no");
         String status;
         String transactionId = tradeNotify.get("transaction_id");
-        if (trade == null) {
-            trade = payDao.load(tradNo);
-        }
         if ("SUCCESS".equals(tradeState)) {
             int totalFee = Integer.parseInt(tradeNotify.get("total_fee"));
             if (trade.getStatus().equals("wp")) {

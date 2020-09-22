@@ -22,12 +22,16 @@ public class PayDao {
         this.template = template;
     }
 
-    public void createTrade(String tradeNo, String openId, String productType, String prepayId, int totalFee, int arenaId, List<Booking> bookings, String mchId) {
+    public void createTrade(String tradeNo, String openId, String productType, String prepayId, int totalFee, String mchId) {
         template.update("insert into trade (trade_no, open_id, product_type, prepare_id, fee,mch_id) values (?,?,?,?,?,?)",
                 tradeNo, openId, productType, prepayId, totalFee, mchId);
+
+    }
+
+    public void createTradeBookingRelation(String tradeNo, List<Booking> bookings) {
         for (Booking booking : bookings) {
             template.update("insert into trade_booking_r (trade_no, booking_id, arena_id,court_id,start,end,date) values (?,?,?,?,?,?,?)",
-                    tradeNo, booking.getId(), arenaId, booking.getCourt().getId(), booking.getStart(), booking.getEnd(), booking.getDate());
+                    tradeNo, booking.getId(), booking.getArena().getId(), booking.getCourt().getId(), booking.getStart(), booking.getEnd(), booking.getDate());
         }
     }
 
@@ -37,7 +41,7 @@ public class PayDao {
     }
 
     public Trade load(String tradNo) {
-        return template.queryForObject("select trade_no,mch_id,fee,status,prepare_id,open_id from trade where trade_no=?", (rs, rowNum) -> {
+        return template.queryForObject("select trade_no,mch_id,fee,status,prepare_id,open_id,product_type from trade where trade_no=?", (rs, rowNum) -> {
             Trade trade = new Trade();
             populateTrade(rs, trade);
             return trade;
@@ -53,7 +57,7 @@ public class PayDao {
     }
 
     public Trade pollWaitForPay() {
-        return template.query("select trade_no,status,fee,prepare_id,mch_id,open_id from trade where status='wp' and create_time<date_add(now(),interval ? minute ) limit 1", rs -> {
+        return template.query("select trade_no,status,fee,prepare_id,mch_id,open_id,product_type from trade where status='wp' and create_time<date_add(now(),interval ? minute ) limit 1", rs -> {
             if (rs.next()) {
                 Trade trade = new Trade();
                 populateTrade(rs, trade);
@@ -76,5 +80,6 @@ public class PayDao {
         trade.setPrepareId(rs.getString("prepare_id"));
         trade.setOpenId(rs.getString("open_id"));
         trade.setMchId(rs.getString("mch_id"));
+        trade.setProductType(rs.getString("product_type"));
     }
 }
