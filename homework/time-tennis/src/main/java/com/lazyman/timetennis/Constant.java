@@ -18,5 +18,7 @@ public interface Constant {
 
     String PRODUCT_CARD = "CA";
 
+    String PRODUCT_RECHARGE = "RC";
+
 
 }

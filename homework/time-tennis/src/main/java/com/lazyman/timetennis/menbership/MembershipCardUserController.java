@@ -49,7 +49,7 @@ public class MembershipCardUserController extends BasePayController implements A
         if (mcDao.hasMeta(user.getOpenId(), metaId)) {
             throw new BusinessException("你已经有该会员卡,无需购买");
         }
-        if (mcDao.hasWaitPay(user.getOpenId(), metaId)) {
+        if (payDao.hasWaitForPay(user.getOpenId())) {
             throw new BusinessException("您的购买订单确认中,请稍等");
         }
         MembershipCardMeta meta = mcDao.loadMeta(metaId);
@@ -58,20 +58,56 @@ public class MembershipCardUserController extends BasePayController implements A
         return preparePay(user.getOpenId(), Constant.PRODUCT_CARD, meta.getPrice(), "购买会员卡[" + meta.getName() + "]", tradeNo -> mcDao.createTradeMembershipCardRelation(tradeNo, metaId));
     }
 
+    @PostMapping("/recharge")
+    @Transactional
+    public synchronized Map<String, String> recharge(@SessionAttribute User user, @RequestParam String code) {
+
+        if (payDao.hasWaitForPay(user.getOpenId())) {
+            throw new BusinessException("您的购买订单确认中,请稍等");
+        }
+        MembershipCard card = mcDao.loadCard(code);
+        Validate.notNull(card);
+        MembershipCardMeta meta = mcDao.loadMeta(card.getMeta().getId());
+        Validate.notNull(meta);
+        return preparePay(user.getOpenId(),
+                Constant.PRODUCT_RECHARGE,
+                card.getMeta().getInitialBalance(),
+                "会员卡[" + meta.getName() + "]充值",
+                tradeNo -> mcDao.createTradeMembershipCardChargeRelation(tradeNo, code));
+    }
+
     @GetMapping("/arena/cards")
     public List<MembershipCard> userCardsInArena(@SessionAttribute User user, @RequestParam int arenaId) {
         return mcDao.userCardsInArena(user.getOpenId(), arenaId);
     }
 
     @Override
+    @Transactional
     public void onApplicationEvent(TradeEvent event) {
         Trade trade = event.getTrade();
-        if (!Constant.PRODUCT_CARD.equals(trade.getProductType())) {
-            return;
+        if (Constant.PRODUCT_CARD.equals(trade.getProductType())) {
+            onPurchase(trade);
+        } else if (Constant.PRODUCT_RECHARGE.equals(trade.getProductType())) {
+            onRecharge(trade);
         }
+    }
+
+    private void onRecharge(Trade trade) {
         log.info("receive membership card trade[{}] event, in status {}", trade.getTradeNo(), trade.getStatus());
         if ("ok".equals(trade.getStatus())) {
+            if (mcDao.changeToFinished(trade.getTradeNo()) == 1) {
+                String code = mcDao.getCardCodeByTradeNo(trade.getTradeNo());
+                Validate.isTrue(mcDao.recharge(code, trade.getFee()) == 1);
+                //todo 记录会员卡消费账单
+            } else {
+                log.info("duplicate recharge event trade {}", trade.getTradeNo());
+            }
+        }
+    }
 
+    private void onPurchase(Trade trade) {
+        log.info("receive membership card trade[{}] event, in status {}", trade.getTradeNo(), trade.getStatus());
+        if ("ok".equals(trade.getStatus())) {
             MembershipCardMeta meta = mcDao.getMetaByTradeNo(trade.getTradeNo());
             if (meta == null) {
                 log.error("could not found meta for trade {}", trade.getTradeNo());

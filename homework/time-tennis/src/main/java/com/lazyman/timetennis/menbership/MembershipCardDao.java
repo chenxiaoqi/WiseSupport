@@ -133,7 +133,7 @@ public class MembershipCardDao {
     }
 
     List<MembershipCard> userCardsInArena(String openId, int arenaId) {
-        return template.query("select a.code,a.open_id,a.balance,a.expire_date,c.id as meta_id, c.name,c.discount from membership_card a,membership_card_meta_arena_r b,membership_card_meta c where a.meta_id=b.meta_id and a.meta_id=c.id and a.open_id=? and b.arena_id=?", (rs, rowNum) -> {
+        return template.query("select a.code,a.open_id,a.balance,a.expire_date,c.id as meta_id, c.name,c.discount,c.initial_balance from membership_card a,membership_card_meta_arena_r b,membership_card_meta c where a.meta_id=b.meta_id and a.meta_id=c.id and a.open_id=? and b.arena_id=?", (rs, rowNum) -> {
             MembershipCard card = new MembershipCard();
             populateCard(card, rs);
             return card;
@@ -144,7 +144,6 @@ public class MembershipCardDao {
         return template.query("select a.code,a.open_id,a.balance,a.expire_date,a.meta_id, b.name,b.discount,b.id as meta_id,b.initial_balance from membership_card a,membership_card_meta b where a.meta_id=b.id and a.open_id=?", (rs, rowNum) -> {
             MembershipCard card = new MembershipCard();
             populateCard(card, rs);
-            card.getMeta().setInitialBalance(rs.getInt("initial_balance"));
             return card;
         }, openId);
     }
@@ -153,8 +152,12 @@ public class MembershipCardDao {
         return template.update("update membership_card set balance=balance-? where balance>=? and code=?", fee, fee, code);
     }
 
+    public int recharge(String code, int fee) {
+        return template.update("update membership_card set balance=balance+? where code=?", fee, code);
+    }
+
     public MembershipCard loadCard(String code) {
-        return template.queryForObject("select a.code,a.meta_id,a.open_id,a.balance,a.expire_date,b.name,b.discount from membership_card a,membership_card_meta b where a.meta_id=b.id and a.code=?", (rs, rowNum) -> {
+        return template.queryForObject("select a.code,a.meta_id,a.open_id,a.balance,a.expire_date,b.name,b.discount,b.initial_balance from membership_card a,membership_card_meta b where a.meta_id=b.id and a.code=?", (rs, rowNum) -> {
             MembershipCard card = new MembershipCard();
             populateCard(card, rs);
             return card;
@@ -175,15 +178,24 @@ public class MembershipCardDao {
         meta.setName(rs.getString("name"));
         meta.setDiscount(rs.getInt("discount"));
         meta.setId(rs.getInt("meta_id"));
+        meta.setInitialBalance(rs.getInt("initial_balance"));
         card.setMeta(meta);
-    }
-
-    boolean hasWaitPay(String openId, int metaId) {
-        return Objects.requireNonNull(template.query("select 1 from trade a,trade_membership_card_meta_r b where a.trade_no=b.trade_no and a.open_id=? and a.status='wp' and b.meta_id=? limit 1", ResultSet::next, openId, metaId));
     }
 
     void createTradeMembershipCardRelation(String tradeNo, int metaId) {
         template.update("insert into trade_membership_card_meta_r(trade_no, meta_id) values (?,?)", tradeNo, metaId);
+    }
+
+    void createTradeMembershipCardChargeRelation(String tradeNo, String code) {
+        template.update("insert into trade_membership_card_recharge_r(trade_no, mc_code) values (?,?)", tradeNo, code);
+    }
+
+    int changeToFinished(String tradeNo) {
+        return template.update("update trade_membership_card_recharge_r set finished=1 where trade_no=? and finished=0", tradeNo);
+    }
+
+    String getCardCodeByTradeNo(String tradeNo) {
+        return template.queryForObject("select mc_code from trade_membership_card_recharge_r where trade_no=?", (rs, rowNum) -> rs.getString("mc_code"), tradeNo);
     }
 }
 
