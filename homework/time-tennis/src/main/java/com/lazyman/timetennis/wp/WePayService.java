@@ -205,11 +205,11 @@ public class WePayService {
             }
             builder.append(entry.getKey()).append('=').append(entry.getValue()).append('&');
         }
-        builder.append("key=").append(this.useSandbox ? sandboxSignKey : signKey);
+        builder.append("key=").append(this.useSandbox ? (sandboxSignKey == null ? signKey : sandboxSignKey) : signKey);
         return Hex.encodeHexString(DigestUtils.md5(builder.toString()), false);
     }
 
-    public String creatTradeNo(String productType) {
+    String creatTradeNo(String productType) {
         return FORMAT.format(new Date()) + productType;
     }
 
