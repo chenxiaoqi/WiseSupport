@@ -32,7 +32,7 @@ wx:
   secret: e9a4e19c885258ec828e5422469c3b08
   mch-id: 1602854290
   pay-sign-key: abcdefghijklmnopqrstuvwxyz123456
-  pay-use-sandbox: false
+  pay-use-sandbox: true
   pay-sp-bill-create-ip: 124.70.154.176
   pay-notify-url: https://vn.xiaoqicloud.cn/pay/notify
   pay-expire-minutes: 5

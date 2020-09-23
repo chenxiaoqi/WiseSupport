@@ -7,4 +7,4 @@ logging:
   config: classpath:logback-spring-production.xml
 
 wx:
-  pay-use-sandbox: false
+  pay-use-sandbox: true
