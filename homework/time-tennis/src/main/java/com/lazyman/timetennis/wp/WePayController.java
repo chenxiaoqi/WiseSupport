@@ -8,7 +8,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.lang.NonNull;
-import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,7 +18,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
-@Controller
+@RestController
 @Slf4j
 @RequestMapping("/pay")
 public class WePayController implements ApplicationContextAware {
@@ -35,6 +34,11 @@ public class WePayController implements ApplicationContextAware {
         this.pay = pay;
         this.tradeService = tradeService;
         this.payDao = payDao;
+    }
+
+    @GetMapping("/trade")
+    public Trade getTrade(@RequestParam String tradeNo) {
+        return payDao.load(tradeNo);
     }
 
     @PostMapping("/notify")
