@@ -188,7 +188,7 @@ public class WePayService {
             String returnCode = result.get("return_code");
             if (!"SUCCESS".equals(returnCode)) {
                 log.error("pay failed {} => {}", url, result);
-                throw new IllegalStateException(result.get("retmsg"));
+                throw new IllegalStateException(result.get("return_msg"));
             } else {
                 log.debug("we pay result {} => {}", url, result);
             }
@@ -205,6 +205,7 @@ public class WePayService {
             }
             builder.append(entry.getKey()).append('=').append(entry.getValue()).append('&');
         }
+        //getsignkey接口签名时没有sandboxSignKey,需要用商户key
         builder.append("key=").append(this.useSandbox ? (sandboxSignKey == null ? signKey : sandboxSignKey) : signKey);
         return Hex.encodeHexString(DigestUtils.md5(builder.toString()), false);
     }
