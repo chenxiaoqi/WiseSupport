@@ -21,8 +21,8 @@ public class ArenaUserController {
     }
 
     @GetMapping("/arenas")
-    public List<Arena> arenas(@RequestParam String city, String name) {
-        return arenaDao.searchArena(city, name);
+    public List<Arena> arenas(@RequestParam String city, Integer type, String name) {
+        return arenaDao.searchArena(city, type, name);
     }
 
     @GetMapping("/arena/{id}")

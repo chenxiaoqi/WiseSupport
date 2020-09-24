@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -22,13 +23,17 @@ public class ArenaDao {
         this.template = template;
     }
 
-    public List<Arena> searchArena(String city, String name) {
-        Object[] params = new Object[StringUtils.isEmpty(name) ? 1 : 2];
-        params[0] = city;
-        String sql = "select id, name,district,images,book_style from arena where city=? ";
+    public List<Arena> searchArena(String city, Integer type, String name) {
+        List<Object> params = new ArrayList<>(3);
+        params.add(city);
+        String sql = "select id, name,district,images,book_style from arena where city=?";
+        if (type != null) {
+            sql = sql + " and type=?";
+            params.add(type);
+        }
         if (!StringUtils.isEmpty(name)) {
-            sql = sql + "and name like concat('%',?,'%')";
-            params[1] = name;
+            sql = sql + " and name like concat('%',?,'%')";
+            params.add(name);
         }
         return template.query(sql, (rs, rowNum) -> {
             Arena arena = new Arena();
@@ -38,7 +43,7 @@ public class ArenaDao {
             arena.setBookStyle(rs.getInt("book_style"));
             arena.setImages(StringUtils.split(rs.getString("images"), ','));
             return arena;
-        }, params);
+        }, params.toArray());
     }
 
     public Arena load(int id) {
