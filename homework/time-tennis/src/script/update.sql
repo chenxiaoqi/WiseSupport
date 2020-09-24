@@ -53,3 +53,9 @@ alter table trade_booking_r
 create index idx_city
     on arena (city);
 
+drop index idx_city on arena;
+
+create index idx_city_type
+    on arena (city, type);
+
+
