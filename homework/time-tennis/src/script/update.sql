@@ -49,3 +49,7 @@ alter table trade_booking_r
 alter table trade_booking_r
     add end int not null;
 
+
+create index idx_city
+    on arena (city);
+

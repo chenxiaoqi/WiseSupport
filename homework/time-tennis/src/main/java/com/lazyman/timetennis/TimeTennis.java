@@ -3,6 +3,7 @@ package com.lazyman.timetennis;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.ServletComponentScan;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -14,6 +15,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @ServletComponentScan(basePackageClasses = TimeTennis.class)
 @EnableScheduling
 @EnableTransactionManagement(proxyTargetClass = true)
+@EnableCaching
 public class TimeTennis {
 
     public static void main(String[] args) {
