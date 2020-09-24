@@ -1,6 +1,7 @@
 package com.lazyman.timetennis.arena;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCreatorFactory;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -21,8 +22,15 @@ public class ArenaDao {
         this.template = template;
     }
 
-    public List<Arena> arenas() {
-        return template.query("select id, name,district,images,book_style from arena", (rs, rowNum) -> {
+    public List<Arena> searchArena(String city, String name) {
+        Object[] params = new Object[StringUtils.isEmpty(name) ? 1 : 2];
+        params[0] = city;
+        String sql = "select id, name,district,images,book_style from arena where city=? ";
+        if (!StringUtils.isEmpty(name)) {
+            sql = sql + "and name like concat('%',?,'%')";
+            params[1] = name;
+        }
+        return template.query(sql, (rs, rowNum) -> {
             Arena arena = new Arena();
             arena.setId(rs.getInt("id"));
             arena.setName(rs.getString("name"));
@@ -30,7 +38,7 @@ public class ArenaDao {
             arena.setBookStyle(rs.getInt("book_style"));
             arena.setImages(StringUtils.split(rs.getString("images"), ','));
             return arena;
-        });
+        }, params);
     }
 
     public Arena load(int id) {
@@ -139,5 +147,10 @@ public class ArenaDao {
 
     public boolean isArenaAdmin(String openId, int arenaId) {
         return Objects.requireNonNull(template.query("select 1 from arena_role where open_id=? and arena_id=? and role='admin'", ResultSet::next, openId, arenaId));
+    }
+
+    @Cacheable("arena.cities")
+    public List<String> cities() {
+        return template.query("select distinct(city) as city from arena order by city", (rs, rowNum) -> rs.getString(1));
     }
 }

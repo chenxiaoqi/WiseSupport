@@ -8,6 +8,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MimeType;
 import org.springframework.web.bind.annotation.*;
@@ -143,6 +144,7 @@ public class ArenaManageController {
 
     @PostMapping("/arena")
     @Transactional(rollbackFor = {IOException.class, RuntimeException.class})
+    @CacheEvict("arena.cities")
     public void addArena(@SessionAttribute User user, Arena arena) throws IOException {
         checkPrivileges(user);
         int id = arenaDao.insert(arena);
@@ -159,6 +161,7 @@ public class ArenaManageController {
 
     @PutMapping("/arena")
     @Transactional(rollbackFor = {IOException.class, RuntimeException.class})
+    @CacheEvict(value = "arena.cities", allEntries = true)
     public void updateArena(@SessionAttribute User user, Arena arena) throws IOException {
         checkArenaPrivileges(user, arena.getId());
         String[] images = arena.getImages();
@@ -187,6 +190,7 @@ public class ArenaManageController {
 
     @DeleteMapping("/arena")
     @Transactional
+    @CacheEvict("arena.cities")
     public void deleteArena(@SessionAttribute User user, int id) {
         checkArenaPrivileges(user, id);
         arenaDao.delete(id);
