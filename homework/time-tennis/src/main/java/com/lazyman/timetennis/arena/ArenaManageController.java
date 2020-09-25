@@ -45,20 +45,20 @@ public class ArenaManageController {
     }
 
     @GetMapping("/arenas")
-    public List<Arena> arenas(@SessionAttribute User user) {
+    public List<Arena> arenas(User user) {
         checkPrivileges(user);
         return arenaDao.arenas(user.getOpenId());
     }
 
     @GetMapping("/rules")
-    public List<Rule> rules(@SessionAttribute User user, int arenaId, Integer type) {
+    public List<Rule> rules(User user, int arenaId, Integer type) {
         checkPrivileges(user);
         checkArenaPrivileges(user, arenaId);
         return ruleDao.rules(arenaId, type);
     }
 
     @DeleteMapping("/rule")
-    public void deleteRule(@SessionAttribute User user, int id) {
+    public void deleteRule(User user, int id) {
         Rule rule = ruleDao.load(id);
         Validate.notNull(rule);
         checkArenaPrivileges(user, rule.getArenaId());
@@ -69,13 +69,13 @@ public class ArenaManageController {
     }
 
     @GetMapping("/rule/{id}")
-    public Rule rule(@SessionAttribute User user, @PathVariable int id) {
+    public Rule rule(User user, @PathVariable int id) {
         checkPrivileges(user);
         return ruleDao.load(id);
     }
 
     @PutMapping("/rule")
-    public void updateRule(@SessionAttribute User user, Rule rule) {
+    public void updateRule(User user, Rule rule) {
         Rule dbRule = ruleDao.load(rule.getId());
         Validate.notNull(dbRule);
         checkArenaPrivileges(user, dbRule.getArenaId());
@@ -83,14 +83,14 @@ public class ArenaManageController {
     }
 
     @PostMapping("/rule")
-    public void insertRule(@SessionAttribute User user, Rule rule) {
+    public void insertRule(User user, Rule rule) {
         checkArenaPrivileges(user, rule.getArenaId());
         ruleDao.insert(rule);
     }
 
     @DeleteMapping("/court")
     @Transactional
-    public void deleteCourt(@SessionAttribute User user, int id) {
+    public void deleteCourt(User user, int id) {
         Court court = courtDao.load(id);
         Validate.notNull(court);
         checkArenaPrivileges(user, court.getArenaId());
@@ -99,7 +99,7 @@ public class ArenaManageController {
     }
 
     @GetMapping("/court/{id}")
-    public Court court(@SessionAttribute User user, @PathVariable int id) {
+    public Court court(User user, @PathVariable int id) {
         checkPrivileges(user);
         Court court = courtDao.load(id);
         List<Rule> rules = ruleDao.courtRules(new Object[]{id});
@@ -115,7 +115,7 @@ public class ArenaManageController {
 
     @PostMapping("/court")
     @Transactional
-    public void addCourt(@SessionAttribute User user, int arenaId, String name, int fee, String ruleIds) {
+    public void addCourt(User user, int arenaId, String name, int fee, String ruleIds) {
         checkArenaPrivileges(user, arenaId);
         int courtId = courtDao.insert(arenaId, name, fee);
         insertCourtRuleRelation(courtId, ruleIds);
@@ -123,7 +123,7 @@ public class ArenaManageController {
 
     @PutMapping("/court")
     @Transactional
-    public void updateCourt(@SessionAttribute User user, int id, String name, int fee, String ruleIds) {
+    public void updateCourt(User user, int id, String name, int fee, String ruleIds) {
         Court court = courtDao.load(id);
         Validate.notNull(court);
         checkArenaPrivileges(user, court.getArenaId());
@@ -145,7 +145,7 @@ public class ArenaManageController {
     @PostMapping("/arena")
     @Transactional(rollbackFor = {IOException.class, RuntimeException.class})
     @CacheEvict("arena.cities")
-    public void addArena(@SessionAttribute User user, Arena arena) throws IOException {
+    public void addArena(User user, Arena arena) throws IOException {
         checkPrivileges(user);
         int id = arenaDao.insert(arena);
         String[] images = arena.getImages();
@@ -162,7 +162,7 @@ public class ArenaManageController {
     @PutMapping("/arena")
     @Transactional(rollbackFor = {IOException.class, RuntimeException.class})
     @CacheEvict(value = "arena.cities", allEntries = true)
-    public void updateArena(@SessionAttribute User user, Arena arena) throws IOException {
+    public void updateArena(User user, Arena arena) throws IOException {
         checkArenaPrivileges(user, arena.getId());
         String[] images = arena.getImages();
         String[] names = new String[images.length];
@@ -191,7 +191,7 @@ public class ArenaManageController {
     @DeleteMapping("/arena")
     @Transactional
     @CacheEvict("arena.cities")
-    public void deleteArena(@SessionAttribute User user, int id) {
+    public void deleteArena(User user, int id) {
         checkArenaPrivileges(user, id);
         arenaDao.delete(id);
 

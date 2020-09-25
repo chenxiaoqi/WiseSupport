@@ -15,7 +15,10 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.lang.NonNull;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -70,7 +73,7 @@ public class BookingController implements ApplicationContextAware {
 
     @DeleteMapping("/booking/{id}")
     @Transactional
-    public void deleteBooking(@SessionAttribute("user") User user, @PathVariable int id) {
+    public void deleteBooking(User user, @PathVariable int id) {
         if (!user.getAdmin()) {
             throw new BusinessException("此为管理员功能,普通用户可以到首页里取消");
         }

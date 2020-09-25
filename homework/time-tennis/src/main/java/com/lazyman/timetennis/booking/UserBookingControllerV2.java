@@ -44,7 +44,7 @@ public class UserBookingControllerV2 extends BasePayController implements Applic
 
     @PostMapping("/booking")
     @Transactional
-    public synchronized Map<String, String> booking(@SessionAttribute("user") User user,
+    public synchronized Map<String, String> booking(User user,
                                                     @DateTimeFormat(pattern = "yyyy-MM-dd") Date date,
                                                     int arenaId,
                                                     int[] courtIds,
@@ -112,7 +112,7 @@ public class UserBookingControllerV2 extends BasePayController implements Applic
     }
 
     @GetMapping("/bookings")
-    public List<Booking> bookings(@SessionAttribute User user, Boolean history) {
+    public List<Booking> bookings(User user, Boolean history) {
         Calendar now = Calendar.getInstance();
         return bookingMapper.userBookings(user.getOpenId(), DateUtils.truncate(now, Calendar.DAY_OF_MONTH).getTime(), history != null && history);
     }
