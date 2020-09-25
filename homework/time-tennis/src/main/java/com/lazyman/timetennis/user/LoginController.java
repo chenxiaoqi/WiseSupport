@@ -2,8 +2,6 @@ package com.lazyman.timetennis.user;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.lazyman.timetennis.Constant;
-import com.lazyman.timetennis.SessionWatch;
 import com.lazyman.timetennis.privilege.RoleDao;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Hex;
@@ -19,6 +17,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.validation.constraints.NotEmpty;
 import java.io.IOException;
@@ -39,65 +38,66 @@ public class LoginController {
 
     private RoleDao roleDao;
 
+    private UserCoder coder;
+
     public LoginController(HttpClient client,
                            @Value("${wx.app-id}") String appId,
                            @Value("${wx.secret}") String secret,
-                           UserMapper userMapper, RoleDao roleDao) {
+                           UserMapper userMapper, RoleDao roleDao, UserCoder coder) {
         this.client = client;
         this.appId = appId;
         this.secret = secret;
         this.userMapper = userMapper;
         this.roleDao = roleDao;
+        this.coder = coder;
     }
 
     @GetMapping("/login")
-    public User login(@NotEmpty String jsCode, @NotEmpty String rawData, @NotEmpty String signature, HttpServletRequest request) throws IOException {
+    public User login(@NotEmpty String jsCode, @NotEmpty String rawData, @NotEmpty String signature, HttpServletRequest request, HttpServletResponse resp) throws IOException {
 
-        HttpSession session = request.getSession(false);
-        if (session != null) {
-            User user = (User) session.getAttribute(Constant.SK_USER);
-            if (user != null) {
-                log.debug("find user in session return directly");
+        User loginUser = coder.decode(request);
+        User result;
+        if (loginUser == null) {
+            HttpUriRequest get = RequestBuilder.get("https://api.weixin.qq.com/sns/jscode2session")
+                    .addParameter("appid", appId)
+                    .addParameter("secret", secret)
+                    .addParameter("js_code", jsCode)
+                    .addParameter("grant_type", "authorization_code")
+                    .build();
+            User wxUser = client.execute(get, response -> {
+                JSONObject json = JSON.parseObject(EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8));
+                String openId = json.getString("openid");
+                Assert.notNull(openId, () -> "WeChat jscode2session failed : " + json);
+                User user = new User();
+                user.setOpenId(openId);
+                String sessionKey = json.getString("session_key");
+                String expect = Hex.encodeHexString(DigestUtils.sha1(rawData + sessionKey));
+                Assert.isTrue(expect.equals(signature), () -> "verify signature failed expect " + expect + " actual " + signature);
+                JSONObject raw = JSON.parseObject(rawData);
+                user.setWxNickname(raw.getString("nickName"));
+                user.setAvatar(raw.getString("avatarUrl"));
                 return user;
+            });
+            result = userMapper.selectByPrimaryKey(wxUser.getOpenId());
+            if (result == null) {
+                userMapper.insert(wxUser);
+            } else {
+                userMapper.updateByPrimaryKey(wxUser);
             }
-        }
-        User user = new User();
-        HttpUriRequest get = RequestBuilder.get("https://api.weixin.qq.com/sns/jscode2session")
-                .addParameter("appid", appId)
-                .addParameter("secret", secret)
-                .addParameter("js_code", jsCode)
-                .addParameter("grant_type", "authorization_code")
-                .build();
-        String sessionKey = client.execute(get, response -> {
-            JSONObject json = JSON.parseObject(EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8));
-            String openId = json.getString("openid");
-            Assert.notNull(openId, () -> "WeChat jscode2session failed : " + json);
-            user.setOpenId(openId);
-            return json.getString("session_key");
-        });
-        String expect = Hex.encodeHexString(DigestUtils.sha1(rawData + sessionKey));
-        Assert.isTrue(expect.equals(signature), () -> "verify signature failed expect " + expect + " actual " + signature);
-        JSONObject json = JSON.parseObject(rawData);
-        user.setWxNickname(json.getString("nickName"));
-        user.setAvatar(json.getString("avatarUrl"));
-
-        User dbUser = userMapper.selectByPrimaryKey(user.getOpenId());
-        if (dbUser == null) {
-            userMapper.insert(user);
+            result = userMapper.selectByPrimaryKey(wxUser.getOpenId());
         } else {
-            userMapper.updateByPrimaryKey(user);
+            result = userMapper.selectByPrimaryKey(loginUser.getOpenId());
         }
-        session = request.getSession();
-        SessionWatch.register(user.getOpenId(), session);
 
-        dbUser = userMapper.selectByPrimaryKey(user.getOpenId());
-        dbUser.setSuperAdmin(roleDao.isSuperAdmin(user.getOpenId()));
-        dbUser.setArenaAdmin(roleDao.isAreaAdmin(user.getOpenId()));
-
+        result.setSuperAdmin(roleDao.isSuperAdmin(result.getOpenId()));
+        result.setArenaAdmin(roleDao.isAreaAdmin(result.getOpenId()));
         //todo 兼容老版本
-        dbUser.setAccountant(roleDao.isAccountant(user.getOpenId()));
-        session.setAttribute("user", dbUser);
-        return dbUser;
+        result.setAccountant(roleDao.isAccountant(result.getOpenId()));
+
+        //保存到cookie里
+        coder.encode(result, resp);
+
+        return result;
     }
 
     @GetMapping("/logout")

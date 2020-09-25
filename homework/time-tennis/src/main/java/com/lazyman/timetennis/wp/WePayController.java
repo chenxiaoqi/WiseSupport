@@ -79,7 +79,7 @@ public class WePayController implements ApplicationContextAware {
     @GetMapping("/trade_status")
     @Transactional
     @ResponseBody
-    public String queryTradeStatus(@SessionAttribute User user, @RequestParam String tradeNo) {
+    public String queryTradeStatus(User user, @RequestParam String tradeNo) {
         Trade trade = payDao.load(tradeNo);
         Validate.isTrue(user.getOpenId().equals(trade.getOpenId()));
         String status;

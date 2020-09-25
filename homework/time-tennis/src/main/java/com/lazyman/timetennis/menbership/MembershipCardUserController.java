@@ -35,7 +35,7 @@ public class MembershipCardUserController extends BasePayController implements A
     }
 
     @GetMapping("/cards")
-    public List<MembershipCard> useCards(@SessionAttribute User user) {
+    public List<MembershipCard> useCards(User user) {
         List<MembershipCard> cards = mcDao.userCards(user.getOpenId());
         for (MembershipCard card : cards) {
             card.getMeta().setArenas(mcDao.arenas(card.getMeta().getId()));
@@ -45,7 +45,7 @@ public class MembershipCardUserController extends BasePayController implements A
 
     @PostMapping("/purchase")
     @Transactional
-    public synchronized Map<String, String> purchase(@SessionAttribute User user, int metaId) {
+    public synchronized Map<String, String> purchase(User user, int metaId) {
         if (mcDao.hasMeta(user.getOpenId(), metaId)) {
             throw new BusinessException("你已经有该会员卡,无需购买");
         }
@@ -60,7 +60,7 @@ public class MembershipCardUserController extends BasePayController implements A
 
     @PostMapping("/recharge")
     @Transactional
-    public synchronized Map<String, String> recharge(@SessionAttribute User user, @RequestParam String code) {
+    public synchronized Map<String, String> recharge(User user, @RequestParam String code) {
 
         if (payDao.hasWaitForPay(user.getOpenId())) {
             throw new BusinessException("您的购买订单确认中,请稍等");
@@ -77,7 +77,7 @@ public class MembershipCardUserController extends BasePayController implements A
     }
 
     @GetMapping("/arena/cards")
-    public List<MembershipCard> userCardsInArena(@SessionAttribute User user, @RequestParam int arenaId) {
+    public List<MembershipCard> userCardsInArena(User user, @RequestParam int arenaId) {
         return mcDao.userCardsInArena(user.getOpenId(), arenaId);
     }
 

@@ -1,6 +1,5 @@
 package com.lazyman.timetennis.user;
 
-import com.lazyman.timetennis.SessionWatch;
 import com.wisesupport.commons.exceptions.BusinessException;
 import org.apache.commons.lang3.Validate;
 import org.springframework.beans.BeansException;
@@ -12,7 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.SessionAttribute;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.Size;
@@ -31,7 +29,7 @@ public class ChargeController implements ApplicationContextAware {
 
     @PostMapping("/charge")
     @Transactional
-    public void charge(@SessionAttribute("user") User user,
+    public void charge(User user,
                        @RequestParam @Size(min = 6, max = 64) String openId,
                        @Min(200) int fee, @Size(max = 64) String memo, @RequestParam(defaultValue = "true") boolean hasDiscount) {
         if (user.isAccountant()) {
@@ -67,8 +65,6 @@ public class ChargeController implements ApplicationContextAware {
         template.update("insert into charge_history (open_id, fee, memo) values(?,?,?)", openId, fee, memo);
 
         application.publishEvent(new BalanceEvent(this, user, target, balance, fee, discountFee));
-
-        SessionWatch.destroy(openId);
     }
 
     @Override

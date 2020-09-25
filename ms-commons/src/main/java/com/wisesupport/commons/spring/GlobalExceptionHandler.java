@@ -1,9 +1,9 @@
 package com.wisesupport.commons.spring;
 
 import com.wisesupport.commons.exceptions.BusinessException;
+import com.wisesupport.commons.exceptions.LoginTimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.web.bind.ServletRequestBindingException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -22,9 +22,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler
     @ResponseBody
     public Map<String, String> handler(Throwable throwable, HttpServletRequest request, HttpServletResponse response) throws IOException {
-
-
-        if (throwable instanceof ServletRequestBindingException && throwable.getMessage().startsWith("Missing session attribute")) {
+        if (throwable instanceof LoginTimeoutException) {
             response.setStatus(401);
             log.debug("handle {} failed", request.getRequestURI(), throwable);
         } else {

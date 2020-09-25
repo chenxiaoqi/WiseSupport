@@ -60,7 +60,7 @@ public class UserBookingController implements ApplicationContextAware {
 
     @PostMapping("/booking")
     @Transactional
-    public synchronized void booking(@SessionAttribute("user") User user,
+    public synchronized void booking(User user,
                                      @DateTimeFormat(pattern = "yyyy-MM-dd") Date date,
                                      @Min(0) @Max(47) int timeIndexStart,
                                      @Min(0) @Max(47) int timeIndexEnd) {
@@ -117,7 +117,7 @@ public class UserBookingController implements ApplicationContextAware {
 
     @DeleteMapping("/booking/{id}")
     @Transactional
-    public void cancelBooking(@SessionAttribute User user, @PathVariable int id) {
+    public void cancelBooking(User user, @PathVariable int id) {
         Booking dbBooking = bookingMapper.selectByPrimaryKey(id);
         Validate.notNull(dbBooking, "订场信息不存在");
 
@@ -152,7 +152,7 @@ public class UserBookingController implements ApplicationContextAware {
     }
 
     @PostMapping("/share/booking/{bookingId}")
-    public void shareBooking(@SessionAttribute("user") User user, @PathVariable int bookingId) {
+    public void shareBooking(User user, @PathVariable int bookingId) {
         Booking booking = bookingMapper.selectByPrimaryKey(bookingId);
         Validate.notNull(booking);
 

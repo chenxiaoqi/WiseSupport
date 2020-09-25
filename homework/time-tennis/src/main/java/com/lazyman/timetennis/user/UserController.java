@@ -1,6 +1,5 @@
 package com.lazyman.timetennis.user;
 
-import com.lazyman.timetennis.SessionWatch;
 import com.wisesupport.commons.exceptions.BusinessException;
 import org.apache.commons.lang3.Validate;
 import org.springframework.web.bind.annotation.*;
@@ -31,12 +30,12 @@ public class UserController {
     }
 
     @PostMapping("/user/grant_vip")
-    public void vip(@SessionAttribute User user, @RequestParam @NotEmpty @Size(min = 1, max = 64) String openId) {
+    public void vip(User user, @RequestParam @NotEmpty @Size(min = 1, max = 64) String openId) {
         switchVip(user, openId, true);
     }
 
     @PostMapping("/user/cancel_vip")
-    public void cancelVip(@SessionAttribute User user, @RequestParam @NotEmpty @Size(min = 1, max = 64) String openId) {
+    public void cancelVip(User user, @RequestParam @NotEmpty @Size(min = 1, max = 64) String openId) {
         switchVip(user, openId, false);
     }
 
@@ -47,18 +46,16 @@ public class UserController {
         User u = new User();
         u.setOpenId(openId);
         u.setVip(flag);
-        if (userMapper.updateByPrimaryKey(u) == 1) {
-            SessionWatch.destroy(openId);
-        }
+        userMapper.updateByPrimaryKey(u);
     }
 
     @PostMapping("/user/grant_admin")
-    public void grantAdmin(@SessionAttribute User user, @RequestParam @NotEmpty @Size(min = 1, max = 64) String openId) {
+    public void grantAdmin(User user, @RequestParam @NotEmpty @Size(min = 1, max = 64) String openId) {
         switchAdmin(user, openId, true);
     }
 
     @PostMapping("/user/cancel_admin")
-    public void cancelAdmin(@SessionAttribute User user, @RequestParam @NotEmpty @Size(min = 1, max = 64) String openId) {
+    public void cancelAdmin(User user, @RequestParam @NotEmpty @Size(min = 1, max = 64) String openId) {
         switchAdmin(user, openId, false);
     }
 
@@ -69,8 +66,6 @@ public class UserController {
         User u = new User();
         u.setOpenId(openId);
         u.setAdmin(flag);
-        if (userMapper.updateByPrimaryKey(u) == 1) {
-            SessionWatch.destroy(openId);
-        }
+        userMapper.updateByPrimaryKey(u);
     }
 }

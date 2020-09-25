@@ -19,7 +19,7 @@ public class GrantController {
     }
 
     @GetMapping("/arena_admins")
-    public List<User> arenaAdmins(@SessionAttribute User user) {
+    public List<User> arenaAdmins(User user) {
         if (!user.isSuperAdmin()) {
             throw new BusinessException("需要超级管理员权限");
         }
@@ -27,7 +27,7 @@ public class GrantController {
     }
 
     @DeleteMapping("/role")
-    public void revoke(@SessionAttribute User user, String openId, String roleName) {
+    public void revoke(User user, String openId, String roleName) {
         if (!user.isSuperAdmin()) {
             throw new BusinessException("需要超级管理员权限");
         }
@@ -35,7 +35,7 @@ public class GrantController {
     }
 
     @PostMapping("/role")
-    public void grant(@SessionAttribute User user, String openId, String roleName) {
+    public void grant(User user, String openId, String roleName) {
         if (!user.isSuperAdmin()) {
             throw new BusinessException("需要超级管理员权限");
         }
