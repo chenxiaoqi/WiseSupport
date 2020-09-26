@@ -25,8 +25,11 @@ import java.util.stream.Collectors;
 public class MembershipCardUserController extends BasePayController implements ApplicationListener<TradeEvent> {
     private MembershipCardDao mcDao;
 
-    public MembershipCardUserController(MembershipCardDao mcDao) {
+    private MembershipCardBillDao billDao;
+
+    public MembershipCardUserController(MembershipCardDao mcDao, MembershipCardBillDao billDao) {
         this.mcDao = mcDao;
+        this.billDao = billDao;
     }
 
     @GetMapping("/metas")
@@ -98,7 +101,8 @@ public class MembershipCardUserController extends BasePayController implements A
             if (mcDao.changeToFinished(trade.getTradeNo()) == 1) {
                 String code = mcDao.getCardCodeByTradeNo(trade.getTradeNo());
                 Validate.isTrue(mcDao.recharge(code, trade.getFee()) == 1);
-                //todo 记录会员卡消费账单
+                MembershipCard card = mcDao.loadCard(code);
+                billDao.add(trade.getOpenId(), code, Constant.PRODUCT_RECHARGE, trade.getFee(), card.getBalance());
             } else {
                 log.info("duplicate recharge event trade {}", trade.getTradeNo());
             }

@@ -3,6 +3,7 @@ package com.lazyman.timetennis.booking;
 import com.lazyman.timetennis.Constant;
 import com.lazyman.timetennis.arena.*;
 import com.lazyman.timetennis.menbership.MembershipCard;
+import com.lazyman.timetennis.menbership.MembershipCardBillDao;
 import com.lazyman.timetennis.menbership.MembershipCardDao;
 import com.lazyman.timetennis.user.User;
 import com.lazyman.timetennis.wp.BasePayController;
@@ -23,6 +24,7 @@ import java.util.*;
 @RequestMapping("/user/v2")
 @Slf4j
 public class UserBookingControllerV2 extends BasePayController implements ApplicationListener<TradeEvent> {
+    private MembershipCardBillDao billDao;
 
     private RuleDao ruleDao;
 
@@ -32,10 +34,11 @@ public class UserBookingControllerV2 extends BasePayController implements Applic
 
     private MembershipCardDao mcDao;
 
-    public UserBookingControllerV2(RuleDao ruleDao,
+    public UserBookingControllerV2(MembershipCardBillDao billDao, RuleDao ruleDao,
                                    CourtDao courtDao,
                                    BookingMapper bookingMapper,
                                    MembershipCardDao mcDao) {
+        this.billDao = billDao;
         this.ruleDao = ruleDao;
         this.courtDao = courtDao;
         this.bookingMapper = bookingMapper;
@@ -136,7 +139,7 @@ public class UserBookingControllerV2 extends BasePayController implements Applic
 
     }
 
-    private void membershipCardPay(User user, String code, int totalFee) {
+    private synchronized void membershipCardPay(User user, String code, int totalFee) {
         MembershipCard card = mcDao.loadCard(code);
         if (!card.getOpenId().equals(user.getOpenId())) {
             throw new BusinessException("不是您的卡");
@@ -146,9 +149,8 @@ public class UserBookingControllerV2 extends BasePayController implements Applic
         }
         totalFee = totalFee * card.getMeta().getDiscount() / 100;
         if (totalFee != 0) {
-
             Validate.isTrue(mcDao.chargeFee(code, totalFee) == 1, "余额不足");
         }
-        //todo 记录消费日志
+        billDao.add(user.getOpenId(), code, Constant.PRODUCT_BOOKING, totalFee, card.getBalance() - totalFee);
     }
 }
