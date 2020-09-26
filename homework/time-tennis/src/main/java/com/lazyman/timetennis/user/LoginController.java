@@ -91,7 +91,6 @@ public class LoginController {
 
         result.setSuperAdmin(roleDao.isSuperAdmin(result.getOpenId()));
         result.setArenaAdmin(roleDao.isAreaAdmin(result.getOpenId()));
-        //todo 兼容老版本
         result.setAccountant(roleDao.isAccountant(result.getOpenId()));
 
         //保存到cookie里

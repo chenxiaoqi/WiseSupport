@@ -7,6 +7,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
+import org.apache.ibatis.builder.BuilderException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,6 +43,13 @@ public class ArenaManageController {
     @GetMapping("/arena/{id}")
     public Arena arena(@PathVariable int id) {
         return arenaDao.load(id);
+    }
+
+    @GetMapping("/arena/{id}/detail")
+    public Arena arenaDetail(@PathVariable int id) {
+        Arena arena = arenaDao.load(id);
+        arena.setCourts(courtDao.courts(arena.getId()));
+        return arena;
     }
 
     @GetMapping("/arenas")
@@ -86,16 +94,6 @@ public class ArenaManageController {
     public void insertRule(User user, Rule rule) {
         checkArenaPrivileges(user, rule.getArenaId());
         ruleDao.insert(rule);
-    }
-
-    @DeleteMapping("/court")
-    @Transactional
-    public void deleteCourt(User user, int id) {
-        Court court = courtDao.load(id);
-        Validate.notNull(court);
-        checkArenaPrivileges(user, court.getArenaId());
-        ruleDao.deleteCourtRelation(id);
-        courtDao.delete(id);
     }
 
     @GetMapping("/court/{id}")
@@ -188,7 +186,34 @@ public class ArenaManageController {
         }
     }
 
-    @DeleteMapping("/arena")
+    @PostMapping("/arena/status")
+    public void updateArenaStatus(User user, int arenaId, boolean online) {
+        checkArenaPrivileges(user, arenaId);
+        if (online && courtDao.onLineCourts(arenaId).isEmpty()) {
+            throw new BuilderException("该场馆还没有上线的场地");
+        }
+        arenaDao.updateArenaStatus(arenaId, online ? "ol" : "ofl");
+    }
+
+    @PostMapping("/court/status")
+    public void updateCourtStatus(User user, int courtId, int arenaId, boolean online) {
+        checkArenaPrivileges(user, arenaId);
+        Arena arena = arenaDao.load(arenaId);
+        if (!online && arena.getStatus().equals("ol") && courtDao.onLineCourts(arenaId).size() <= 1) {
+            throw new BuilderException("上线的场馆请至少保留一个在线的场地");
+        }
+        arenaDao.updateCourtStatus(courtId, arenaId, online ? "ol" : "ofl");
+    }
+
+    @Transactional
+    public void deleteCourt(User user, int id) {
+        Court court = courtDao.load(id);
+        Validate.notNull(court);
+        checkArenaPrivileges(user, court.getArenaId());
+        ruleDao.deleteCourtRelation(id);
+        courtDao.delete(id);
+    }
+
     @Transactional
     @CacheEvict("arena.cities")
     public void deleteArena(User user, int id) {

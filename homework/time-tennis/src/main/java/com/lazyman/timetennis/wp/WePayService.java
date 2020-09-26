@@ -192,7 +192,6 @@ public class WePayService {
             } else {
                 log.debug("we pay result {} => {}", url, result);
             }
-            //todo 校验返回签名
             return result;
         });
     }

@@ -197,5 +197,9 @@ public class MembershipCardDao {
     String getCardCodeByTradeNo(String tradeNo) {
         return template.queryForObject("select mc_code from trade_membership_card_recharge_r where trade_no=?", (rs, rowNum) -> rs.getString("mc_code"), tradeNo);
     }
+
+    boolean hasMember(int metaId) {
+        return Objects.requireNonNull(template.query("select 1 from membership_card where meta_id=? limit 1", ResultSet::next, metaId));
+    }
 }
 

@@ -26,7 +26,7 @@ public class ArenaDao {
     public List<Arena> searchArena(String city, Integer type, String name) {
         List<Object> params = new ArrayList<>(3);
         params.add(city);
-        String sql = "select id, name,district,images,book_style from arena where city=?";
+        String sql = "select id, name,district,images,book_style from arena where status='ol' and city=?";
         if (type != null) {
             sql = sql + " and type=?";
             params.add(type);
@@ -47,7 +47,7 @@ public class ArenaDao {
     }
 
     public Arena load(int id) {
-        return template.queryForObject("select id,name,type,province,city,district,address,images,book_style,phone,introduction,advance_book_days,book_start_hour,book_end_hour from arena where id=?", (rs, rowNum) -> {
+        return template.queryForObject("select id,name,type,province,city,district,address,images,book_style,phone,introduction,advance_book_days,book_start_hour,book_end_hour,status from arena where id=?", (rs, rowNum) -> {
             Arena result = new Arena();
             populateArenaProperties(rs, result);
             result.setType(rs.getInt("type"));
@@ -61,7 +61,7 @@ public class ArenaDao {
     }
 
     public List<Arena> arenas(String openId) {
-        return template.query("select b.id,b.name,b.province,b.city,b.district,b.advance_book_days,b.book_start_hour,b.book_end_hour from arena_role a,arena b where a.arena_id=b.id and a.role='admin' and a.open_id=?", (rs, rowNum) -> {
+        return template.query("select b.id,b.name,b.province,b.city,b.district,b.advance_book_days,b.book_start_hour,b.book_end_hour,b.status from arena_role a,arena b where a.arena_id=b.id and a.role='admin' and a.open_id=?", (rs, rowNum) -> {
                     Arena arena = new Arena();
                     populateArenaProperties(rs, arena);
                     return arena;
@@ -78,6 +78,7 @@ public class ArenaDao {
         result.setAdvanceBookDays(rs.getInt("advance_book_days"));
         result.setBookStartHour(rs.getInt("book_start_hour"));
         result.setBookEndHour(rs.getInt("book_end_hour"));
+        result.setStatus(rs.getString("status"));
     }
 
     public int insert(Arena arena) {
@@ -141,15 +142,6 @@ public class ArenaDao {
                 arena.getId());
     }
 
-    public void delete(int id) {
-        template.update("delete from arena_role where arena_id=?", id);
-        template.update("delete from rule where arena_id=?", id);
-        template.update("delete from arena where id=?", id);
-        template.update("delete from court_rule_r where court_id in(select id from court where arena_id=?)", id);
-        template.update("delete from court where arena_id=?", id);
-        //todo 会员卡,会员卡用户 场馆上线后就不允许删除？
-    }
-
     public boolean isArenaAdmin(String openId, int arenaId) {
         return Objects.requireNonNull(template.query("select 1 from arena_role where open_id=? and arena_id=? and role='admin'", ResultSet::next, openId, arenaId));
     }
@@ -157,5 +149,22 @@ public class ArenaDao {
     @Cacheable("arena.cities")
     public List<String> cities() {
         return template.query("select distinct(city) as city from arena order by city", (rs, rowNum) -> rs.getString(1));
+    }
+
+    public void delete(int id) {
+        template.update("delete from arena_role where arena_id=?", id);
+        template.update("delete from rule where arena_id=?", id);
+        template.update("delete from arena where id=?", id);
+        template.update("delete from court_rule_r where court_id in(select id from court where arena_id=?)", id);
+        template.update("delete from court where arena_id=?", id);
+
+    }
+
+    public void updateArenaStatus(int arenaId, String status) {
+        template.update("update arena set status=? where id=?", status, arenaId);
+    }
+
+    public void updateCourtStatus(int courtId, int arenaId, String status) {
+        template.update("update court set status=? where id=? and arena_id=?", status, courtId, arenaId);
     }
 }
