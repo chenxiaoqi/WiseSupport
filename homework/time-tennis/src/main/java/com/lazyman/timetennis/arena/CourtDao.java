@@ -6,6 +6,8 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Types;
 import java.util.List;
 import java.util.Objects;
@@ -19,13 +21,26 @@ public class CourtDao {
     }
 
     public List<Court> courts(int id) {
-        return template.query("select id,name,fee from court where arena_id=?", (rs, rowNum) -> {
+        return template.query("select id,name,fee,status from court where arena_id=?", (rs, rowNum) -> {
             Court court = new Court();
-            court.setId(rs.getInt("id"));
-            court.setName(rs.getString("name"));
-            court.setFee(rs.getInt("fee"));
+            populateCourt(court, rs);
             return court;
         }, id);
+    }
+
+    public List<Court> onLineCourts(int id) {
+        return template.query("select id,name,fee,status from court where arena_id=? and status='ol'", (rs, rowNum) -> {
+            Court court = new Court();
+            populateCourt(court, rs);
+            return court;
+        }, id);
+    }
+
+    private void populateCourt(Court court, ResultSet rs) throws SQLException {
+        court.setId(rs.getInt("id"));
+        court.setName(rs.getString("name"));
+        court.setFee(rs.getInt("fee"));
+        court.setStatus(rs.getString("status"));
     }
 
     void delete(int id) {

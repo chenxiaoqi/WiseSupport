@@ -13,5 +13,6 @@ public class Court {
     private List<Rule> feeRules = new ArrayList<>();
     private List<Rule> disableRules = new ArrayList<>();
     private int arenaId;
+    private String status;
 
 }

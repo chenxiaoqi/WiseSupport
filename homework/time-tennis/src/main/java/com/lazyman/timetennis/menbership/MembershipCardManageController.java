@@ -1,6 +1,7 @@
 package com.lazyman.timetennis.menbership;
 
 import com.lazyman.timetennis.user.User;
+import com.wisesupport.commons.exceptions.BusinessException;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.Validate;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,14 +26,15 @@ public class MembershipCardManageController {
     @DeleteMapping("/meta/{id}")
     @Transactional
     public void deleteMeta(User user, @PathVariable int id) {
-        //todo 会员卡是否有人购买,已有购买的就不让删除？
+        if (mcDao.hasMember(id)) {
+            throw new BusinessException("该会员卡已经有会员,无法删除!");
+        }
         mcDao.deleteMeta(id, user.getOpenId());
     }
 
     @PutMapping("/meta/{id}")
     @Transactional
     public void updateMeta(User user, @PathVariable int id, String name, int initialBalance, int discount, int price, int extendMonth, String[] arenaIds) {
-        //todo 有用户购买就不能修改
         Validate.isTrue(mcDao.updateMeta(user.getOpenId(), id, name, initialBalance, discount, price, extendMonth) == 1);
         mcDao.deleteMetaArenaRelation(id);
         if (!ArrayUtils.isEmpty(arenaIds)) {

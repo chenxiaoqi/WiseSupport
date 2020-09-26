@@ -36,7 +36,6 @@ public class PayDao {
     }
 
     public void deleteTradeBooking(String tradeNo) {
-        //todo 删除share表?
         template.update("delete from tt_booking where id in(select b.booking_id from trade a,trade_booking_r b where a.trade_no=b.trade_no and a.trade_no=?)", tradeNo);
     }
 

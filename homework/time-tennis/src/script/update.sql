@@ -58,4 +58,8 @@ drop index idx_city on arena;
 create index idx_city_type
     on arena (city, type);
 
+alter table arena
+    add status varchar(3) default 'ofl' not null;
 
+alter table court
+    add status varchar(3) default 'ofl' not null;

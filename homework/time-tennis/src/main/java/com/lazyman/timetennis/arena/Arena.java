@@ -22,4 +22,5 @@ public class Arena {
     private int bookStyle = 1;
     private List<Court> courts;
     private String[] images;
+    private String status;
 }

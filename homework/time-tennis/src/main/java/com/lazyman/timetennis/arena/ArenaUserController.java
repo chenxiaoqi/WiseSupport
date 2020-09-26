@@ -33,7 +33,7 @@ public class ArenaUserController {
     @GetMapping("/arena/{id}/detail")
     public Arena arenaDetail(@PathVariable int id) {
         Arena arena = arenaDao.load(id);
-        List<Court> courts = courtDao.courts(arena.getId());
+        List<Court> courts = courtDao.onLineCourts(arena.getId());
         if (!courts.isEmpty()) {
             Object[] courtIds = courts.stream().map(Court::getId).toArray();
             List<Rule> rules = ruleDao.courtRules(courtIds);
