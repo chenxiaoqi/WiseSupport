@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.Assert;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
@@ -53,7 +54,10 @@ public class LoginController {
     }
 
     @GetMapping("/login")
-    public User login(@NotEmpty String jsCode, @NotEmpty String rawData, @NotEmpty String signature, HttpServletRequest request, HttpServletResponse resp) throws IOException {
+    public User login(@RequestParam @NotEmpty String jsCode,
+                      @RequestParam @NotEmpty String rawData,
+                      @RequestParam @NotEmpty String signature,
+                      HttpServletRequest request, HttpServletResponse resp) throws IOException {
 
         User loginUser = coder.decode(request);
         User result;

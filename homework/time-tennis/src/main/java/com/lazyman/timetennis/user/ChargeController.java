@@ -31,7 +31,9 @@ public class ChargeController implements ApplicationContextAware {
     @Transactional
     public void charge(User user,
                        @RequestParam @Size(min = 6, max = 64) String openId,
-                       @Min(200) int fee, @Size(max = 64) String memo, @RequestParam(defaultValue = "true") boolean hasDiscount) {
+                       @RequestParam @Min(200) int fee,
+                       @RequestParam @Size(max = 64) String memo,
+                       @RequestParam(defaultValue = "true") boolean hasDiscount) {
         if (user.isAccountant()) {
             throw new BusinessException("没有权限");
         }

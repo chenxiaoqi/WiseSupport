@@ -6,6 +6,7 @@ import org.apache.commons.lang3.Validate;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.constraints.NotEmpty;
 import java.util.List;
 
 @RestController
@@ -27,7 +28,8 @@ public class GrantController {
     }
 
     @DeleteMapping("/role")
-    public void revoke(User user, String openId, String roleName) {
+    public void revoke(User user, @RequestParam @NotEmpty String openId,
+                       @RequestParam @NotEmpty String roleName) {
         if (!user.isSuperAdmin()) {
             throw new BusinessException("需要超级管理员权限");
         }
@@ -35,7 +37,8 @@ public class GrantController {
     }
 
     @PostMapping("/role")
-    public void grant(User user, String openId, String roleName) {
+    public void grant(User user, @RequestParam @NotEmpty String openId,
+                      @RequestParam @NotEmpty String roleName) {
         if (!user.isSuperAdmin()) {
             throw new BusinessException("需要超级管理员权限");
         }

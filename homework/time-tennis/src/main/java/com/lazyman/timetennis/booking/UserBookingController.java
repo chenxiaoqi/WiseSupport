@@ -13,6 +13,7 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.lang.NonNull;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -61,9 +62,9 @@ public class UserBookingController implements ApplicationContextAware {
     @PostMapping("/booking")
     @Transactional
     public synchronized void booking(User user,
-                                     @DateTimeFormat(pattern = "yyyy-MM-dd") Date date,
-                                     @Min(0) @Max(47) int timeIndexStart,
-                                     @Min(0) @Max(47) int timeIndexEnd) {
+                                     @DateTimeFormat(pattern = "yyyy-MM-dd") @RequestParam Date date,
+                                     @Min(0) @Max(47) @RequestParam int timeIndexStart,
+                                     @Min(0) @Max(47) @RequestParam int timeIndexEnd) {
         if (!user.getVip()) {
             throw new BusinessException("您还不是会员,请联系管理员授权");
         }
@@ -175,7 +176,7 @@ public class UserBookingController implements ApplicationContextAware {
     }
 
     @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+    public void setApplicationContext(@NonNull ApplicationContext applicationContext) throws BeansException {
         this.application = applicationContext;
     }
 }

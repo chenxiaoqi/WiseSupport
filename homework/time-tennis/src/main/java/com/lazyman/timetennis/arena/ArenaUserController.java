@@ -21,7 +21,9 @@ public class ArenaUserController {
     }
 
     @GetMapping("/arenas")
-    public List<Arena> arenas(@RequestParam String city, Integer type, String name) {
+    public List<Arena> arenas(@RequestParam String city,
+                              @RequestParam(required = false) Integer type,
+                              @RequestParam(required = false) String name) {
         return arenaDao.searchArena(city, type, name);
     }
 

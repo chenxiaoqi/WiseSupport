@@ -14,6 +14,7 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.constraints.NotEmpty;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -33,7 +34,7 @@ public class MembershipCardUserController extends BasePayController implements A
     }
 
     @GetMapping("/metas")
-    public List<MembershipCardMeta> metas(String arenaId) {
+    public List<MembershipCardMeta> metas(@RequestParam @NotEmpty String arenaId) {
         return mcDao.byArenaId(arenaId).stream().filter(meta -> meta.getStatus().equals("ol")).collect(Collectors.toList());
     }
 
@@ -48,7 +49,7 @@ public class MembershipCardUserController extends BasePayController implements A
 
     @PostMapping("/purchase")
     @Transactional
-    public synchronized Map<String, String> purchase(User user, int metaId) {
+    public synchronized Map<String, String> purchase(User user, @RequestParam int metaId) {
         if (mcDao.hasMeta(user.getOpenId(), metaId)) {
             throw new BusinessException("你已经有该会员卡,无需购买");
         }
@@ -63,7 +64,8 @@ public class MembershipCardUserController extends BasePayController implements A
 
     @PostMapping("/recharge")
     @Transactional
-    public synchronized Map<String, String> recharge(User user, @RequestParam String code) {
+    public synchronized Map<String, String> recharge(User user,
+                                                     @RequestParam @NotEmpty String code) {
 
         if (payDao.hasWaitForPay(user.getOpenId())) {
             throw new BusinessException("您的购买订单确认中,请稍等");
@@ -80,7 +82,8 @@ public class MembershipCardUserController extends BasePayController implements A
     }
 
     @GetMapping("/arena/cards")
-    public List<MembershipCard> userCardsInArena(User user, @RequestParam int arenaId) {
+    public List<MembershipCard> userCardsInArena(User user,
+                                                 @RequestParam int arenaId) {
         return mcDao.userCardsInArena(user.getOpenId(), arenaId);
     }
 
