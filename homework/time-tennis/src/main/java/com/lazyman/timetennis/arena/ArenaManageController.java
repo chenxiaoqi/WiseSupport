@@ -15,6 +15,7 @@ import org.springframework.util.MimeType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.validation.constraints.NotEmpty;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -59,14 +60,17 @@ public class ArenaManageController {
     }
 
     @GetMapping("/rules")
-    public List<Rule> rules(User user, int arenaId, Integer type) {
+    public List<Rule> rules(User user,
+                            @RequestParam int arenaId,
+                            Integer type) {
         checkPrivileges(user);
         checkArenaPrivileges(user, arenaId);
         return ruleDao.rules(arenaId, type);
     }
 
     @DeleteMapping("/rule")
-    public void deleteRule(User user, int id) {
+    public void deleteRule(User user,
+                           @RequestParam int id) {
         Rule rule = ruleDao.load(id);
         Validate.notNull(rule);
         checkArenaPrivileges(user, rule.getArenaId());
@@ -83,7 +87,8 @@ public class ArenaManageController {
     }
 
     @PutMapping("/rule")
-    public void updateRule(User user, Rule rule) {
+    public void updateRule(User user,
+                           Rule rule) {
         Rule dbRule = ruleDao.load(rule.getId());
         Validate.notNull(dbRule);
         checkArenaPrivileges(user, dbRule.getArenaId());
@@ -113,7 +118,10 @@ public class ArenaManageController {
 
     @PostMapping("/court")
     @Transactional
-    public void addCourt(User user, int arenaId, String name, int fee, String ruleIds) {
+    public void addCourt(User user, @RequestParam int arenaId,
+                         @RequestParam @NotEmpty String name,
+                         @RequestParam int fee,
+                         @RequestParam(required = false) String ruleIds) {
         checkArenaPrivileges(user, arenaId);
         int courtId = courtDao.insert(arenaId, name, fee);
         insertCourtRuleRelation(courtId, ruleIds);
@@ -121,7 +129,11 @@ public class ArenaManageController {
 
     @PutMapping("/court")
     @Transactional
-    public void updateCourt(User user, int id, String name, int fee, String ruleIds) {
+    public void updateCourt(User user,
+                            @RequestParam int id,
+                            @RequestParam @NotEmpty String name,
+                            @RequestParam int fee,
+                            @RequestParam(required = false) String ruleIds) {
         Court court = courtDao.load(id);
         Validate.notNull(court);
         checkArenaPrivileges(user, court.getArenaId());

@@ -7,6 +7,7 @@ import org.apache.commons.lang3.Validate;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.constraints.NotEmpty;
 import java.util.List;
 
 @RestController
@@ -34,7 +35,14 @@ public class MembershipCardManageController {
 
     @PutMapping("/meta/{id}")
     @Transactional
-    public void updateMeta(User user, @PathVariable int id, String name, int initialBalance, int discount, int price, int extendMonth, String[] arenaIds) {
+    public void updateMeta(User user,
+                           @PathVariable int id,
+                           @RequestParam @NotEmpty String name,
+                           @RequestParam int initialBalance,
+                           @RequestParam int discount,
+                           @RequestParam int price,
+                           @RequestParam int extendMonth,
+                           @RequestParam String[] arenaIds) {
         Validate.isTrue(mcDao.updateMeta(user.getOpenId(), id, name, initialBalance, discount, price, extendMonth) == 1);
         mcDao.deleteMetaArenaRelation(id);
         if (!ArrayUtils.isEmpty(arenaIds)) {
@@ -46,7 +54,12 @@ public class MembershipCardManageController {
 
     @PostMapping("/meta")
     @Transactional
-    public void addMeta(User user, String name, int initialBalance, int discount, int price, int extendMonth, String[] arenaIds) {
+    public void addMeta(User user, @RequestParam @NotEmpty String name,
+                        @RequestParam int initialBalance,
+                        @RequestParam int discount,
+                        @RequestParam int price,
+                        @RequestParam int extendMonth,
+                        @RequestParam String[] arenaIds) {
         int metaId = mcDao.createMeta(user.getOpenId(), name, initialBalance, discount, price, extendMonth);
         if (!ArrayUtils.isEmpty(arenaIds)) {
             for (String arenaId : arenaIds) {
@@ -64,7 +77,9 @@ public class MembershipCardManageController {
 
     @PostMapping("/meta/status")
     @Transactional
-    public void status(User user, boolean online, int id) {
+    public void status(User user,
+                       @RequestParam boolean online,
+                       @RequestParam int id) {
         if (online) {
             Validate.isTrue(mcDao.metaOnline(user.getOpenId(), id) == 1, "没有权限");
         } else {

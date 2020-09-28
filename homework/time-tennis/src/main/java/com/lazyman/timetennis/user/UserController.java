@@ -39,7 +39,7 @@ public class UserController {
         switchVip(user, openId, false);
     }
 
-    private void switchVip(User user, String openId, boolean flag) {
+    private void switchVip(User user, @RequestParam @NotEmpty String openId, boolean flag) {
         if (!user.getAdmin()) {
             throw new BusinessException("需要管理员权限");
         }

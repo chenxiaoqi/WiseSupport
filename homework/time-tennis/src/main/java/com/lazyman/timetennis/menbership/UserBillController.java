@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.constraints.NotEmpty;
 import java.util.List;
 
 @RestController
@@ -18,7 +19,7 @@ public class UserBillController {
     }
 
     @GetMapping("/bills")
-    public List<MembershipCardBill> bills(User user, @RequestParam String code) {
+    public List<MembershipCardBill> bills(User user, @RequestParam @NotEmpty String code) {
         return dao.userBill(user.getOpenId(), code);
     }
 }

@@ -49,13 +49,13 @@ public class UserBookingControllerV2 extends BasePayController implements Applic
     @Transactional
     public synchronized Map<String, String> booking(User user,
                                                     @DateTimeFormat(pattern = "yyyy-MM-dd") Date date,
-                                                    int arenaId,
-                                                    int[] courtIds,
-                                                    int[] startTimes,
-                                                    int[] endTimes,
-                                                    int totalFee,
+                                                    @RequestParam int arenaId,
+                                                    @RequestParam int[] courtIds,
+                                                    @RequestParam int[] startTimes,
+                                                    @RequestParam int[] endTimes,
+                                                    @RequestParam int totalFee,
                                                     @RequestParam(defaultValue = "1") int style,
-                                                    String code) {
+                                                    @RequestParam(required = false) String code) {
         if (code == null && payDao.hasWaitForPay(user.getOpenId())) {
             throw new BusinessException("您有一个未支付的预定待系统确认,请稍后再试!");
         }
@@ -115,7 +115,7 @@ public class UserBookingControllerV2 extends BasePayController implements Applic
     }
 
     @GetMapping("/bookings")
-    public List<Booking> bookings(User user, Boolean history) {
+    public List<Booking> bookings(User user, @RequestParam(required = false) Boolean history) {
         Calendar now = Calendar.getInstance();
         return bookingMapper.userBookings(user.getOpenId(), DateUtils.truncate(now, Calendar.DAY_OF_MONTH).getTime(), history != null && history);
     }
