@@ -13,16 +13,16 @@ public class MembershipCardBillDao {
         this.template = template;
     }
 
-    public void add(String openId, String code, String productType, int fee, int balance) {
+    public void add(String tradeNo, String openId, String code, String productType, int fee, int balance) {
         template.update(
-                "insert into membership_card_bill (open_id, code, product_type, fee, balance) values (?,?,?,?,?)",
-                openId, code, productType, fee, balance);
+                "insert into membership_card_bill (bill_no,open_id, code, product_type, fee, balance) values (?,?,?,?,?,?)",
+                tradeNo, openId, code, productType, fee, balance);
     }
 
-    public List<MembershipCardBill> userBill(String openId, String code) {
-        return template.query("select id, product_type, fee, balance,create_time from membership_card_bill where open_id=? and code=? order by create_time desc limit 20", (rs, rowNum) -> {
+    List<MembershipCardBill> userBill(String openId, String code) {
+        return template.query("select bill_no, product_type, fee, balance,create_time from membership_card_bill where open_id=? and code=? order by create_time desc limit 20", (rs, rowNum) -> {
             MembershipCardBill bill = new MembershipCardBill();
-            bill.setId(rs.getInt("id"));
+            bill.setBillNo(rs.getString("bill_no"));
             bill.setProductType(rs.getString("product_type"));
             bill.setFee(rs.getInt("fee"));
             bill.setBalance(rs.getInt("balance"));

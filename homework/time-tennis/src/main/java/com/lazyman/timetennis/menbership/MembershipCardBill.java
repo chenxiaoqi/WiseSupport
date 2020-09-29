@@ -8,7 +8,7 @@ import java.sql.Timestamp;
 
 @Data
 public class MembershipCardBill {
-    private int id;
+    private String billNo;
     private User user;
     private String productType;
     private int mcId;

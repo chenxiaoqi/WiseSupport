@@ -15,17 +15,17 @@ public class BasePayController {
     private String appId;
 
     @Autowired
-    private WePayService pay;
+    protected WePayService pay;
 
     @Autowired
     protected PayDao payDao;
 
-    protected Map<String, String> preparePay(String openId, String productType, int totalFee, String desc, PrepareCallback callback) {
-        String tradeNo = pay.creatTradeNo(productType);
+    protected Map<String, String> preparePay(String tradeNo, String openId, String productType, int totalFee, String desc, PrepareCallback callback) {
+
         //todo 商户ID要用场地对应商户ID，而不是平台的商户ID
         String prepayId = pay.prepay(this.platformMchId, openId, tradeNo, String.valueOf(totalFee), desc);
         payDao.createTrade(tradeNo, openId, productType, prepayId, totalFee, platformMchId);
-        callback.call(tradeNo);
+        callback.call();
 
         TreeMap<String, String> params = new TreeMap<>();
         params.put("appId", appId);
@@ -42,6 +42,6 @@ public class BasePayController {
     }
 
     protected interface PrepareCallback {
-        void call(String tradeNo);
+        void call();
     }
 }

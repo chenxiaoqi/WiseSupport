@@ -63,3 +63,16 @@ alter table arena
 
 alter table court
     add status varchar(3) default 'ofl' not null;
+
+
+alter table tt_booking
+    add pay_type varchar(4) null;
+
+alter table tt_booking
+    add pay_no varchar(24) null;
+
+alter table tt_booking
+    add status varchar(4) default 'ok' not null;
+
+alter table membership_card_bill
+    change id bill_no varchar(24) not null
