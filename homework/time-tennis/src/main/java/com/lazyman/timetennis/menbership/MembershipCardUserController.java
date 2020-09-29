@@ -59,7 +59,8 @@ public class MembershipCardUserController extends BasePayController implements A
         MembershipCardMeta meta = mcDao.loadMeta(metaId);
         Validate.notNull(meta);
 
-        return preparePay(user.getOpenId(), Constant.PRODUCT_CARD, meta.getPrice(), "购买会员卡[" + meta.getName() + "]", tradeNo -> mcDao.createTradeMembershipCardRelation(tradeNo, metaId));
+        String tradeNo = pay.creatTradeNo(Constant.PRODUCT_CARD);
+        return preparePay(tradeNo, user.getOpenId(), Constant.PRODUCT_CARD, meta.getPrice(), "购买会员卡[" + meta.getName() + "]", () -> mcDao.createTradeMembershipCardRelation(tradeNo, metaId));
     }
 
     @PostMapping("/recharge")
@@ -74,11 +75,12 @@ public class MembershipCardUserController extends BasePayController implements A
         Validate.notNull(card);
         MembershipCardMeta meta = mcDao.loadMeta(card.getMeta().getId());
         Validate.notNull(meta);
-        return preparePay(user.getOpenId(),
+        String tradeNo = pay.creatTradeNo(Constant.PRODUCT_RECHARGE);
+        return preparePay(tradeNo, user.getOpenId(),
                 Constant.PRODUCT_RECHARGE,
                 card.getMeta().getInitialBalance(),
                 "会员卡[" + meta.getName() + "]充值",
-                tradeNo -> mcDao.createTradeMembershipCardChargeRelation(tradeNo, code));
+                () -> mcDao.createTradeMembershipCardChargeRelation(tradeNo, code));
     }
 
     @GetMapping("/arena/cards")
@@ -105,7 +107,7 @@ public class MembershipCardUserController extends BasePayController implements A
                 String code = mcDao.getCardCodeByTradeNo(trade.getTradeNo());
                 Validate.isTrue(mcDao.recharge(code, trade.getFee()) == 1);
                 MembershipCard card = mcDao.loadCard(code);
-                billDao.add(trade.getOpenId(), code, Constant.PRODUCT_RECHARGE, trade.getFee(), card.getBalance());
+                billDao.add(trade.getTradeNo(), trade.getOpenId(), code, Constant.PRODUCT_RECHARGE, trade.getFee(), card.getBalance());
             } else {
                 log.info("duplicate recharge event trade {}", trade.getTradeNo());
             }

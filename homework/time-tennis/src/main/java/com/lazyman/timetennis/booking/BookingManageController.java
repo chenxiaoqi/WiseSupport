@@ -74,7 +74,11 @@ public class BookingManageController {
                              @RequestParam int bookingId) {
         Booking booking = bookingMapper.selectByPrimaryKey(bookingId);
         checkArenaPrivileges(user, booking.getArena().getId());
-        bookingMapper.deleteByPrimaryKey(bookingId);
+
+        booking = new Booking();
+        booking.setId(bookingId);
+        booking.setOpenId(user.getOpenId());
+        bookingMapper.deleteBooking(booking);
     }
 
 

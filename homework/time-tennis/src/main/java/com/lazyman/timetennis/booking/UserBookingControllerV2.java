@@ -18,7 +18,10 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.*;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/user/v2")
@@ -63,7 +66,7 @@ public class UserBookingControllerV2 extends BasePayController implements Applic
         List<Booking> bookings = bookingMapper.queryByDate(date, arenaId);
 
         int tf = 0;
-        List<Booking> nbs = new ArrayList<>();
+        String tradeNo = pay.creatTradeNo(Constant.PRODUCT_BOOKING);
         for (int i = 0; i < courtIds.length; i++) {
             int courtId = courtIds[i];
             int startTime = startTimes[i];
@@ -98,8 +101,9 @@ public class UserBookingControllerV2 extends BasePayController implements Applic
             booking.setEnd(endTime);
             booking.setOpenId(user.getOpenId());
             booking.setFee(fee);
+            booking.setPayNo(tradeNo);
+            booking.setPayType(code == null ? "wep" : "mc");
             bookingMapper.insert(booking);
-            nbs.add(booking);
             tf = tf + fee;
         }
         if (tf != totalFee) {
@@ -107,10 +111,13 @@ public class UserBookingControllerV2 extends BasePayController implements Applic
         }
 
         if (code != null) {
-            membershipCardPay(user, code, totalFee);
+            membershipCardPay(user, tradeNo, code, totalFee);
             return null;
         } else {
-            return wePay(user, totalFee, nbs);
+            return preparePay(tradeNo, user.getOpenId(), Constant.PRODUCT_BOOKING, totalFee, "场地预定", () -> {
+                //do nothing
+            });
+
         }
     }
 
@@ -129,17 +136,11 @@ public class UserBookingControllerV2 extends BasePayController implements Applic
         }
         log.info("receive booking trade[{}] event, in status {}", trade.getTradeNo(), trade.getStatus());
         if (!("ok".equals(trade.getStatus()) || "wp".equals(trade.getStatus()))) {
-            payDao.deleteTradeBooking(trade.getTradeNo());
+            bookingMapper.updateBookingStatus(trade.getTradeNo(), "pf");
         }
     }
 
-    private Map<String, String> wePay(User user, int totalFee, List<Booking> nbs) {
-        String productType = Constant.PRODUCT_BOOKING;
-        return preparePay(user.getOpenId(), productType, totalFee, "场地预定", tradeNo -> payDao.createTradeBookingRelation(tradeNo, nbs));
-
-    }
-
-    private synchronized void membershipCardPay(User user, String code, int totalFee) {
+    private synchronized void membershipCardPay(User user, String tradeNo, String code, int totalFee) {
         MembershipCard card = mcDao.loadCard(code);
         if (!card.getOpenId().equals(user.getOpenId())) {
             throw new BusinessException("不是您的卡");
@@ -151,6 +152,6 @@ public class UserBookingControllerV2 extends BasePayController implements Applic
         if (totalFee != 0) {
             Validate.isTrue(mcDao.chargeFee(code, totalFee) == 1, "余额不足");
         }
-        billDao.add(user.getOpenId(), code, Constant.PRODUCT_BOOKING, totalFee, card.getBalance() - totalFee);
+        billDao.add(tradeNo, user.getOpenId(), code, Constant.PRODUCT_BOOKING, totalFee, card.getBalance() - totalFee);
     }
 }

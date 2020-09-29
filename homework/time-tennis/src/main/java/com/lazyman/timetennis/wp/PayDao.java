@@ -1,13 +1,11 @@
 package com.lazyman.timetennis.wp;
 
-import com.lazyman.timetennis.booking.Booking;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.List;
 import java.util.Objects;
 
 @Component
@@ -22,24 +20,13 @@ public class PayDao {
         this.template = template;
     }
 
-    public void createTrade(String tradeNo, String openId, String productType, String prepayId, int totalFee, String mchId) {
+    void createTrade(String tradeNo, String openId, String productType, String prepayId, int totalFee, String mchId) {
         template.update("insert into trade (trade_no, open_id, product_type, prepare_id, fee,mch_id) values (?,?,?,?,?,?)",
                 tradeNo, openId, productType, prepayId, totalFee, mchId);
 
     }
 
-    public void createTradeBookingRelation(String tradeNo, List<Booking> bookings) {
-        for (Booking booking : bookings) {
-            template.update("insert into trade_booking_r (trade_no, booking_id, arena_id,court_id,start,end,date) values (?,?,?,?,?,?,?)",
-                    tradeNo, booking.getId(), booking.getArena().getId(), booking.getCourt().getId(), booking.getStart(), booking.getEnd(), booking.getDate());
-        }
-    }
-
-    public void deleteTradeBooking(String tradeNo) {
-        template.update("delete from tt_booking where id in(select b.booking_id from trade a,trade_booking_r b where a.trade_no=b.trade_no and a.trade_no=?)", tradeNo);
-    }
-
-    public Trade load(String tradNo) {
+    Trade load(String tradNo) {
         return template.queryForObject("select trade_no,mch_id,fee,status,prepare_id,open_id,product_type,create_time from trade where trade_no=?", (rs, rowNum) -> {
             Trade trade = new Trade();
             populateTrade(rs, trade);

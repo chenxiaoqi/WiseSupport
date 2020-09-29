@@ -34,6 +34,12 @@ public class Booking implements Serializable {
 
     private List<User> shareUsers;
 
+    private String payNo;
+
+    private String payType;
+
+    private String status;
+
     public List<User> getShareUsers() {
         return shareUsers;
     }
@@ -142,4 +148,27 @@ public class Booking implements Serializable {
         this.updateTime = updateTime;
     }
 
+    public String getPayNo() {
+        return payNo;
+    }
+
+    public void setPayNo(String payNo) {
+        this.payNo = payNo;
+    }
+
+    public String getPayType() {
+        return payType;
+    }
+
+    public void setPayType(String payType) {
+        this.payType = payType;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
 }

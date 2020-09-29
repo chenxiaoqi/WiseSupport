@@ -209,7 +209,7 @@ public class WePayService {
         return Hex.encodeHexString(DigestUtils.md5(builder.toString()), false);
     }
 
-    String creatTradeNo(String productType) {
+    public String creatTradeNo(String productType) {
         return FORMAT.format(new Date()) + productType;
     }
 
