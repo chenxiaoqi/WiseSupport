@@ -44,7 +44,7 @@ public final class BookingTool {
         int fee = 0;
         for (int i = timeIndexStart; i <= timeIndexEnd; i++) {
             //晚上
-            if (i >= 38) {
+            if (i >= 36) {
                 fee = fee + 20;
             } else {
                 Calendar calendar = Calendar.getInstance();
