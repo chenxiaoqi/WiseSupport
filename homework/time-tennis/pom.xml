@@ -8,6 +8,7 @@
     </parent>
     <artifactId>time-tennis</artifactId>
     <packaging>jar</packaging>
+    <version>1.0.0</version>
     <properties>
     </properties>
     <dependencies>
