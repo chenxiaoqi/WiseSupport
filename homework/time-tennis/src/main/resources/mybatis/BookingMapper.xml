@@ -180,13 +180,13 @@
         f.name as court_name
         from (select id, open_id, date,arena_id,court_id, start, end,fee, charged, update_time from tt_booking
         <where>
-            open_id=#{openId}
+            open_id=#{openId} and status='ok'
             <if test="history">and date &lt; #{now}</if>
             <if test="!history">and date &gt;= #{now}</if>
         </where>
         <if test="history">order by date desc</if>
         <if test="!history">order by date asc</if>
-        limit 50) a
+        limit 20) a
         left join booking_share c on a.id=c.booking_id
         left join tt_user d on c.open_id=d.open_id
         left join arena e on a.arena_id=e.id
@@ -196,6 +196,6 @@
     <update id="updateBookingStatus">
         update tt_booking
         set status=#{status}
-        where pay_no = #{tradNo}
+        where pay_no = #{tradeNo}
     </update>
 </mapper>
