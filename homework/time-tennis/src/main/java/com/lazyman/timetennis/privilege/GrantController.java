@@ -1,6 +1,7 @@
 package com.lazyman.timetennis.privilege;
 
 import com.lazyman.timetennis.user.User;
+import com.lazyman.timetennis.user.UserMapper;
 import com.wisesupport.commons.exceptions.BusinessException;
 import org.apache.commons.lang3.Validate;
 import org.springframework.dao.DuplicateKeyException;
@@ -15,8 +16,11 @@ public class GrantController {
 
     private RoleDao roleDao;
 
-    public GrantController(RoleDao roleDao) {
+    private UserMapper userMapper;
+
+    public GrantController(RoleDao roleDao, UserMapper userMapper) {
         this.roleDao = roleDao;
+        this.userMapper = userMapper;
     }
 
     @GetMapping("/arena_admins")
@@ -42,6 +46,8 @@ public class GrantController {
         if (!user.isSuperAdmin()) {
             throw new BusinessException("需要超级管理员权限");
         }
+        User u = userMapper.selectByPrimaryKey(openId);
+        Validate.notNull(u, "openId %s not exists.", openId);
         try {
             roleDao.grant(openId, roleName);
         } catch (DuplicateKeyException e) {
