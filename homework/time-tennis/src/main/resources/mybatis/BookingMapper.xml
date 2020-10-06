@@ -74,6 +74,7 @@
         from tt_booking
         where date = #{date}
           and arena_id = #{arenaId}
+          and status = 'ok'
     </select>
 
     <select id="queryInRange" resultMap="BaseResultMap">
