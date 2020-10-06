@@ -60,7 +60,7 @@ public class UserBookingControllerV2 extends BasePayController implements Applic
                                                     @RequestParam(defaultValue = "1") int style,
                                                     @RequestParam(required = false) String code) {
         if (code == null && payDao.hasWaitForPay(user.getOpenId())) {
-            throw new BusinessException("您有一个未支付的预定待系统确认,请稍后再试!");
+            throw new BusinessException("您有一个未支付的预定待系统确认,请10分钟稍后再试!");
         }
 
         List<Booking> bookings = bookingMapper.queryByDate(date, arenaId);
