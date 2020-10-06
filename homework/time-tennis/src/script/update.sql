@@ -75,4 +75,7 @@ alter table tt_booking
     add status varchar(4) default 'ok' not null;
 
 alter table membership_card_bill
-    change id bill_no varchar(24) not null
+    change id bill_no varchar(24) not null;
+
+alter table tt_user
+    add phone_number varchar(11) null after wx_nickname;
