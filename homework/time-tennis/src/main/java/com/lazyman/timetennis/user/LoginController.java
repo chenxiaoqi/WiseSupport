@@ -2,14 +2,13 @@ package com.lazyman.timetennis.user;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.lazyman.timetennis.core.WeXinService;
+import com.lazyman.timetennis.core.WeXinToken;
 import com.lazyman.timetennis.privilege.RoleDao;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.client.methods.RequestBuilder;
-import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.Assert;
 import org.springframework.validation.annotation.Validated;
@@ -22,7 +21,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.validation.constraints.NotEmpty;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 
 @RestController
 @Slf4j
@@ -41,16 +39,22 @@ public class LoginController {
 
     private UserCoder coder;
 
+    private WeXinService weXinService;
+
     public LoginController(HttpClient client,
                            @Value("${wx.app-id}") String appId,
                            @Value("${wx.secret}") String secret,
-                           UserMapper userMapper, RoleDao roleDao, UserCoder coder) {
+                           UserMapper userMapper,
+                           RoleDao roleDao,
+                           UserCoder coder,
+                           WeXinService weXinService) {
         this.client = client;
         this.appId = appId;
         this.secret = secret;
         this.userMapper = userMapper;
         this.roleDao = roleDao;
         this.coder = coder;
+        this.weXinService = weXinService;
     }
 
     @GetMapping("/login")
@@ -62,33 +66,24 @@ public class LoginController {
         User loginUser = coder.decode(request);
         User result;
         if (loginUser == null) {
-            HttpUriRequest get = RequestBuilder.get("https://api.weixin.qq.com/sns/jscode2session")
-                    .addParameter("appid", appId)
-                    .addParameter("secret", secret)
-                    .addParameter("js_code", jsCode)
-                    .addParameter("grant_type", "authorization_code")
-                    .build();
-            User wxUser = client.execute(get, response -> {
-                JSONObject json = JSON.parseObject(EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8));
-                String openId = json.getString("openid");
-                Assert.notNull(openId, () -> "WeChat jscode2session failed : " + json);
-                User user = new User();
-                user.setOpenId(openId);
-                String sessionKey = json.getString("session_key");
-                String expect = Hex.encodeHexString(DigestUtils.sha1(rawData + sessionKey));
-                Assert.isTrue(expect.equals(signature), () -> "verify signature failed expect " + expect + " actual " + signature);
-                JSONObject raw = JSON.parseObject(rawData);
-                user.setWxNickname(raw.getString("nickName"));
-                user.setAvatar(raw.getString("avatarUrl"));
-                return user;
-            });
-            result = userMapper.selectByPrimaryKey(wxUser.getOpenId());
+            WeXinToken token = weXinService.getWeXinToken(jsCode);
+            String expect = Hex.encodeHexString(DigestUtils.sha1(rawData + token.getSessionKey()));
+            Assert.isTrue(expect.equals(signature), () -> "verify signature failed expect " + expect + " actual " + signature);
+
+            User user = new User();
+            user.setOpenId(token.getOpenId());
+
+            JSONObject raw = JSON.parseObject(rawData);
+            user.setWxNickname(raw.getString("nickName"));
+            user.setAvatar(raw.getString("avatarUrl"));
+
+            result = userMapper.selectByPrimaryKey(user.getOpenId());
             if (result == null) {
-                userMapper.insert(wxUser);
+                userMapper.insert(user);
             } else {
-                userMapper.updateByPrimaryKey(wxUser);
+                userMapper.updateByPrimaryKey(user);
             }
-            result = userMapper.selectByPrimaryKey(wxUser.getOpenId());
+            result = userMapper.selectByPrimaryKey(user.getOpenId());
         } else {
             result = userMapper.selectByPrimaryKey(loginUser.getOpenId());
         }
