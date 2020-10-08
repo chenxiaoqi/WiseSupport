@@ -2,9 +2,9 @@
 <configuration scan="true" scanPeriod="60 seconds" debug="false">
 
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>/home/chenxiaoqi/logs/log.log</file>
+        <file>/home/chenxiaoqi/logs/lewin.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>/home/chenxiaoqi/logs/log-%d{yyyy-MM-dd}.log</fileNamePattern>
+            <fileNamePattern>/home/chenxiaoqi/logs/lewin-%d{yyyy-MM-dd}.log</fileNamePattern>
             <maxHistory>30</maxHistory>
             <totalSizeCap>15GB</totalSizeCap>
         </rollingPolicy>

@@ -32,4 +32,6 @@ public interface BookingMapper {
     List<Booking> userBookings(@Param("openId") String openId, @Param("now") Date date, @Param("history") boolean history);
 
     void updateBookingStatus(@Param("tradeNo") String tradeNo, @Param("status") String status);
+
+    List<Booking> byPayNo(@Param("payNo") String payNo);
 }
