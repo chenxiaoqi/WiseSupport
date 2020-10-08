@@ -1,5 +1,6 @@
 package com.lazyman.timetennis.menbership;
 
+import com.lazyman.timetennis.user.User;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
@@ -29,5 +30,20 @@ public class MembershipCardBillDao {
             bill.setCreateTime(rs.getTimestamp("create_time"));
             return bill;
         }, openId, code);
+    }
+
+    public MembershipCardBill load(String billNo) {
+        return template.queryForObject("select open_id,code,fee,create_time from membership_card_bill where bill_no=?", (rs, rowNum) -> {
+            MembershipCardBill bill = new MembershipCardBill();
+            bill.setCode(rs.getString("code"));
+            bill.setFee(rs.getInt("fee"));
+            bill.setCreateTime(rs.getTimestamp("create_time"));
+
+            User user = new User();
+            user.setOpenId(rs.getString("open_id"));
+            bill.setUser(user);
+
+            return bill;
+        }, billNo);
     }
 }

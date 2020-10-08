@@ -79,3 +79,6 @@ alter table membership_card_bill
 
 alter table tt_user
     add phone_number varchar(11) null after wx_nickname;
+
+create index idx_pay_no
+    on tt_booking (pay_no);

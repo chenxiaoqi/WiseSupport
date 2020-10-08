@@ -26,8 +26,8 @@ public class PayDao {
 
     }
 
-    Trade load(String tradNo) {
-        return template.queryForObject("select trade_no,mch_id,fee,status,prepare_id,open_id,product_type,create_time from trade where trade_no=?", (rs, rowNum) -> {
+    public Trade load(String tradNo) {
+        return template.queryForObject("select trade_no,mch_id,fee,status,prepare_id,transaction_id,open_id,product_type,create_time from trade where trade_no=?", (rs, rowNum) -> {
             Trade trade = new Trade();
             populateTrade(rs, trade);
             return trade;
@@ -43,7 +43,7 @@ public class PayDao {
     }
 
     public Trade pollWaitForPay() {
-        return template.query("select trade_no,status,fee,prepare_id,mch_id,open_id,product_type,create_time from trade where status='wp' and create_time<date_add(now(),interval ? minute ) limit 1", rs -> {
+        return template.query("select trade_no,status,fee,prepare_id,transaction_id,mch_id,open_id,product_type,create_time from trade where status='wp' and create_time<date_add(now(),interval ? minute ) limit 1", rs -> {
             if (rs.next()) {
                 Trade trade = new Trade();
                 populateTrade(rs, trade);
@@ -68,5 +68,6 @@ public class PayDao {
         trade.setMchId(rs.getString("mch_id"));
         trade.setProductType(rs.getString("product_type"));
         trade.setCreateTime(rs.getTimestamp("create_time"));
+        trade.setTransactionId(rs.getString("transaction_id"));
     }
 }

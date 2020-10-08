@@ -11,7 +11,7 @@ public class MembershipCardBill {
     private String billNo;
     private User user;
     private String productType;
-    private int mcId;
+    private String code;
     private int fee;
     private int balance;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")

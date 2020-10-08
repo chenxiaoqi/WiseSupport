@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/timetennis?useUnicode=true&characterEncoding=UTF-8
+    url: jdbc:mysql://localhost:3306/lewin?useUnicode=true&characterEncoding=UTF-8
     username: timetennis
     password: ${wx.mysql-password}
 logging:

@@ -1,17 +1,25 @@
 package com.lazyman.timetennis.booking;
 
+import com.lazyman.timetennis.Constant;
 import com.lazyman.timetennis.arena.Arena;
 import com.lazyman.timetennis.arena.ArenaDao;
 import com.lazyman.timetennis.arena.Court;
+import com.lazyman.timetennis.menbership.MembershipCard;
+import com.lazyman.timetennis.menbership.MembershipCardBill;
+import com.lazyman.timetennis.menbership.MembershipCardBillDao;
+import com.lazyman.timetennis.menbership.MembershipCardDao;
 import com.lazyman.timetennis.user.User;
+import com.lazyman.timetennis.wp.PayDao;
+import com.lazyman.timetennis.wp.Trade;
+import com.lazyman.timetennis.wp.WePayService;
 import com.wisesupport.commons.exceptions.BusinessException;
+import org.apache.commons.lang3.Validate;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import javax.validation.constraints.NotEmpty;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -22,9 +30,21 @@ public class BookingManageController {
 
     private ArenaDao arenaDao;
 
-    public BookingManageController(BookingMapper bookingMapper, ArenaDao arenaDao) {
+    private PayDao payDao;
+
+    private MembershipCardBillDao billDao;
+
+    private MembershipCardDao mcDao;
+
+    private WePayService pay;
+
+    public BookingManageController(BookingMapper bookingMapper, ArenaDao arenaDao, PayDao payDao, MembershipCardBillDao billDao, MembershipCardDao mcDao, WePayService pay) {
         this.bookingMapper = bookingMapper;
         this.arenaDao = arenaDao;
+        this.payDao = payDao;
+        this.billDao = billDao;
+        this.mcDao = mcDao;
+        this.pay = pay;
     }
 
     @PostMapping("/court/lock")
@@ -81,6 +101,62 @@ public class BookingManageController {
         bookingMapper.deleteBooking(booking);
     }
 
+    @GetMapping("/booking/order")
+    public OrderDetail getBookingOrder(User user, int bookingId) {
+        OrderDetail detail = new OrderDetail();
+        Booking booking = bookingMapper.selectByPrimaryKey(bookingId);
+        if (booking.getPayType() == null) {
+            detail.setBookings(Collections.singletonList(booking));
+            detail.setFee(booking.getFee());
+        } else {
+            detail.setPayType(booking.getPayType());
+            detail.setPayNo(booking.getPayNo());
+            if ("mc".equals(booking.getPayType())) {
+                MembershipCardBill bill = billDao.load(booking.getPayNo());
+                detail.setFee(bill.getFee());
+                detail.setCode(bill.getCode());
+                detail.setCreateTime(bill.getCreateTime());
+            } else {
+                Trade trade = payDao.load(booking.getPayNo());
+                detail.setTransactionId(trade.getTransactionId());
+                detail.setMcId(trade.getMchId());
+                detail.setFee(trade.getFee());
+                detail.setCreateTime(trade.getCreateTime());
+            }
+            detail.setBookings(bookingMapper.byPayNo(booking.getPayNo()));
+        }
+        return detail;
+    }
+
+    @PostMapping("/booking/refund")
+    @Transactional
+    public synchronized void refund(User user,
+                                    @RequestParam @NotEmpty String payType,
+                                    @RequestParam @NotEmpty String payNo) {
+        List<Booking> bookings = bookingMapper.byPayNo(payNo);
+        Validate.notEmpty(bookings);
+        checkArenaPrivileges(user, bookings.get(0).getArena().getId());
+
+        for (Booking booking : bookings) {
+            Validate.isTrue(booking.getStatus().equals("ok"), "预定记录状态错误[%s]", booking.getStatus());
+        }
+
+        if ("mc".equals(payType)) {
+            MembershipCardBill bill = billDao.load(payNo);
+            Validate.notNull(bill);
+            mcDao.recharge(bill.getCode(), bill.getFee());
+            MembershipCard mc = mcDao.loadCard(bill.getCode());
+            String tradeNo = pay.creatTradeNo(Constant.PRODUCT_REFUND);
+            billDao.add(tradeNo, bill.getUser().getOpenId(), bill.getCode(), Constant.PRODUCT_REFUND, bill.getFee(), mc.getBalance());
+        } else {
+            Trade trade = payDao.load(payNo);
+            Validate.notNull(trade);
+            Validate.isTrue(trade.getStatus().equals("ok"), "未支付成功订单,无法退订,当前状态[%s]", trade.getStatus());
+            payDao.updateStatus(payNo, "rfd");
+        }
+
+        bookingMapper.updateBookingStatus(payNo, "rfd");
+    }
 
     private void checkPrivileges(User user) {
         if (!user.isArenaAdmin()) {

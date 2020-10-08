@@ -15,6 +15,8 @@ public class Trade {
 
     private String prepareId;
 
+    private String transactionId;
+
     private int fee;
 
     private String openId;
