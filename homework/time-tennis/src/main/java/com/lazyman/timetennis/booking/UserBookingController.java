@@ -110,7 +110,10 @@ public class UserBookingController implements ApplicationContextAware {
         booking.setStart(timeIndexStart);
         booking.setEnd(timeIndexEnd);
         booking.setOpenId(user.getOpenId());
-        booking.setFee(BookingTool.calcFee(rules, date, timeIndexStart, timeIndexEnd, courtDao, defaultCourtId));
+
+        //todo
+//        booking.setFee(BookingTool.calcFee(rules, date, timeIndexStart, timeIndexEnd, courtDao, defaultCourtId));
+
         bookingMapper.insert(booking);
         bookingMapper.deleteShare(booking.getId());
         application.publishEvent(new BookingEvent(this, user, booking));

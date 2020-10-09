@@ -1,5 +1,7 @@
 package com.lazyman.timetennis.arena;
 
+import com.lazyman.timetennis.Constant;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCreatorFactory;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -20,7 +22,7 @@ public class CourtDao {
         this.template = template;
     }
 
-    public List<Court> courts(int id) {
+    List<Court> courts(int id) {
         return template.query("select id,name,fee,status from court where arena_id=?", (rs, rowNum) -> {
             Court court = new Court();
             populateCourt(court, rs);
@@ -28,7 +30,7 @@ public class CourtDao {
         }, id);
     }
 
-    public List<Court> onLineCourts(int id) {
+    List<Court> onLineCourts(int id) {
         return template.query("select id,name,fee,status from court where arena_id=? and status='ol'", (rs, rowNum) -> {
             Court court = new Court();
             populateCourt(court, rs);
@@ -36,17 +38,8 @@ public class CourtDao {
         }, id);
     }
 
-    private void populateCourt(Court court, ResultSet rs) throws SQLException {
-        court.setId(rs.getInt("id"));
-        court.setName(rs.getString("name"));
-        court.setFee(rs.getInt("fee"));
-        court.setStatus(rs.getString("status"));
-    }
 
-    void delete(int id) {
-        template.update("delete from court where id=?", id);
-    }
-
+    @CacheEvict(cacheNames = Constant.CK_ARENA, key = "#arenaId")
     public int insert(int arenaId, String name, int fee) {
         PreparedStatementCreatorFactory psf =
                 new PreparedStatementCreatorFactory("insert into court(arena_id,name,fee) values (?,?,?)", Types.INTEGER, Types.VARCHAR, Types.INTEGER);
@@ -56,11 +49,12 @@ public class CourtDao {
         return Objects.requireNonNull(holder.getKey()).intValue();
     }
 
-    void update(int id, String name, int fee) {
+    @CacheEvict(cacheNames = Constant.CK_ARENA, key = "#arenaId")
+    public void update(int id, int arenaId, String name, int fee) {
         template.update("update court set name=?,fee=? where id=?", name, fee, id);
     }
 
-    public Court load(int id) {
+    Court load(int id) {
         return template.queryForObject("select id,name,fee,arena_id from court where id=?", (rs, rowNum) -> {
             Court court = new Court();
             court.setId(rs.getInt("id"));
@@ -69,5 +63,12 @@ public class CourtDao {
             court.setArenaId(rs.getInt("arena_id"));
             return court;
         }, id);
+    }
+
+    private void populateCourt(Court court, ResultSet rs) throws SQLException {
+        court.setId(rs.getInt("id"));
+        court.setName(rs.getString("name"));
+        court.setFee(rs.getInt("fee"));
+        court.setStatus(rs.getString("status"));
     }
 }

@@ -19,7 +19,6 @@ import javax.validation.constraints.NotEmpty;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/user/mc")
@@ -32,11 +31,6 @@ public class MembershipCardUserController extends BasePayController implements A
     public MembershipCardUserController(MembershipCardDao mcDao, MembershipCardBillDao billDao) {
         this.mcDao = mcDao;
         this.billDao = billDao;
-    }
-
-    @GetMapping("/metas")
-    public List<MembershipCardMeta> metas(@RequestParam @NotEmpty String arenaId) {
-        return mcDao.byArenaId(arenaId).stream().filter(meta -> meta.getStatus().equals("ol")).collect(Collectors.toList());
     }
 
     @GetMapping("/cards")
@@ -59,6 +53,9 @@ public class MembershipCardUserController extends BasePayController implements A
         }
         MembershipCardMeta meta = mcDao.loadMeta(metaId);
         Validate.notNull(meta);
+        if (!meta.getStatus().equals("ol")) {
+            throw new BusinessException("对不起,该会员卡已经下线,不能购买");
+        }
 
         String mchId = findMchId(metaId);
         String tradeNo = pay.creatTradeNo(Constant.PRODUCT_CARD);
