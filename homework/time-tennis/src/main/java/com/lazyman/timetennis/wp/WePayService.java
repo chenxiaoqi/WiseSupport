@@ -188,7 +188,7 @@ public class WePayService {
             String returnCode = result.get("return_code");
             if (!"SUCCESS".equals(returnCode)) {
                 log.error("pay failed {} => {}", url, result);
-                throw new IllegalStateException(result.get("return_msg"));
+                throw new IllegalStateException("WeChat Pay Failed.");
             } else {
                 log.debug("we pay result {} => {}", url, result);
             }
