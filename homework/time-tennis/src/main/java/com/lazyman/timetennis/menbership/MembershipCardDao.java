@@ -98,10 +98,11 @@ public class MembershipCardDao {
     }
 
     List<Arena> arenas(int metaId) {
-        return template.query("select b.id,b.name from membership_card_meta_arena_r a,arena b where a.arena_id=b.id and a.meta_id=?", (rs, rowNum) -> {
+        return template.query("select b.id,b.name,b.mch_id from membership_card_meta_arena_r a,arena b where a.arena_id=b.id and a.meta_id=?", (rs, rowNum) -> {
             Arena arena = new Arena();
             arena.setId(rs.getInt("id"));
             arena.setName(rs.getString("name"));
+            arena.setMchId(rs.getString("mch_id"));
             return arena;
         }, metaId);
     }

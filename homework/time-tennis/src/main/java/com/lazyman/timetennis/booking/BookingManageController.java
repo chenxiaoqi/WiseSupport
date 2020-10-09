@@ -146,12 +146,14 @@ public class BookingManageController {
             Validate.notNull(bill);
             mcDao.recharge(bill.getCode(), bill.getFee());
             MembershipCard mc = mcDao.loadCard(bill.getCode());
-            String tradeNo = pay.creatTradeNo(Constant.PRODUCT_REFUND);
+            String tradeNo = payNo + "-R";
             billDao.add(tradeNo, bill.getUser().getOpenId(), bill.getCode(), Constant.PRODUCT_REFUND, bill.getFee(), mc.getBalance());
         } else {
             Trade trade = payDao.load(payNo);
             Validate.notNull(trade);
-            Validate.isTrue(trade.getStatus().equals("ok"), "未支付成功订单,无法退订,当前状态[%s]", trade.getStatus());
+            if (!trade.getStatus().equals("ok")) {
+                throw new BusinessException("未支付成功订单,无法退订,当前状态: " + trade.getStatus());
+            }
             payDao.updateStatus(payNo, "rfd");
         }
 

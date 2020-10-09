@@ -8,8 +8,6 @@ import com.lazyman.timetennis.privilege.RoleDao;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.http.client.HttpClient;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.Assert;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,12 +25,6 @@ import java.io.IOException;
 @Validated
 public class LoginController {
 
-    private HttpClient client;
-
-    private String appId;
-
-    private String secret;
-
     private UserMapper userMapper;
 
     private RoleDao roleDao;
@@ -41,16 +33,10 @@ public class LoginController {
 
     private WeXinService weXinService;
 
-    public LoginController(HttpClient client,
-                           @Value("${wx.app-id}") String appId,
-                           @Value("${wx.secret}") String secret,
-                           UserMapper userMapper,
+    public LoginController(UserMapper userMapper,
                            RoleDao roleDao,
                            UserCoder coder,
                            WeXinService weXinService) {
-        this.client = client;
-        this.appId = appId;
-        this.secret = secret;
         this.userMapper = userMapper;
         this.roleDao = roleDao;
         this.coder = coder;
@@ -63,31 +49,30 @@ public class LoginController {
                       @RequestParam @NotEmpty String signature,
                       HttpServletRequest request, HttpServletResponse resp) throws IOException {
 
-        User loginUser = coder.decode(request);
-        User result;
-        if (loginUser == null) {
-            WeXinToken token = weXinService.getWeXinToken(jsCode);
-            String expect = Hex.encodeHexString(DigestUtils.sha1(rawData + token.getSessionKey()));
-            Assert.isTrue(expect.equals(signature), () -> "verify signature failed expect " + expect + " actual " + signature);
+        WeXinToken token = weXinService.getWeXinToken(jsCode);
+        String expect = Hex.encodeHexString(DigestUtils.sha1(rawData + token.getSessionKey()));
+        Assert.isTrue(expect.equals(signature), () -> "verify signature failed expect " + expect + " actual " + signature);
 
-            User user = new User();
-            user.setOpenId(token.getOpenId());
+        User wxUser = new User();
+        wxUser.setOpenId(token.getOpenId());
 
-            JSONObject raw = JSON.parseObject(rawData);
-            user.setWxNickname(raw.getString("nickName"));
-            user.setAvatar(raw.getString("avatarUrl"));
+        JSONObject raw = JSON.parseObject(rawData);
+        wxUser.setWxNickname(raw.getString("nickName"));
+        wxUser.setAvatar(raw.getString("avatarUrl"));
 
-            result = userMapper.selectByPrimaryKey(user.getOpenId());
-            if (result == null) {
-                userMapper.insert(user);
-            } else {
-                userMapper.updateByPrimaryKey(user);
-            }
-            result = userMapper.selectByPrimaryKey(user.getOpenId());
+        User result = userMapper.selectByPrimaryKey(wxUser.getOpenId());
+        if (result == null) {
+            userMapper.insert(wxUser);
+            result = userMapper.selectByPrimaryKey(wxUser.getOpenId());
         } else {
-            result = userMapper.selectByPrimaryKey(loginUser.getOpenId());
+            User loginUser = coder.decode(request);
+            //用户登录超时就更新一下头像和昵称
+            if (loginUser == null) {
+                userMapper.updateByPrimaryKey(wxUser);
+                result.setWxNickname(wxUser.getNickname());
+                result.setAvatar(wxUser.getAvatar());
+            }
         }
-
         result.setSuperAdmin(roleDao.isSuperAdmin(result.getOpenId()));
         result.setArenaAdmin(roleDao.isAreaAdmin(result.getOpenId()));
         result.setAccountant(roleDao.isAccountant(result.getOpenId()));

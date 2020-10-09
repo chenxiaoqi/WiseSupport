@@ -1,5 +1,6 @@
 package com.lazyman.timetennis.arena;
 
+import com.lazyman.timetennis.user.User;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -23,7 +24,7 @@ public class ArenaDao {
         this.template = template;
     }
 
-    public List<Arena> searchArena(String city, Integer type, String name) {
+    List<Arena> searchArena(String city, Integer type, String name) {
         List<Object> params = new ArrayList<>(3);
         params.add(city);
         String sql = "select id, name,district,images,book_style from arena where status='ol' and city=?";
@@ -47,7 +48,7 @@ public class ArenaDao {
     }
 
     public Arena load(int id) {
-        return template.queryForObject("select id,name,type,province,city,district,address,images,book_style,phone,introduction,advance_book_days,book_start_hour,book_end_hour,status from arena where id=?", (rs, rowNum) -> {
+        return template.queryForObject("select id,name,type,province,city,district,address,images,book_style,phone,introduction,advance_book_days,book_start_hour,book_end_hour,status,mch_id from arena where id=?", (rs, rowNum) -> {
             Arena result = new Arena();
             populateArenaProperties(rs, result);
             result.setType(rs.getInt("type"));
@@ -60,8 +61,8 @@ public class ArenaDao {
         }, id);
     }
 
-    public List<Arena> arenas(String openId) {
-        return template.query("select b.id,b.name,b.province,b.city,b.district,b.advance_book_days,b.book_start_hour,b.book_end_hour,b.status from arena_role a,arena b where a.arena_id=b.id and a.role='admin' and a.open_id=?", (rs, rowNum) -> {
+    List<Arena> arenas(String openId) {
+        return template.query("select b.id,b.name,b.province,b.city,b.district,b.advance_book_days,b.book_start_hour,b.book_end_hour,b.status,b.mch_id from arena_role a,arena b where a.arena_id=b.id and a.role='admin' and a.open_id=?", (rs, rowNum) -> {
                     Arena arena = new Arena();
                     populateArenaProperties(rs, arena);
                     return arena;
@@ -79,6 +80,7 @@ public class ArenaDao {
         result.setBookStartHour(rs.getInt("book_start_hour"));
         result.setBookEndHour(rs.getInt("book_end_hour"));
         result.setStatus(rs.getString("status"));
+        result.setMchId(rs.getString("mch_id"));
     }
 
     public int insert(Arena arena) {
@@ -116,11 +118,11 @@ public class ArenaDao {
         return Objects.requireNonNull(holder.getKey()).intValue();
     }
 
-    public void updateImages(int id, String images) {
+    void updateImages(int id, String images) {
         template.update("update arena set images=? where id=?", images, id);
     }
 
-    public void setRole(int id, String openId, String role) {
+    void setRole(int id, String openId, String role) {
         template.update("insert into arena_role (arena_id, open_id, role) value (?,?,?)", id, openId, role);
     }
 
@@ -151,7 +153,7 @@ public class ArenaDao {
         return template.query("select distinct(city) as city from arena order by city", (rs, rowNum) -> rs.getString(1));
     }
 
-    public void delete(int id) {
+    void delete(int id) {
         template.update("delete from arena_role where arena_id=?", id);
         template.update("delete from rule where arena_id=?", id);
         template.update("delete from arena where id=?", id);
@@ -160,11 +162,42 @@ public class ArenaDao {
 
     }
 
-    public void updateArenaStatus(int arenaId, String status) {
+    void updateArenaStatus(int arenaId, String status) {
         template.update("update arena set status=? where id=?", status, arenaId);
     }
 
-    public void updateCourtStatus(int courtId, int arenaId, String status) {
+    void updateCourtStatus(int courtId, int arenaId, String status) {
         template.update("update court set status=? where id=? and arena_id=?", status, courtId, arenaId);
+    }
+
+    int updateMchId(int arenaId, String mchId) {
+        return template.update("update arena set mch_id=? where id=?", mchId, arenaId);
+    }
+
+    List<Arena> byName(String name) {
+        return template.query("select id,name,city,district,status,mch_id from arena where name like concat('%',?,'%') limit 20", (rs, rowNum) -> {
+            Arena result = new Arena();
+            result.setId(rs.getInt("id"));
+            result.setName(rs.getString("name"));
+            result.setDistrict(rs.getString("district"));
+            result.setCity(rs.getString("city"));
+            result.setStatus(rs.getString("status"));
+            result.setMchId(rs.getString("mch_id"));
+            return result;
+        }, name);
+    }
+
+    List<User> admins(int arenaId) {
+        return template.query("select a.open_id,a.wx_nickname,a.avatar from arena_role b, tt_user a where a.open_id = b.open_id and b.role='admin' and b.arena_id=?", (rs, rowNum) -> {
+            User user = new User();
+            user.setOpenId(rs.getString("open_id"));
+            user.setWxNickname(rs.getString("wx_nickname"));
+            user.setAvatar(rs.getString("avatar"));
+            return user;
+        }, arenaId);
+    }
+
+    void deleteRole(int arenaId, String openId, String role) {
+        template.update("delete from arena_role where arena_id=? and open_id=? and role=?", arenaId, openId, role);
     }
 }

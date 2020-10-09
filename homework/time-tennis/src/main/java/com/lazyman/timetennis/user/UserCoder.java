@@ -56,7 +56,11 @@ public class UserCoder {
         byte[] bytes;
         try {
             bytes = validate(token);
-            return decode(bytes);
+            User user = decode(bytes);
+            if (user == null) {
+                log.info("token expired.{}", token);
+            }
+            return user;
         } catch (DecoderException | IOException e) {
             log.warn("decode token failed {}", token, e);
             return null;
@@ -70,7 +74,6 @@ public class UserCoder {
 
         long timestamp = din.readLong();
         if (timestamp + DateUtils.MILLIS_PER_HOUR * 24 < System.currentTimeMillis()) {
-            log.debug("token expired");
             return null;
         }
         User user = new User();

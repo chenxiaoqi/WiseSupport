@@ -82,3 +82,11 @@ alter table tt_user
 
 create index idx_pay_no
     on tt_booking (pay_no);
+
+# ====================
+alter table arena
+    modify status varchar(4) default 'sofl' not null;
+ALTER TABLE tt_user
+    CHANGE wx_nickname wx_nickname VARCHAR(64) CHARACTER SET utf8mb4;
+alter table arena
+    add mch_id varchar(24) null;

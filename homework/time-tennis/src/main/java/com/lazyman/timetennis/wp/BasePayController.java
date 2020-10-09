@@ -1,8 +1,10 @@
 package com.lazyman.timetennis.wp;
 
 import com.lazyman.timetennis.core.SecurityUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.lang.Nullable;
 
 import java.util.Map;
 import java.util.TreeMap;
@@ -20,11 +22,13 @@ public class BasePayController {
     @Autowired
     protected PayDao payDao;
 
-    protected Map<String, String> preparePay(String tradeNo, String openId, String productType, int totalFee, String desc, PrepareCallback callback) {
+    protected Map<String, String> preparePay(String tradeNo, @Nullable String mchId, String openId, String productType, int totalFee, String desc, PrepareCallback callback) {
 
-        //todo 商户ID要用场地对应商户ID，而不是平台的商户ID
-        String prepayId = pay.prepay(this.platformMchId, openId, tradeNo, String.valueOf(totalFee), desc);
-        payDao.createTrade(tradeNo, openId, productType, prepayId, totalFee, platformMchId);
+        if (StringUtils.isEmpty(mchId)) {
+            mchId = this.platformMchId;
+        }
+        String prepayId = pay.prepay(mchId, openId, tradeNo, String.valueOf(totalFee), desc);
+        payDao.createTrade(tradeNo, openId, productType, prepayId, totalFee, mchId);
         callback.call();
 
         TreeMap<String, String> params = new TreeMap<>();
