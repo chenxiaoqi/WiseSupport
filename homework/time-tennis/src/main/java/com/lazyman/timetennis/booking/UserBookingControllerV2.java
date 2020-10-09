@@ -63,6 +63,9 @@ public class UserBookingControllerV2 extends BasePayController implements Applic
                                                     @RequestParam(required = false) String code) {
 
         Arena dbArena = arenaDao.load(arenaId);
+        if (!dbArena.getStatus().equals("ol")) {
+            throw new BusinessException("对不起,该场馆暂时下线,不能预定!");
+        }
 
         if (code == null && payDao.hasWaitForPay(user.getOpenId())) {
             throw new BusinessException("您有一个未支付的预定待系统确认,请10分钟稍后再试!");
