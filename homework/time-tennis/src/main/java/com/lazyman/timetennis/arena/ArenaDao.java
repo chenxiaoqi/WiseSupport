@@ -183,15 +183,18 @@ public class ArenaDao {
         return template.query("select distinct(city) as city from arena order by city", (rs, rowNum) -> rs.getString(1));
     }
 
-    void updateArenaStatus(int arenaId, String status) {
+    @CacheEvict(cacheNames = Constant.CK_ARENA, key = "#arenaId")
+    public void updateArenaStatus(int arenaId, String status) {
         template.update("update arena set status=? where id=?", status, arenaId);
     }
 
-    void updateCourtStatus(int courtId, int arenaId, String status) {
+    @CacheEvict(cacheNames = Constant.CK_ARENA, key = "#arenaId")
+    public void updateCourtStatus(int courtId, int arenaId, String status) {
         template.update("update court set status=? where id=? and arena_id=?", status, courtId, arenaId);
     }
 
-    int updateMchId(int arenaId, String mchId) {
+    @CacheEvict(cacheNames = Constant.CK_ARENA, key = "#arenaId")
+    public int updateMchId(int arenaId, String mchId) {
         return template.update("update arena set mch_id=? where id=?", mchId, arenaId);
     }
 
