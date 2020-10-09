@@ -1,6 +1,7 @@
 package com.lazyman.timetennis.menbership;
 
 import com.lazyman.timetennis.Constant;
+import com.lazyman.timetennis.arena.Arena;
 import com.lazyman.timetennis.user.User;
 import com.lazyman.timetennis.wp.BasePayController;
 import com.lazyman.timetennis.wp.Trade;
@@ -59,8 +60,9 @@ public class MembershipCardUserController extends BasePayController implements A
         MembershipCardMeta meta = mcDao.loadMeta(metaId);
         Validate.notNull(meta);
 
+        String mchId = findMchId(metaId);
         String tradeNo = pay.creatTradeNo(Constant.PRODUCT_CARD);
-        return preparePay(tradeNo, user.getOpenId(), Constant.PRODUCT_CARD, meta.getPrice(), "购买会员卡[" + meta.getName() + "]", () -> mcDao.createTradeMembershipCardRelation(tradeNo, metaId));
+        return preparePay(tradeNo, mchId, user.getOpenId(), Constant.PRODUCT_CARD, meta.getPrice(), "购买会员卡[" + meta.getName() + "]", () -> mcDao.createTradeMembershipCardRelation(tradeNo, metaId));
     }
 
     @PostMapping("/recharge")
@@ -75,8 +77,9 @@ public class MembershipCardUserController extends BasePayController implements A
         Validate.notNull(card);
         MembershipCardMeta meta = mcDao.loadMeta(card.getMeta().getId());
         Validate.notNull(meta);
+        String mchId = findMchId(meta.getId());
         String tradeNo = pay.creatTradeNo(Constant.PRODUCT_RECHARGE);
-        return preparePay(tradeNo, user.getOpenId(),
+        return preparePay(tradeNo, mchId, user.getOpenId(),
                 Constant.PRODUCT_RECHARGE,
                 card.getMeta().getInitialBalance(),
                 "会员卡[" + meta.getName() + "]充值",
@@ -135,5 +138,16 @@ public class MembershipCardUserController extends BasePayController implements A
             }
             mcDao.createMembershipCard(trade.getOpenId(), meta, code, DateUtils.addMonths(new Date(), meta.getExtendMonth()));
         }
+    }
+
+    private String findMchId(@RequestParam int metaId) {
+        String mchId = null;
+        for (Arena arena : mcDao.arenas(metaId)) {
+            if (arena.getMchId() != null) {
+                mchId = arena.getMchId();
+                break;
+            }
+        }
+        return mchId;
     }
 }

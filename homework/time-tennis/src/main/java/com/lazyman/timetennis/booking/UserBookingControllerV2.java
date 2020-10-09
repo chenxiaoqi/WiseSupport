@@ -37,15 +37,18 @@ public class UserBookingControllerV2 extends BasePayController implements Applic
 
     private MembershipCardDao mcDao;
 
+    private ArenaDao arenaDao;
+
     public UserBookingControllerV2(MembershipCardBillDao billDao, RuleDao ruleDao,
                                    CourtDao courtDao,
                                    BookingMapper bookingMapper,
-                                   MembershipCardDao mcDao) {
+                                   MembershipCardDao mcDao, ArenaDao arenaDao) {
         this.billDao = billDao;
         this.ruleDao = ruleDao;
         this.courtDao = courtDao;
         this.bookingMapper = bookingMapper;
         this.mcDao = mcDao;
+        this.arenaDao = arenaDao;
     }
 
     @PostMapping("/booking")
@@ -57,8 +60,10 @@ public class UserBookingControllerV2 extends BasePayController implements Applic
                                                     @RequestParam int[] startTimes,
                                                     @RequestParam int[] endTimes,
                                                     @RequestParam int totalFee,
-                                                    @RequestParam(defaultValue = "1") int style,
                                                     @RequestParam(required = false) String code) {
+
+        Arena dbArena = arenaDao.load(arenaId);
+
         if (code == null && payDao.hasWaitForPay(user.getOpenId())) {
             throw new BusinessException("您有一个未支付的预定待系统确认,请10分钟稍后再试!");
         }
@@ -84,7 +89,7 @@ public class UserBookingControllerV2 extends BasePayController implements Applic
                 }
             }
             int fee;
-            if (style == 2) {
+            if (dbArena.getBookStyle() == 2) {
                 fee = BookingTool.calcFeeV2(rules, date, startTime, courtDao, courtId);
             } else {
                 fee = BookingTool.calcFee(rules, date, startTime, endTime, courtDao, courtId);
@@ -114,7 +119,7 @@ public class UserBookingControllerV2 extends BasePayController implements Applic
             membershipCardPay(user, tradeNo, code, totalFee);
             return null;
         } else {
-            return preparePay(tradeNo, user.getOpenId(), Constant.PRODUCT_BOOKING, totalFee, "场地预定", () -> {
+            return preparePay(tradeNo, dbArena.getMchId(), user.getOpenId(), Constant.PRODUCT_BOOKING, totalFee, "场地预定", () -> {
                 //do nothing
             });
 

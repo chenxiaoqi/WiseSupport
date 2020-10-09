@@ -10,6 +10,8 @@ import org.apache.commons.lang3.Validate;
 import org.apache.ibatis.builder.BuilderException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MimeType;
 import org.springframework.web.bind.annotation.*;
@@ -19,6 +21,7 @@ import javax.validation.constraints.NotEmpty;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -44,6 +47,21 @@ public class ArenaManageController {
     @GetMapping("/arena/{id}")
     public Arena arena(@PathVariable int id) {
         return arenaDao.load(id);
+    }
+
+    @GetMapping("/arena/query")
+    public List<Arena> getArenaById(@RequestParam @NotEmpty String idOrName) {
+        List<Arena> arenas;
+        if (StringUtils.isNumeric(idOrName)) {
+            try {
+                arenas = Collections.singletonList(arenaDao.load(Integer.parseInt(idOrName)));
+            } catch (EmptyResultDataAccessException e) {
+                arenas = arenaDao.byName(idOrName);
+            }
+        } else {
+            arenas = arenaDao.byName(idOrName);
+        }
+        return arenas;
     }
 
     @GetMapping("/arena/{id}/detail")
@@ -204,7 +222,66 @@ public class ArenaManageController {
         if (online && courtDao.onLineCourts(arenaId).isEmpty()) {
             throw new BuilderException("该场馆还没有上线的场地");
         }
-        arenaDao.updateArenaStatus(arenaId, online ? "ol" : "ofl");
+        Arena arena = arenaDao.load(arenaId);
+        Validate.notNull(arena);
+
+        String status;
+        if (online) {
+            status = "ol";
+            //如果是被管理员下线的需要管理员权限
+            if (arena.getStatus().equals("sofl")) {
+                if (!user.isSuperAdmin()) {
+                    throw new BusinessException("请联系管理员,执行上线");
+                }
+            }
+        } else {
+            if (user.isSuperAdmin()) {
+                status = "sofl";
+            } else {
+                status = "ofl";
+            }
+        }
+        arenaDao.updateArenaStatus(arenaId, status);
+    }
+
+    @PutMapping("/arena/super_manage")
+    public void superManage(User user, @RequestParam @NotEmpty int arenaId, @RequestParam(required = false) String mchId) {
+        if (!user.isSuperAdmin()) {
+            throw new BusinessException("需要系统管理员权限");
+        }
+        if (StringUtils.isEmpty(mchId)) {
+            mchId = null;
+        }
+        Validate.isTrue(arenaDao.updateMchId(arenaId, mchId) == 1);
+    }
+
+    @GetMapping("/arena/admins")
+    public List<User> admins(User user, @RequestParam @NotEmpty int arenaId) {
+        return arenaDao.admins(arenaId);
+    }
+
+    @PostMapping("/arena/role")
+    public void addRole(User user, @RequestParam @NotEmpty int arenaId,
+                        @RequestParam @NotEmpty String openId,
+                        @RequestParam @NotEmpty String role) {
+        if (!user.isSuperAdmin()) {
+            throw new BusinessException("需要管理员权限");
+        }
+        try {
+            arenaDao.setRole(arenaId, openId, role);
+        } catch (DuplicateKeyException e) {
+            throw new BusinessException("该用户已有权限");
+        }
+    }
+
+    @DeleteMapping("/arena/role")
+    public void deleteRole(User user, @RequestParam @NotEmpty int arenaId,
+                           @RequestParam @NotEmpty String openId,
+                           @RequestParam @NotEmpty String role) {
+        if (!user.isSuperAdmin()) {
+            throw new BusinessException("需要管理员权限");
+        }
+        arenaDao.deleteRole(arenaId, openId, role);
     }
 
     @PostMapping("/court/status")
@@ -263,9 +340,11 @@ public class ArenaManageController {
     }
 
     private void checkArenaPrivileges(User user, int arenaId) {
-        checkPrivileges(user);
-        if (!arenaDao.isArenaAdmin(user.getOpenId(), arenaId)) {
-            throw new BusinessException("对不起,您不是该场馆管理员");
+        if (!user.isSuperAdmin()) {
+            checkPrivileges(user);
+            if (!arenaDao.isArenaAdmin(user.getOpenId(), arenaId)) {
+                throw new BusinessException("对不起,您不是该场馆管理员");
+            }
         }
     }
 }

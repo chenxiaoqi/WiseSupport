@@ -23,4 +23,5 @@ public class Arena {
     private List<Court> courts;
     private String[] images;
     private String status;
+    private String mchId;
 }
