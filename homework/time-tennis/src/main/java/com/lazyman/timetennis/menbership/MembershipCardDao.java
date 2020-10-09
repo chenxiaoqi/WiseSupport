@@ -1,7 +1,9 @@
 package com.lazyman.timetennis.menbership;
 
+import com.lazyman.timetennis.Constant;
 import com.lazyman.timetennis.arena.Arena;
 import org.apache.commons.lang3.Validate;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCreatorFactory;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -34,16 +36,19 @@ public class MembershipCardDao {
         return Objects.requireNonNull(holder.getKey()).intValue();
     }
 
-    void deleteMeta(int id, String openId) {
+    @CacheEvict(cacheNames = Constant.CK_ARENA, allEntries = true)
+    public void deleteMeta(int id, String openId) {
         Validate.isTrue(template.update("delete from membership_card_meta where id=? and open_id=?", id, openId) == 1, "会员看元数据不存在");
         template.update("delete from membership_card_meta_arena_r where meta_id=?", id);
     }
 
-    int updateMeta(String openId, int id, String name, int initialBalance, int discount, int price, int extendMonth) {
+    @CacheEvict(cacheNames = Constant.CK_ARENA, allEntries = true)
+    public int updateMeta(String openId, int id, String name, int initialBalance, int discount, int price, int extendMonth) {
         return template.update("update membership_card_meta set name=?,initial_balance=?,discount=?,price=?,extend_month=? where id=? and open_id=?", name, initialBalance, discount, price, extendMonth, id, openId);
     }
 
-    int metaOffline(String openId, int id) {
+    @CacheEvict(cacheNames = Constant.CK_ARENA, allEntries = true)
+    public int metaOffline(String openId, int id) {
         return this.changeMetaStatus(openId, id, "ofl");
     }
 
@@ -59,7 +64,7 @@ public class MembershipCardDao {
         }, openId);
     }
 
-    List<MembershipCardMeta> byArenaId(String arenaId) {
+    public List<MembershipCardMeta> byArenaId(int arenaId) {
         return template.query("select b.id,b.name,b.open_id,b.initial_balance,b.discount,b.price,b.extend_month,b.status from membership_card_meta_arena_r a,membership_card_meta b where a.meta_id=b.id and a.arena_id =?", (rs, rowNum) -> {
             MembershipCardMeta meta = new MembershipCardMeta();
             populateMeta(rs, meta);
@@ -107,15 +112,13 @@ public class MembershipCardDao {
         }, metaId);
     }
 
-    private int changeMetaStatus(String openId, int id, String status) {
-        return template.update("update membership_card_meta set status=? where id=? and open_id=?", status, id, openId);
-    }
-
-    void addMetaArenaRelation(int metaId, String arenaId) {
+    @CacheEvict(cacheNames = Constant.CK_ARENA, allEntries = true)
+    public void addMetaArenaRelation(int metaId, String arenaId) {
         template.update("insert into membership_card_meta_arena_r (arena_id, meta_id) value (?,?)", arenaId, metaId);
     }
 
-    void deleteMetaArenaRelation(int metaId) {
+    @CacheEvict(cacheNames = Constant.CK_ARENA, allEntries = true)
+    public void deleteMetaArenaRelation(int metaId) {
         template.update("delete from membership_card_meta_arena_r where meta_id=?", metaId);
     }
 
@@ -169,6 +172,14 @@ public class MembershipCardDao {
         return Objects.requireNonNull(template.query("select 1 from membership_card where open_id=? and meta_id=? limit 1", ResultSet::next, openId, metaId));
     }
 
+    void createTradeMembershipCardRelation(String tradeNo, int metaId) {
+        template.update("insert into trade_membership_card_meta_r(trade_no, meta_id) values (?,?)", tradeNo, metaId);
+    }
+
+    void createTradeMembershipCardChargeRelation(String tradeNo, String code) {
+        template.update("insert into trade_membership_card_recharge_r(trade_no, mc_code) values (?,?)", tradeNo, code);
+    }
+
     private void populateCard(MembershipCard card, ResultSet rs) throws SQLException {
         card.setCode(rs.getString("code"));
         card.setBalance(rs.getInt("balance"));
@@ -183,14 +194,6 @@ public class MembershipCardDao {
         card.setMeta(meta);
     }
 
-    void createTradeMembershipCardRelation(String tradeNo, int metaId) {
-        template.update("insert into trade_membership_card_meta_r(trade_no, meta_id) values (?,?)", tradeNo, metaId);
-    }
-
-    void createTradeMembershipCardChargeRelation(String tradeNo, String code) {
-        template.update("insert into trade_membership_card_recharge_r(trade_no, mc_code) values (?,?)", tradeNo, code);
-    }
-
     int changeToFinished(String tradeNo) {
         return template.update("update trade_membership_card_recharge_r set finished=1 where trade_no=? and finished=0", tradeNo);
     }
@@ -201,6 +204,10 @@ public class MembershipCardDao {
 
     boolean hasMember(int metaId) {
         return Objects.requireNonNull(template.query("select 1 from membership_card where meta_id=? limit 1", ResultSet::next, metaId));
+    }
+
+    private int changeMetaStatus(String openId, int id, String status) {
+        return template.update("update membership_card_meta set status=? where id=? and open_id=?", status, id, openId);
     }
 }
 

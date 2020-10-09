@@ -1,7 +1,6 @@
 package com.lazyman.timetennis.booking;
 
 import com.lazyman.timetennis.Constant;
-import com.lazyman.timetennis.arena.CourtDao;
 import com.lazyman.timetennis.arena.Rule;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
@@ -44,7 +43,7 @@ public final class BookingTool {
         return true;
     }
 
-    static int calcFee(List<Rule> rules, Date date, int timeIndexStart, int timeIndexEnd, CourtDao courtDao, int courtId) {
+    static int calcFee(List<Rule> rules, Date date, int timeIndexStart, int timeIndexEnd, int defaultFee, int courtId) {
         String dateString = Constant.FORMAT.format(date);
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(date);
@@ -67,13 +66,13 @@ public final class BookingTool {
             if (find != null) {
                 fee = fee + find.getFee() / 2;
             } else {
-                fee = fee + courtDao.load(courtId).getFee() / 2;
+                fee = fee + defaultFee / 2;
             }
         }
         return fee;
     }
 
-    static int calcFeeV2(List<Rule> rules, Date date, int timeIndexStart, CourtDao courtDao, int courtId) {
+    static int calcFeeV2(List<Rule> rules, Date date, int timeIndexStart, int defaultFee, int courtId) {
         String dateString = Constant.FORMAT.format(date);
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(date);
@@ -91,7 +90,7 @@ public final class BookingTool {
                 }
             }
         }
-        return find != null ? find.getFee() : courtDao.load(courtId).getFee();
+        return find != null ? find.getFee() : defaultFee;
     }
 
     public static void main(String[] args) throws ParseException {

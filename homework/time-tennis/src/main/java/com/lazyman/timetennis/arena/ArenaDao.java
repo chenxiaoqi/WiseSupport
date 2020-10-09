@@ -1,8 +1,12 @@
 package com.lazyman.timetennis.arena;
 
+import com.lazyman.timetennis.Constant;
+import com.lazyman.timetennis.menbership.MembershipCardDao;
 import com.lazyman.timetennis.user.User;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCreatorFactory;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -18,10 +22,58 @@ import java.util.Objects;
 
 @Component
 public class ArenaDao {
+
     private JdbcTemplate template;
 
-    public ArenaDao(JdbcTemplate template) {
+    private CourtDao courtDao;
+
+    private RuleDao ruleDao;
+
+    private MembershipCardDao mcDao;
+
+    public ArenaDao(JdbcTemplate template, CourtDao courtDao, RuleDao ruleDao, MembershipCardDao mcDao) {
         this.template = template;
+        this.courtDao = courtDao;
+        this.ruleDao = ruleDao;
+        this.mcDao = mcDao;
+    }
+
+    public Arena load(int id) {
+        return template.queryForObject("select id,name,type,province,city,district,address,images,book_style,phone,introduction,advance_book_days,book_start_hour,book_end_hour,status,mch_id from arena where id=?", (rs, rowNum) -> {
+            Arena result = new Arena();
+            populateArenaProperties(rs, result);
+            result.setType(rs.getInt("type"));
+            result.setAddress(rs.getString("address"));
+            result.setImages(StringUtils.split(rs.getString("images"), ','));
+            result.setBookStyle(rs.getInt("book_style"));
+            result.setPhone(rs.getString("phone"));
+            result.setIntroduction(rs.getString("introduction"));
+            return result;
+        }, id);
+    }
+
+    @Cacheable(value = Constant.CK_ARENA, key = "#id")
+    public Arena loadFull(int id) {
+        Arena arena = load(id);
+        List<Court> courts = courtDao.onLineCourts(arena.getId());
+        if (!courts.isEmpty()) {
+            Object[] courtIds = courts.stream().map(Court::getId).toArray();
+            List<Rule> rules = ruleDao.courtRules(courtIds);
+            for (Court court : courts) {
+                for (Rule rule : rules) {
+                    if (court.getId() == rule.getCourtId()) {
+                        if (rule.getType() == 1) {
+                            court.getDisableRules().add(rule);
+                        } else {
+                            court.getFeeRules().add(rule);
+                        }
+                    }
+                }
+            }
+            arena.setCourts(courts);
+        }
+        arena.setMetas(mcDao.byArenaId(id));
+        return arena;
     }
 
     List<Arena> searchArena(String city, Integer type, String name) {
@@ -47,20 +99,6 @@ public class ArenaDao {
         }, params.toArray());
     }
 
-    public Arena load(int id) {
-        return template.queryForObject("select id,name,type,province,city,district,address,images,book_style,phone,introduction,advance_book_days,book_start_hour,book_end_hour,status,mch_id from arena where id=?", (rs, rowNum) -> {
-            Arena result = new Arena();
-            populateArenaProperties(rs, result);
-            result.setType(rs.getInt("type"));
-            result.setAddress(rs.getString("address"));
-            result.setImages(StringUtils.split(rs.getString("images"), ','));
-            result.setBookStyle(rs.getInt("book_style"));
-            result.setPhone(rs.getString("phone"));
-            result.setIntroduction(rs.getString("introduction"));
-            return result;
-        }, id);
-    }
-
     List<Arena> arenas(String openId) {
         return template.query("select b.id,b.name,b.province,b.city,b.district,b.advance_book_days,b.book_start_hour,b.book_end_hour,b.status,b.mch_id from arena_role a,arena b where a.arena_id=b.id and a.role='admin' and a.open_id=?", (rs, rowNum) -> {
                     Arena arena = new Arena();
@@ -70,19 +108,7 @@ public class ArenaDao {
                 openId);
     }
 
-    private void populateArenaProperties(ResultSet rs, Arena result) throws SQLException {
-        result.setId(rs.getInt("id"));
-        result.setName(rs.getString("name"));
-        result.setProvince(rs.getString("province"));
-        result.setCity(rs.getString("city"));
-        result.setDistrict(rs.getString("district"));
-        result.setAdvanceBookDays(rs.getInt("advance_book_days"));
-        result.setBookStartHour(rs.getInt("book_start_hour"));
-        result.setBookEndHour(rs.getInt("book_end_hour"));
-        result.setStatus(rs.getString("status"));
-        result.setMchId(rs.getString("mch_id"));
-    }
-
+    @CacheEvict(value = Constant.CK_CITIES, allEntries = true)
     public int insert(Arena arena) {
         String sql = "insert into arena (name, type, address, province, city, district, phone, introduction, advance_book_days, book_start_hour, book_end_hour) values (?,?,?,?,?,?,?,?,?,?,?)";
         PreparedStatementCreatorFactory psf =
@@ -126,6 +152,10 @@ public class ArenaDao {
         template.update("insert into arena_role (arena_id, open_id, role) value (?,?,?)", id, openId, role);
     }
 
+    @Caching(evict = {
+            @CacheEvict(value = Constant.CK_CITIES, allEntries = true),
+            @CacheEvict(value = Constant.CK_ARENA, key = "#arena.id")
+    })
     public void update(Arena arena) {
         String sql = "update arena set name=?,type=?,province=?,city=?,district=?,address=?,phone=?,advance_book_days=?,book_start_hour=?,book_end_hour=?,introduction=?,images=? where id=?";
         template.update(sql,
@@ -148,18 +178,9 @@ public class ArenaDao {
         return Objects.requireNonNull(template.query("select 1 from arena_role where open_id=? and arena_id=? and role='admin'", ResultSet::next, openId, arenaId));
     }
 
-    @Cacheable("arena.cities")
+    @Cacheable(Constant.CK_CITIES)
     public List<String> cities() {
         return template.query("select distinct(city) as city from arena order by city", (rs, rowNum) -> rs.getString(1));
-    }
-
-    void delete(int id) {
-        template.update("delete from arena_role where arena_id=?", id);
-        template.update("delete from rule where arena_id=?", id);
-        template.update("delete from arena where id=?", id);
-        template.update("delete from court_rule_r where court_id in(select id from court where arena_id=?)", id);
-        template.update("delete from court where arena_id=?", id);
-
     }
 
     void updateArenaStatus(int arenaId, String status) {
@@ -200,4 +221,26 @@ public class ArenaDao {
     void deleteRole(int arenaId, String openId, String role) {
         template.update("delete from arena_role where arena_id=? and open_id=? and role=?", arenaId, openId, role);
     }
+
+    private void populateArenaProperties(ResultSet rs, Arena result) throws SQLException {
+        result.setId(rs.getInt("id"));
+        result.setName(rs.getString("name"));
+        result.setProvince(rs.getString("province"));
+        result.setCity(rs.getString("city"));
+        result.setDistrict(rs.getString("district"));
+        result.setAdvanceBookDays(rs.getInt("advance_book_days"));
+        result.setBookStartHour(rs.getInt("book_start_hour"));
+        result.setBookEndHour(rs.getInt("book_end_hour"));
+        result.setStatus(rs.getString("status"));
+        result.setMchId(rs.getString("mch_id"));
+    }
+
+//    void delete(int id) {
+//        template.update("delete from arena_role where arena_id=?", id);
+//        template.update("delete from rule where arena_id=?", id);
+//        template.update("delete from arena where id=?", id);
+//        template.update("delete from court_rule_r where court_id in(select id from court where arena_id=?)", id);
+//        template.update("delete from court where arena_id=?", id);
+//
+//    }
 }

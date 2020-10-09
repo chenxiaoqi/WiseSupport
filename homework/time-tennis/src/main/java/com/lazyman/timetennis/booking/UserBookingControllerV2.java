@@ -2,6 +2,7 @@ package com.lazyman.timetennis.booking;
 
 import com.lazyman.timetennis.Constant;
 import com.lazyman.timetennis.arena.*;
+import com.lazyman.timetennis.core.LockRepository;
 import com.lazyman.timetennis.menbership.MembershipCard;
 import com.lazyman.timetennis.menbership.MembershipCardBillDao;
 import com.lazyman.timetennis.menbership.MembershipCardDao;
@@ -39,6 +40,8 @@ public class UserBookingControllerV2 extends BasePayController implements Applic
 
     private ArenaDao arenaDao;
 
+    private LockRepository lockRepository = new LockRepository();
+
     public UserBookingControllerV2(MembershipCardBillDao billDao, RuleDao ruleDao,
                                    CourtDao courtDao,
                                    BookingMapper bookingMapper,
@@ -53,79 +56,74 @@ public class UserBookingControllerV2 extends BasePayController implements Applic
 
     @PostMapping("/booking")
     @Transactional
-    public synchronized Map<String, String> booking(User user,
-                                                    @DateTimeFormat(pattern = "yyyy-MM-dd") Date date,
-                                                    @RequestParam int arenaId,
-                                                    @RequestParam int[] courtIds,
-                                                    @RequestParam int[] startTimes,
-                                                    @RequestParam int[] endTimes,
-                                                    @RequestParam int totalFee,
-                                                    @RequestParam(required = false) String code) {
+    public Map<String, String> booking(User user,
+                                       @DateTimeFormat(pattern = "yyyy-MM-dd") Date date,
+                                       @RequestParam int arenaId,
+                                       @RequestParam int[] courtIds,
+                                       @RequestParam int[] startTimes,
+                                       @RequestParam int[] endTimes,
+                                       @RequestParam int totalFee,
+                                       @RequestParam(required = false) String code) {
+        LockRepository.Lock lock = lockRepository.require(arenaId);
+        try {
+            Arena dbArena = arenaDao.loadFull(arenaId);
 
-        Arena dbArena = arenaDao.load(arenaId);
-        if (!dbArena.getStatus().equals("ol")) {
-            throw new BusinessException("对不起,该场馆暂时下线,不能预定!");
-        }
+            ArenaHelper.verifyStatus(dbArena);
 
-        if (code == null && payDao.hasWaitForPay(user.getOpenId())) {
-            throw new BusinessException("您有一个未支付的预定待系统确认,请10分钟稍后再试!");
-        }
-
-        List<Booking> bookings = bookingMapper.queryByDate(date, arenaId);
-
-        int tf = 0;
-        String tradeNo = pay.creatTradeNo(Constant.PRODUCT_BOOKING);
-        for (int i = 0; i < courtIds.length; i++) {
-            int courtId = courtIds[i];
-            int startTime = startTimes[i];
-            int endTime = endTimes[i];
-
-            List<Rule> rules = ruleDao.courtRules(new Object[]{courtId});
-            if (!BookingTool.isBookable(rules, date, startTime, startTime + 1)) {
-                throw new BusinessException("时间段不可预定");
+            if (code == null && payDao.hasWaitForPay(user.getOpenId())) {
+                throw new BusinessException("您有一个未支付的预定待系统确认,请10分钟后再试!");
             }
-            for (Booking booking : bookings) {
-                if (courtId == booking.getCourt().getId()) {
-                    if (!(startTime < booking.getStart() && endTime < booking.getStart() || startTime > booking.getEnd() && endTime > booking.getEnd())) {
-                        throw new BusinessException("对不起,该时间段已被预定");
+
+            List<Booking> bookings = bookingMapper.queryByDate(date, arenaId);
+            int tf = 0;
+            String tradeNo = pay.creatTradeNo(Constant.PRODUCT_BOOKING);
+            for (int i = 0; i < courtIds.length; i++) {
+                int courtId = courtIds[i];
+                int startTime = startTimes[i];
+                int endTime = endTimes[i];
+
+                ArenaHelper.verifyRules(dbArena, courtId, date, startTime);
+
+                for (Booking booking : bookings) {
+                    if (courtId == booking.getCourt().getId()) {
+                        if (!(startTime < booking.getStart() && endTime < booking.getStart() || startTime > booking.getEnd() && endTime > booking.getEnd())) {
+                            throw new BusinessException("对不起,该时间段已被预定");
+                        }
                     }
                 }
+                int fee = ArenaHelper.calcFee(dbArena, date, startTime, endTime, courtId);
+
+                Booking booking = new Booking();
+                Arena arena = new Arena();
+                arena.setId(arenaId);
+                booking.setArena(arena);
+                Court court = new Court();
+                court.setId(courtId);
+                booking.setCourt(court);
+                booking.setDate(date);
+                booking.setStart(startTime);
+                booking.setEnd(endTime);
+                booking.setOpenId(user.getOpenId());
+                booking.setFee(fee);
+                booking.setPayNo(tradeNo);
+                booking.setPayType(code == null ? "wep" : "mc");
+                bookingMapper.insert(booking);
+                tf = tf + fee;
             }
-            int fee;
-            if (dbArena.getBookStyle() == 2) {
-                fee = BookingTool.calcFeeV2(rules, date, startTime, courtDao, courtId);
+            if (tf != totalFee) {
+                throw new BusinessException("对不起,总费用不匹配,请联系管理员处理!");
+            }
+
+            if (code != null) {
+                membershipCardPay(user, dbArena, tradeNo, code, totalFee);
+                return null;
             } else {
-                fee = BookingTool.calcFee(rules, date, startTime, endTime, courtDao, courtId);
+                return preparePay(tradeNo, dbArena.getMchId(), user.getOpenId(), Constant.PRODUCT_BOOKING, totalFee, "场地预定", () -> {
+                    //do nothing
+                });
             }
-            Booking booking = new Booking();
-            Arena arena = new Arena();
-            arena.setId(arenaId);
-            booking.setArena(arena);
-            Court court = new Court();
-            court.setId(courtId);
-            booking.setCourt(court);
-            booking.setDate(date);
-            booking.setStart(startTime);
-            booking.setEnd(endTime);
-            booking.setOpenId(user.getOpenId());
-            booking.setFee(fee);
-            booking.setPayNo(tradeNo);
-            booking.setPayType(code == null ? "wep" : "mc");
-            bookingMapper.insert(booking);
-            tf = tf + fee;
-        }
-        if (tf != totalFee) {
-            throw new BusinessException("对不起,总费用不匹配,请联系管理员处理!");
-        }
-
-        if (code != null) {
-            membershipCardPay(user, tradeNo, code, totalFee);
-            return null;
-        } else {
-            return preparePay(tradeNo, dbArena.getMchId(), user.getOpenId(), Constant.PRODUCT_BOOKING, totalFee, "场地预定", () -> {
-                //do nothing
-            });
-
+        } finally {
+            lock.unlock();
         }
     }
 
@@ -148,8 +146,9 @@ public class UserBookingControllerV2 extends BasePayController implements Applic
         }
     }
 
-    private synchronized void membershipCardPay(User user, String tradeNo, String code, int totalFee) {
+    private void membershipCardPay(User user, Arena arena, String tradeNo, String code, int totalFee) {
         MembershipCard card = mcDao.loadCard(code);
+        ArenaHelper.verifyHasMeta(arena, card.getMeta().getId());
         if (!card.getOpenId().equals(user.getOpenId())) {
             throw new BusinessException("不是您的卡");
         }

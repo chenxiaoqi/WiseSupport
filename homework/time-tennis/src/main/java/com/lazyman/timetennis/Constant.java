@@ -21,4 +21,8 @@ public interface Constant {
     String PRODUCT_RECHARGE = "RC";
 
     String PRODUCT_REFUND = "RFD";
+
+    String CK_CITIES = "arena.cities";
+
+    String CK_ARENA = "arena";
 }

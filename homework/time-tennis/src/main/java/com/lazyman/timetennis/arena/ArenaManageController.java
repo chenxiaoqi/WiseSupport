@@ -9,7 +9,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.ibatis.builder.BuilderException;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.transaction.annotation.Transactional;
@@ -155,7 +154,7 @@ public class ArenaManageController {
         Court court = courtDao.load(id);
         Validate.notNull(court);
         checkArenaPrivileges(user, court.getArenaId());
-        courtDao.update(id, name, fee);
+        courtDao.update(id, court.getArenaId(), name, fee);
         ruleDao.deleteCourtRelation(id);
         insertCourtRuleRelation(id, ruleIds);
     }
@@ -172,7 +171,6 @@ public class ArenaManageController {
 
     @PostMapping("/arena")
     @Transactional(rollbackFor = {IOException.class, RuntimeException.class})
-    @CacheEvict("arena.cities")
     public void addArena(User user, Arena arena) throws IOException {
         checkPrivileges(user);
         int id = arenaDao.insert(arena);
@@ -189,7 +187,6 @@ public class ArenaManageController {
 
     @PutMapping("/arena")
     @Transactional(rollbackFor = {IOException.class, RuntimeException.class})
-    @CacheEvict(value = "arena.cities", allEntries = true)
     public void updateArena(User user, Arena arena) throws IOException {
         checkArenaPrivileges(user, arena.getId());
         String[] images = arena.getImages();
@@ -294,28 +291,28 @@ public class ArenaManageController {
         arenaDao.updateCourtStatus(courtId, arenaId, online ? "ol" : "ofl");
     }
 
-    @Transactional
-    public void deleteCourt(User user, int id) {
-        Court court = courtDao.load(id);
-        Validate.notNull(court);
-        checkArenaPrivileges(user, court.getArenaId());
-        ruleDao.deleteCourtRelation(id);
-        courtDao.delete(id);
-    }
+//    @Transactional
+//    public void deleteCourt(User user, int id) {
+//        Court court = courtDao.load(id);
+//        Validate.notNull(court);
+//        checkArenaPrivileges(user, court.getArenaId());
+//        ruleDao.deleteCourtRelation(id);
+//        courtDao.delete(id);
+//    }
 
-    @Transactional
-    @CacheEvict("arena.cities")
-    public void deleteArena(User user, int id) {
-        checkArenaPrivileges(user, id);
-        arenaDao.delete(id);
-
-        File[] files = imagesDir.listFiles((dir, name) -> name.startsWith(id + "_"));
-        if (files != null) {
-            for (File file : files) {
-                FileUtils.deleteQuietly(file);
-            }
-        }
-    }
+//    @Transactional
+//    @CacheEvict("arena.cities")
+//    public void deleteArena(User user, int id) {
+//        checkArenaPrivileges(user, id);
+//        arenaDao.delete(id);
+//
+//        File[] files = imagesDir.listFiles((dir, name) -> name.startsWith(id + "_"));
+//        if (files != null) {
+//            for (File file : files) {
+//                FileUtils.deleteQuietly(file);
+//            }
+//        }
+//    }
 
     private void moveFile(String image, String name) throws IOException {
         File destFile = new File(imagesDir, name);

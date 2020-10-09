@@ -1,5 +1,7 @@
 package com.lazyman.timetennis.arena;
 
+import com.lazyman.timetennis.Constant;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
@@ -28,18 +30,6 @@ public class RuleDao {
             rule.setCourtId(rs.getInt("court_id"));
             return rule;
         }, courtIds);
-    }
-
-    private void populateRuleProperties(ResultSet rs, Rule rule) throws SQLException {
-        rule.setId(rs.getInt("id"));
-        rule.setName(rs.getString("name"));
-        rule.setFee((Integer) rs.getObject("fee"));
-        rule.setType(rs.getInt("type"));
-        rule.setStartDate(rs.getString("start_date"));
-        rule.setEndDate(rs.getString("end_date"));
-        rule.setWeek((Integer) rs.getObject("week"));
-        rule.setStartHour((Integer) rs.getObject("start_hour"));
-        rule.setEndHour((Integer) rs.getObject("end_hour"));
     }
 
     List<Rule> rules(int arenaId, Integer type) {
@@ -75,7 +65,8 @@ public class RuleDao {
         }, id);
     }
 
-    void update(Rule rule) {
+    @CacheEvict(cacheNames = Constant.CK_ARENA, allEntries = true)
+    public void update(Rule rule) {
         template.update("update rule set name=?,fee=?,start_date=?,end_date=?,week=?,start_hour=?,end_hour=? where id=?",
                 rule.getName(),
                 rule.getFee(),
@@ -100,12 +91,26 @@ public class RuleDao {
                 rule.getEndHour());
     }
 
-    void deleteCourtRelation(int courtId) {
+    @CacheEvict(cacheNames = Constant.CK_ARENA, allEntries = true)
+    public void deleteCourtRelation(int courtId) {
         template.update("delete from court_rule_r where court_id=?", courtId);
     }
 
-    void insertCourtRelation(int courtId, int ruleId, int seq) {
+    @CacheEvict(cacheNames = Constant.CK_ARENA, allEntries = true)
+    public void insertCourtRelation(int courtId, int ruleId, int seq) {
         template.update("insert into court_rule_r(court_id, rule_id, seq) values (?,?,?)", courtId, ruleId, seq);
+    }
+
+    private void populateRuleProperties(ResultSet rs, Rule rule) throws SQLException {
+        rule.setId(rs.getInt("id"));
+        rule.setName(rs.getString("name"));
+        rule.setFee((Integer) rs.getObject("fee"));
+        rule.setType(rs.getInt("type"));
+        rule.setStartDate(rs.getString("start_date"));
+        rule.setEndDate(rs.getString("end_date"));
+        rule.setWeek((Integer) rs.getObject("week"));
+        rule.setStartHour((Integer) rs.getObject("start_hour"));
+        rule.setEndHour((Integer) rs.getObject("end_hour"));
     }
 }
 

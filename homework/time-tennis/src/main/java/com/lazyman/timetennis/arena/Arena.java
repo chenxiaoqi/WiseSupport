@@ -1,6 +1,7 @@
 package com.lazyman.timetennis.arena;
 
 
+import com.lazyman.timetennis.menbership.MembershipCardMeta;
 import lombok.Data;
 
 import java.util.List;
@@ -24,4 +25,5 @@ public class Arena {
     private String[] images;
     private String status;
     private String mchId;
+    private List<MembershipCardMeta> metas;
 }
