@@ -8,3 +8,4 @@ logging:
 
 wx:
   pay-use-sandbox: true
+  pay-notify-url: https://www.xiaoqicloud.cn/lewin/pay/notify
