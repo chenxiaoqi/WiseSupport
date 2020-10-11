@@ -31,11 +31,7 @@ final class ArenaHelper {
 
     public static int calcFee(Arena dbArena, Date date, int startTime, int endTime, int courtId) {
         Court court = findCourt(dbArena, courtId);
-        if (dbArena.getBookStyle() == 2) {
-            return BookingTool.calcFeeV2(court.getFeeRules(), date, startTime, court.getFee(), courtId);
-        } else {
-            return BookingTool.calcFee(court.getFeeRules(), date, startTime, endTime, court.getFee(), courtId);
-        }
+        return BookingTool.calcFee(court.getFeeRules(), date, startTime, endTime, court.getFee());
     }
 
     private static Court findCourt(Arena arena, int courtId) {
