@@ -43,7 +43,7 @@ public final class BookingTool {
         return true;
     }
 
-    static int calcFee(List<Rule> rules, Date date, int timeIndexStart, int timeIndexEnd, int defaultFee, int courtId) {
+    static int calcFee(List<Rule> rules, Date date, int timeIndexStart, int timeIndexEnd, int defaultFee) {
         String dateString = Constant.FORMAT.format(date);
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(date);
@@ -64,33 +64,12 @@ public final class BookingTool {
                 }
             }
             if (find != null) {
-                fee = fee + find.getFee() / 2;
+                fee = fee + find.getFee() * 10 / 2;
             } else {
-                fee = fee + defaultFee / 2;
+                fee = fee + defaultFee * 10 / 2;
             }
         }
-        return fee;
-    }
-
-    static int calcFeeV2(List<Rule> rules, Date date, int timeIndexStart, int defaultFee, int courtId) {
-        String dateString = Constant.FORMAT.format(date);
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(date);
-        int week = calendar.get(Calendar.DAY_OF_WEEK) - 1;
-        Rule find = null;
-        for (Rule rule : rules) {
-            if (rule.getType() == 2) {
-                if (rule.getStartDate() == null || dateString.compareTo(rule.getStartDate()) >= 0 && dateString.compareTo(rule.getEndDate()) < 0) {
-                    if (rule.getWeek() == null || week == rule.getWeek()) {
-                        if (rule.getStartHour() == null || timeIndexStart >= rule.getStartHour() * 2 && timeIndexStart < rule.getEndHour() * 2) {
-                            find = rule;
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-        return find != null ? find.getFee() : defaultFee;
+        return fee / 10;
     }
 
     public static void main(String[] args) throws ParseException {

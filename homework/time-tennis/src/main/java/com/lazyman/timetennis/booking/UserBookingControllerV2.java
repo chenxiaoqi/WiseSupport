@@ -64,12 +64,11 @@ public class UserBookingControllerV2 extends BasePayController implements Applic
                                        @RequestParam int[] endTimes,
                                        @RequestParam int totalFee,
                                        @RequestParam(required = false) String code) {
+        Arena dbArena = arenaDao.loadFull(arenaId);
+        ArenaHelper.verifyStatus(dbArena);
+
         LockRepository.Lock lock = lockRepository.require(arenaId);
         try {
-            Arena dbArena = arenaDao.loadFull(arenaId);
-
-            ArenaHelper.verifyStatus(dbArena);
-
             if (code == null && payDao.hasWaitForPay(user.getOpenId())) {
                 throw new BusinessException("您有一个未支付的预定待系统确认,请10分钟后再试!");
             }
