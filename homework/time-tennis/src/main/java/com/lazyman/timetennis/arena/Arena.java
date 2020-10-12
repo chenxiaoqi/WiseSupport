@@ -25,5 +25,7 @@ public class Arena {
     private String[] images;
     private String status;
     private String mchId;
+    private boolean allowHalfHour = false;
+    private int bookAtLeast = 1;
     private List<MembershipCardMeta> metas;
 }
