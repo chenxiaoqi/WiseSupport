@@ -90,6 +90,11 @@ public class UserBookingControllerV2 extends BasePayController implements Applic
         log.info("receive booking trade[{}] event, in status {}", trade.getTradeNo(), trade.getStatus());
         if (!("ok".equals(trade.getStatus()) || "wp".equals(trade.getStatus()))) {
             bookingMapper.updateBookingStatus(trade.getTradeNo(), "pf");
+            List<Booking> bookings = bookingMapper.byPayNo(trade.getTradeNo());
+            BookScheduler scheduler = schedulerRepository.arenaScheduler(bookings.get(0).getArena().getId());
+            for (Booking booking : bookings) {
+                scheduler.release(booking.getDate(), booking.getCourt().getId(), booking.getStart(), booking.getEnd());
+            }
         }
     }
 
