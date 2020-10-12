@@ -39,7 +39,7 @@ public class ArenaDao {
     }
 
     public Arena load(int id) {
-        return template.queryForObject("select id,name,type,province,city,district,address,images,book_style,phone,introduction,advance_book_days,book_start_hour,book_end_hour,status,mch_id from arena where id=?", (rs, rowNum) -> {
+        return template.queryForObject("select id,name,type,province,city,district,address,images,book_style,phone,introduction,advance_book_days,book_start_hour,book_end_hour,status,mch_id,allow_half_hour,book_at_least from arena where id=?", (rs, rowNum) -> {
             Arena result = new Arena();
             populateArenaProperties(rs, result);
             result.setType(rs.getInt("type"));
@@ -48,6 +48,8 @@ public class ArenaDao {
             result.setBookStyle(rs.getInt("book_style"));
             result.setPhone(rs.getString("phone"));
             result.setIntroduction(rs.getString("introduction"));
+            result.setAllowHalfHour(rs.getBoolean("allow_half_hour"));
+            result.setBookAtLeast(rs.getInt("book_at_least"));
             return result;
         }, id);
     }
@@ -110,7 +112,7 @@ public class ArenaDao {
 
     @CacheEvict(value = Constant.CK_CITIES, allEntries = true)
     public int insert(Arena arena) {
-        String sql = "insert into arena (name, type, address, province, city, district, phone, introduction, advance_book_days, book_start_hour, book_end_hour) values (?,?,?,?,?,?,?,?,?,?,?)";
+        String sql = "insert into arena (name, type, address, province, city, district, phone, introduction, advance_book_days, book_start_hour, book_end_hour,allow_half_hour,book_at_least) values (?,?,?,?,?,?,?,?,?,?,?,?,?)";
         PreparedStatementCreatorFactory psf =
                 new PreparedStatementCreatorFactory(sql,
                         Types.VARCHAR,
@@ -123,7 +125,9 @@ public class ArenaDao {
                         Types.NVARCHAR,
                         Types.INTEGER,
                         Types.INTEGER,
-                        Types.INTEGER);
+                        Types.INTEGER,
+                        Types.BOOLEAN,
+                        Types.TINYINT);
         psf.setReturnGeneratedKeys(true);
         KeyHolder holder = new GeneratedKeyHolder();
         template.update(psf.newPreparedStatementCreator(
@@ -138,7 +142,9 @@ public class ArenaDao {
                         arena.getIntroduction(),
                         arena.getAdvanceBookDays(),
                         arena.getBookStartHour(),
-                        arena.getBookEndHour()
+                        arena.getBookEndHour(),
+                        arena.isAllowHalfHour(),
+                        arena.getBookAtLeast()
                 }
         ), holder);
         return Objects.requireNonNull(holder.getKey()).intValue();
@@ -157,7 +163,7 @@ public class ArenaDao {
             @CacheEvict(value = Constant.CK_ARENA, key = "#arena.id")
     })
     public void update(Arena arena) {
-        String sql = "update arena set name=?,type=?,province=?,city=?,district=?,address=?,phone=?,advance_book_days=?,book_start_hour=?,book_end_hour=?,introduction=?,images=? where id=?";
+        String sql = "update arena set name=?,type=?,province=?,city=?,district=?,address=?,phone=?,advance_book_days=?,book_start_hour=?,book_end_hour=?,introduction=?,images=?,allow_half_hour=?,book_at_least=? where id=?";
         template.update(sql,
                 arena.getName(),
                 arena.getType(),
@@ -171,6 +177,8 @@ public class ArenaDao {
                 arena.getBookEndHour(),
                 arena.getIntroduction(),
                 StringUtils.join(arena.getImages(), ','),
+                arena.isAllowHalfHour(),
+                arena.getBookAtLeast(),
                 arena.getId());
     }
 

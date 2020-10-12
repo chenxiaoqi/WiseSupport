@@ -90,3 +90,10 @@ ALTER TABLE tt_user
     CHANGE wx_nickname wx_nickname VARCHAR(64) CHARACTER SET utf8mb4;
 alter table arena
     add mch_id varchar(24) null;
+
+# ====================
+alter table arena
+    add allow_half_hour bool default false not null;
+
+alter table arena
+    add book_at_least tinyint default 1 not null;
