@@ -1,10 +1,12 @@
 package com.lazyman.timetennis.core;
 
 import com.wisesupport.commons.exceptions.BusinessException;
+import org.springframework.stereotype.Component;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
+@Component
 public class LockRepository {
 
     private static final ConcurrentHashMap<Integer, Lock> locks = new ConcurrentHashMap<>();

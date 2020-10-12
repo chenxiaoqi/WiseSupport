@@ -11,7 +11,6 @@ import com.lazyman.timetennis.menbership.MembershipCardDao;
 import com.lazyman.timetennis.user.User;
 import com.lazyman.timetennis.wp.PayDao;
 import com.lazyman.timetennis.wp.Trade;
-import com.lazyman.timetennis.wp.WePayService;
 import com.wisesupport.commons.exceptions.BusinessException;
 import org.apache.commons.lang3.Validate;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -19,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.constraints.NotEmpty;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -36,15 +36,15 @@ public class BookingManageController {
 
     private MembershipCardDao mcDao;
 
-    private WePayService pay;
+    private BookSchedulerRepository repository;
 
-    public BookingManageController(BookingMapper bookingMapper, ArenaDao arenaDao, PayDao payDao, MembershipCardBillDao billDao, MembershipCardDao mcDao, WePayService pay) {
+    public BookingManageController(BookingMapper bookingMapper, ArenaDao arenaDao, PayDao payDao, MembershipCardBillDao billDao, MembershipCardDao mcDao, BookSchedulerRepository repository) {
         this.bookingMapper = bookingMapper;
         this.arenaDao = arenaDao;
         this.payDao = payDao;
         this.billDao = billDao;
         this.mcDao = mcDao;
-        this.pay = pay;
+        this.repository = repository;
     }
 
     @PostMapping("/court/lock")
@@ -57,21 +57,14 @@ public class BookingManageController {
                                   @RequestParam int[] endTimes) {
         checkArenaPrivileges(user, arenaId);
 
-        List<Booking> bookings = bookingMapper.queryByDate(date, arenaId);
-
+        BookScheduler scheduler = repository.arenaScheduler(arenaId);
+        List<Booking> bookings = new ArrayList<>();
         for (int i = 0; i < courtIds.length; i++) {
             int courtId = courtIds[i];
             int startTime = startTimes[i];
             int endTime = endTimes[i];
 
-
-            for (Booking booking : bookings) {
-                if (courtId == booking.getCourt().getId()) {
-                    if (!(startTime < booking.getStart() && endTime < booking.getStart() || startTime > booking.getEnd() && endTime > booking.getEnd())) {
-                        throw new BusinessException("对不起,该时间段已被预定");
-                    }
-                }
-            }
+            scheduler.book(date, courtId, startTime, endTime);
 
             Booking booking = new Booking();
             Arena arena = new Arena();
@@ -79,13 +72,22 @@ public class BookingManageController {
             booking.setArena(arena);
             Court court = new Court();
             court.setId(courtId);
-            booking.setCourt(court);
             booking.setDate(date);
+            booking.setCourt(court);
             booking.setStart(startTime);
             booking.setEnd(endTime);
             booking.setOpenId(user.getOpenId());
             booking.setFee(-1);
-            bookingMapper.insert(booking);
+            bookings.add(booking);
+        }
+
+        try {
+            for (Booking booking : bookings) {
+                bookingMapper.insert(booking);
+            }
+        } catch (Throwable e) {
+            scheduler.invalidate();
+            throw e;
         }
     }
 
@@ -95,14 +97,23 @@ public class BookingManageController {
         Booking booking = bookingMapper.selectByPrimaryKey(bookingId);
         checkArenaPrivileges(user, booking.getArena().getId());
 
-        booking = new Booking();
-        booking.setId(bookingId);
-        booking.setOpenId(user.getOpenId());
-        bookingMapper.deleteBooking(booking);
+        BookScheduler scheduler = repository.arenaScheduler(booking.getArena().getId());
+        scheduler.release(booking.getDate(), booking.getCourt().getId(), booking.getStart(), booking.getEnd());
+
+        try {
+            booking = new Booking();
+            booking.setId(bookingId);
+            booking.setOpenId(user.getOpenId());
+            bookingMapper.deleteBooking(booking);
+        } catch (Throwable e) {
+            scheduler.invalidate();
+            throw e;
+        }
     }
 
     @GetMapping("/booking/order")
     public OrderDetail getBookingOrder(User user, int bookingId) {
+        checkPrivileges(user);
         OrderDetail detail = new OrderDetail();
         Booking booking = bookingMapper.selectByPrimaryKey(bookingId);
         if (booking.getPayType() == null) {
@@ -158,6 +169,10 @@ public class BookingManageController {
         }
 
         bookingMapper.updateBookingStatus(payNo, "rfd");
+        BookScheduler scheduler = repository.arenaScheduler(bookings.get(0).getArena().getId());
+        for (Booking booking : bookings) {
+            scheduler.release(booking.getDate(), booking.getCourt().getId(), booking.getStart(), booking.getEnd());
+        }
     }
 
     private void checkPrivileges(User user) {

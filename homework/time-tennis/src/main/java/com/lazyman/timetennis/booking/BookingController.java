@@ -15,10 +15,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.lang.NonNull;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -37,10 +34,13 @@ public class BookingController implements ApplicationContextAware {
 
     private ArenaDao arenaDao;
 
-    public BookingController(BookingMapper bookingMapper, @Value("${wx.default-arena-id}") int defaultArenaId, ArenaDao arenaDao) {
+    private BookSchedulerRepository repository;
+
+    public BookingController(BookingMapper bookingMapper, @Value("${wx.default-arena-id}") int defaultArenaId, ArenaDao arenaDao, BookSchedulerRepository repository) {
         this.bookingMapper = bookingMapper;
         this.defaultArenaId = defaultArenaId;
         this.arenaDao = arenaDao;
+        this.repository = repository;
     }
 
     @GetMapping("/recentBookings")
@@ -63,6 +63,14 @@ public class BookingController implements ApplicationContextAware {
         result.forEach(item -> item.setCancelAble(BookingTool.cancelAble(item)));
         return result;
     }
+
+    @GetMapping("/v2/recentBookings")
+    public List<BookingSimple> recentBookingsV2(@RequestParam Integer arenaId,
+                                                @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date date) {
+        BookScheduler scheduler = repository.arenaScheduler(arenaId);
+        return scheduler.getBookings(date);
+    }
+
 
     @GetMapping("/bookings")
     public List<Booking> bookings(String openId, Integer id) {
