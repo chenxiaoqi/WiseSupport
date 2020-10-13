@@ -25,7 +25,7 @@ public class OperationListener {
         this.userMapper = userMapper;
     }
 
-    @EventListener(BaseBookingEvent.class)
+    //    @EventListener(BaseBookingEvent.class)
     public void onBooking(BaseBookingEvent event) {
         User operator = event.getOperator();
         Booking booking = event.getBooking();

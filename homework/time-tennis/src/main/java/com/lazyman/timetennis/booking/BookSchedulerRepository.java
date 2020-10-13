@@ -3,6 +3,7 @@ package com.lazyman.timetennis.booking;
 import com.lazyman.timetennis.arena.Arena;
 import com.lazyman.timetennis.arena.ArenaDao;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -10,7 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 @Slf4j
-public class BookSchedulerRepository {
+public class BookSchedulerRepository implements ApplicationListener<BookingCancelEvent> {
     private Map<Integer, BookScheduler> cache = new ConcurrentHashMap<>();
 
     private BookingMapper mapper;
@@ -40,5 +41,16 @@ public class BookSchedulerRepository {
 
     void invalidate(int arenaId) {
         cache.remove(arenaId);
+    }
+
+    @Override
+    public void onApplicationEvent(BookingCancelEvent event) {
+        Booking booking = event.getBooking();
+        BookScheduler scheduler = cache.get(booking.getArena().getId());
+        if (scheduler == null) {
+            log.info("no scheduler found for arena {}", booking.getArena().getId());
+            return;
+        }
+        scheduler.release(booking.getDate(), booking.getCourt().getId(), booking.getStart(), booking.getEnd());
     }
 }
