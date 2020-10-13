@@ -1,12 +1,15 @@
 package com.lazyman.timetennis.booking;
 
+import com.lazyman.timetennis.Constant;
 import com.lazyman.timetennis.arena.Arena;
 import com.lazyman.timetennis.arena.Court;
 import com.wisesupport.commons.exceptions.BusinessException;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.DateUtils;
 
 import java.util.*;
 
+@Slf4j
 class BookScheduler {
 
     private Map<Date, ScheduleCourts> map = new HashMap<>();
@@ -35,7 +38,7 @@ class BookScheduler {
         }
     }
 
-    synchronized boolean isValid() {
+    boolean isValid() {
         Date today = DateUtils.truncate(new Date(), Calendar.DAY_OF_MONTH);
         return createTime >= today.getTime();
     }
@@ -44,11 +47,26 @@ class BookScheduler {
         map.get(date).getScheduleCourt(courtId).book(begin, end);
     }
 
-    synchronized void release(Date date, int courtId, int begin, int end) {
-        map.get(date).getScheduleCourt(courtId).release(begin, end);
+    void release(Date date, int courtId, int begin, int end) {
+
+        ScheduleCourts scheduleCourts = map.get(date);
+        if (scheduleCourts == null) {
+            log.info("no date {} in arena {}", date, arenaId);
+            return;
+        }
+
+        ScheduleCourt scheduleCourt = scheduleCourts.getScheduleCourt(courtId);
+        if (scheduleCourt == null) {
+            log.warn("no court {} in date {}, arena {}", courtId, date, arenaId);
+            return;
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("release booking in date {} arena {} court {}", Constant.FORMAT.format(date), arenaId, courtId);
+        }
+        scheduleCourt.release(begin, end);
     }
 
-    synchronized void invalidate() {
+    void invalidate() {
         repository.invalidate(arenaId);
     }
 

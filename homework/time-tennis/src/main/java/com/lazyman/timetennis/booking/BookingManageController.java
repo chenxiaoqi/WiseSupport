@@ -13,7 +13,11 @@ import com.lazyman.timetennis.wp.PayDao;
 import com.lazyman.timetennis.wp.Trade;
 import com.wisesupport.commons.exceptions.BusinessException;
 import org.apache.commons.lang3.Validate;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.lang.NonNull;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,7 +29,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/manage")
-public class BookingManageController {
+public class BookingManageController implements ApplicationContextAware {
     private BookingMapper bookingMapper;
 
     private ArenaDao arenaDao;
@@ -37,6 +41,8 @@ public class BookingManageController {
     private MembershipCardDao mcDao;
 
     private BookSchedulerRepository repository;
+
+    private ApplicationContext context;
 
     public BookingManageController(BookingMapper bookingMapper, ArenaDao arenaDao, PayDao payDao, MembershipCardBillDao billDao, MembershipCardDao mcDao, BookSchedulerRepository repository) {
         this.bookingMapper = bookingMapper;
@@ -98,7 +104,7 @@ public class BookingManageController {
         checkArenaPrivileges(user, booking.getArena().getId());
 
         BookScheduler scheduler = repository.arenaScheduler(booking.getArena().getId());
-        scheduler.release(booking.getDate(), booking.getCourt().getId(), booking.getStart(), booking.getEnd());
+        context.publishEvent(new BookingCancelEvent(this, user, booking));
 
         try {
             booking = new Booking();
@@ -169,9 +175,9 @@ public class BookingManageController {
         }
 
         bookingMapper.updateBookingStatus(payNo, "rfd");
-        BookScheduler scheduler = repository.arenaScheduler(bookings.get(0).getArena().getId());
+
         for (Booking booking : bookings) {
-            scheduler.release(booking.getDate(), booking.getCourt().getId(), booking.getStart(), booking.getEnd());
+            context.publishEvent(new BookingCancelEvent(this, user, booking));
         }
     }
 
@@ -186,5 +192,10 @@ public class BookingManageController {
         if (!arenaDao.isArenaAdmin(user.getOpenId(), arenaId)) {
             throw new BusinessException("对不起,您不是该场馆管理员");
         }
+    }
+
+    @Override
+    public void setApplicationContext(@NonNull ApplicationContext applicationContext) throws BeansException {
+        this.context = applicationContext;
     }
 }

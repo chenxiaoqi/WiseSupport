@@ -16,8 +16,12 @@ import com.wisesupport.commons.exceptions.BusinessException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.time.DateUtils;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationListener;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.lang.NonNull;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,7 +30,7 @@ import java.util.*;
 @RestController
 @RequestMapping("/user/v2")
 @Slf4j
-public class UserBookingControllerV2 extends BasePayController implements ApplicationListener<TradeEvent> {
+public class UserBookingControllerV2 extends BasePayController implements ApplicationListener<TradeEvent>, ApplicationContextAware {
     private MembershipCardBillDao billDao;
 
     private BookingMapper bookingMapper;
@@ -38,6 +42,8 @@ public class UserBookingControllerV2 extends BasePayController implements Applic
     private BookSchedulerRepository schedulerRepository;
 
     private LockRepository lockRepository;
+
+    private ApplicationContext context;
 
     public UserBookingControllerV2(MembershipCardBillDao billDao,
                                    BookingMapper bookingMapper,
@@ -89,11 +95,15 @@ public class UserBookingControllerV2 extends BasePayController implements Applic
         }
         log.info("receive booking trade[{}] event, in status {}", trade.getTradeNo(), trade.getStatus());
         if (!("ok".equals(trade.getStatus()) || "wp".equals(trade.getStatus()))) {
-            bookingMapper.updateBookingStatus(trade.getTradeNo(), "pf");
             List<Booking> bookings = bookingMapper.byPayNo(trade.getTradeNo());
-            BookScheduler scheduler = schedulerRepository.arenaScheduler(bookings.get(0).getArena().getId());
+            Booking first = bookings.get(0);
+            if (!first.getStatus().equals("ok")) {
+                log.warn("booking in trade {} already in status {}", trade.getTradeNo(), first.getStatus());
+                return;
+            }
+            bookingMapper.updateBookingStatus(trade.getTradeNo(), "pf");
             for (Booking booking : bookings) {
-                scheduler.release(booking.getDate(), booking.getCourt().getId(), booking.getStart(), booking.getEnd());
+                context.publishEvent(new BookingCancelEvent(this, null, booking));
             }
         }
     }
@@ -171,5 +181,10 @@ public class UserBookingControllerV2 extends BasePayController implements Applic
             Validate.isTrue(mcDao.chargeFee(code, totalFee) == 1, "余额不足");
         }
         billDao.add(tradeNo, user.getOpenId(), code, Constant.PRODUCT_BOOKING, totalFee, card.getBalance() - totalFee);
+    }
+
+    @Override
+    public void setApplicationContext(@NonNull ApplicationContext applicationContext) throws BeansException {
+        this.context = applicationContext;
     }
 }

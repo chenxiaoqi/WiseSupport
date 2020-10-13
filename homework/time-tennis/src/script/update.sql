@@ -97,3 +97,13 @@ alter table arena
 
 alter table arena
     add book_at_least tinyint default 1 not null;
+
+# ====================
+create table arena_favorite
+(
+    open_id  varchar(64) not null,
+    arena_id int         not null,
+    constraint pk_open_id_arena_id
+        primary key (open_id, arena_id)
+) charset = utf8;
+
