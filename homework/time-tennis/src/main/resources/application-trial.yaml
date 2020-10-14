@@ -3,8 +3,6 @@ spring:
     url: jdbc:mysql://localhost:3306/lewin?useUnicode=true&characterEncoding=UTF-8
     username: timetennis
     password: ${wx.mysql-password}
-logging:
-  config: classpath:logback-spring.xml
 
 wx:
   pay-use-sandbox: true
