@@ -1,6 +1,9 @@
 package com.lazyman.timetennis.booking;
 
-import com.lazyman.timetennis.arena.*;
+import com.lazyman.timetennis.arena.Arena;
+import com.lazyman.timetennis.arena.Court;
+import com.lazyman.timetennis.arena.Rule;
+import com.lazyman.timetennis.arena.RuleDao;
 import com.lazyman.timetennis.user.User;
 import com.wisesupport.commons.exceptions.BusinessException;
 import org.apache.commons.lang3.Validate;
@@ -43,20 +46,17 @@ public class UserBookingController implements ApplicationContextAware {
 
     private RuleDao ruleDao;
 
-    private CourtDao courtDao;
-
     public UserBookingController(BookingMapper bookingMapper,
                                  @Value("${wx.cancel-times-limit}") int cancelTimeLimit,
                                  @Value("${wx.default-arena-id}") int defaultArenaId,
                                  @Value("${wx.default-court-id}") int defaultCourtId,
-                                 JdbcTemplate template, RuleDao ruleDao, CourtDao courtDao) {
+                                 JdbcTemplate template, RuleDao ruleDao) {
         this.bookingMapper = bookingMapper;
         this.cancelTimeLimit = cancelTimeLimit;
         this.template = template;
         this.defaultArenaId = defaultArenaId;
         this.defaultCourtId = defaultCourtId;
         this.ruleDao = ruleDao;
-        this.courtDao = courtDao;
     }
 
     @PostMapping("/booking")
@@ -112,7 +112,7 @@ public class UserBookingController implements ApplicationContextAware {
         booking.setOpenId(user.getOpenId());
 
         //todo
-//        booking.setFee(BookingTool.calcFee(rules, date, timeIndexStart, timeIndexEnd, courtDao, defaultCourtId));
+        booking.setFee(BookingTool.calcFee(rules, date, timeIndexStart, timeIndexEnd, 40));
 
         bookingMapper.insert(booking);
         bookingMapper.deleteShare(booking.getId());

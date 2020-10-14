@@ -18,8 +18,10 @@ import org.apache.poi.ss.usermodel.CellType;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.lang.NonNull;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -30,6 +32,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
+@Profile("timetennis")
 @Slf4j
 public class MonthlyStatisticTask implements ApplicationContextAware {
     private BookingMapper bookingMapper;
@@ -46,7 +49,7 @@ public class MonthlyStatisticTask implements ApplicationContextAware {
     }
 
     //    @Scheduled(fixedDelay = 3600000)
-//    @Scheduled(cron = "${wx.stat-cron}")
+    @Scheduled(cron = "${wx.stat-cron}")
     @Transactional
     public void run() {
         Date end = DateUtils.truncate(new Date(), Calendar.MONTH);

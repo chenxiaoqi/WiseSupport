@@ -189,28 +189,37 @@ public class ArenaManageController {
     @Transactional(rollbackFor = {IOException.class, RuntimeException.class})
     public void updateArena(User user, Arena arena) throws IOException {
         checkArenaPrivileges(user, arena.getId());
-        String[] images = arena.getImages();
-        String[] names = new String[images.length];
-        for (int i = 0; i < images.length; i++) {
-            String image = images[i];
-            names[i] = arena.getId() + "_" + i + "." + FilenameUtils.getExtension(image);
-        }
-        arena.setImages(names);
-        arenaDao.update(arena);
 
-        //先把原来的文件换个名字
-        for (int i = 0; i < images.length; i++) {
-            String image = images[i];
-            long now = System.currentTimeMillis();
-            if (!image.startsWith(TEMP_FILE_PREFIX)) {
-                images[i] = "tmp_m" + now + i;
-                moveFile(image, images[i]);
+        Arena dbArena = arenaDao.load(arena.getId());
+        String[] ons = dbArena.getImages();
+        String[] nns = arena.getImages();
+        if (!Objects.deepEquals(ons, nns)) {
+            String lastName = ons[ons.length - 1];
+            int idx = lastName.indexOf('_');
+            int start = Integer.parseInt(lastName.substring(idx + 1, lastName.indexOf('.')), 36) + 1;
+            String[] names = new String[nns.length];
+            for (int i = 0; i < nns.length; i++) {
+                String name = nns[i];
+                names[i] = arena.getId() + "_" + Integer.toString((start + i), 36) + "." + FilenameUtils.getExtension(name);
+            }
+            arena.setImages(names);
+
+            //先把原来的文件改个名字
+            for (int i = 0; i < nns.length; i++) {
+                String name = nns[i];
+                long now = System.currentTimeMillis();
+                if (!name.startsWith(TEMP_FILE_PREFIX)) {
+                    nns[i] = "tmp_m" + now + i;
+                    moveFile(name, nns[i]);
+                }
+            }
+            //把所有文件改成新名称
+            for (int i = 0; i < nns.length; i++) {
+                String name = nns[i];
+                moveFile(name, names[i]);
             }
         }
-        for (int i = 0; i < images.length; i++) {
-            String image = images[i];
-            moveFile(image, names[i]);
-        }
+        arenaDao.update(arena);
     }
 
     @PostMapping("/arena/status")
@@ -290,29 +299,6 @@ public class ArenaManageController {
         }
         arenaDao.updateCourtStatus(courtId, arenaId, online ? "ol" : "ofl");
     }
-
-//    @Transactional
-//    public void deleteCourt(User user, int id) {
-//        Court court = courtDao.load(id);
-//        Validate.notNull(court);
-//        checkArenaPrivileges(user, court.getArenaId());
-//        ruleDao.deleteCourtRelation(id);
-//        courtDao.delete(id);
-//    }
-
-//    @Transactional
-//    @CacheEvict("arena.cities")
-//    public void deleteArena(User user, int id) {
-//        checkArenaPrivileges(user, id);
-//        arenaDao.delete(id);
-//
-//        File[] files = imagesDir.listFiles((dir, name) -> name.startsWith(id + "_"));
-//        if (files != null) {
-//            for (File file : files) {
-//                FileUtils.deleteQuietly(file);
-//            }
-//        }
-//    }
 
     private void moveFile(String image, String name) throws IOException {
         File destFile = new File(imagesDir, name);

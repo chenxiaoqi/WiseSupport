@@ -23,6 +23,7 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.lang.NonNull;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
@@ -45,22 +46,26 @@ public class UserBookingControllerV2 extends BasePayController implements Applic
 
     private ApplicationContext context;
 
+    private TransactionTemplate tt;
+
     public UserBookingControllerV2(MembershipCardBillDao billDao,
                                    BookingMapper bookingMapper,
                                    MembershipCardDao mcDao,
                                    ArenaDao arenaDao,
                                    BookSchedulerRepository schedulerRepository,
-                                   LockRepository lockRepository) {
+                                   LockRepository lockRepository,
+                                   TransactionTemplate tt) {
         this.billDao = billDao;
         this.bookingMapper = bookingMapper;
         this.mcDao = mcDao;
         this.arenaDao = arenaDao;
         this.schedulerRepository = schedulerRepository;
         this.lockRepository = lockRepository;
+
+        this.tt = tt;
     }
 
     @PostMapping("/booking")
-    @Transactional
     public Map<String, String> booking(User user,
                                        @DateTimeFormat(pattern = "yyyy-MM-dd") Date date,
                                        @RequestParam int arenaId,
@@ -74,7 +79,7 @@ public class UserBookingControllerV2 extends BasePayController implements Applic
 
         LockRepository.Lock lock = lockRepository.require(arenaId);
         try {
-            return doBook(user, dbArena, date, arenaId, courtIds, startTimes, endTimes, totalFee, code);
+            return tt.execute(status -> doBook(user, dbArena, date, arenaId, courtIds, startTimes, endTimes, totalFee, code));
         } finally {
             lock.unlock();
         }

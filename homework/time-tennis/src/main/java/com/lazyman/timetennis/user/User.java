@@ -25,13 +25,13 @@ public class User implements Serializable {
 
     private Boolean admin;
 
-    private int balance;
+    private Integer balance;
 
-    private boolean accountant;
+    private Boolean accountant;
 
-    private boolean superAdmin;
+    private Boolean superAdmin;
 
-    private boolean arenaAdmin;
+    private Boolean arenaAdmin;
 
     private String phoneNumber;
 
@@ -43,36 +43,36 @@ public class User implements Serializable {
         this.phoneNumber = phoneNumber;
     }
 
-    public boolean isArenaAdmin() {
+    public Boolean isArenaAdmin() {
         return arenaAdmin;
     }
 
-    public void setArenaAdmin(boolean arenaAdmin) {
+    public void setArenaAdmin(Boolean arenaAdmin) {
         this.arenaAdmin = arenaAdmin;
     }
 
-    public boolean isAccountant() {
+    public Boolean isAccountant() {
         return accountant;
     }
 
-    public boolean isSuperAdmin() {
+    public Boolean isSuperAdmin() {
         return superAdmin;
     }
 
 
-    public void setAccountant(boolean accountant) {
+    public void setAccountant(Boolean accountant) {
         this.accountant = accountant;
     }
 
-    public void setSuperAdmin(boolean superAdmin) {
+    public void setSuperAdmin(Boolean superAdmin) {
         this.superAdmin = superAdmin;
     }
 
-    public int getBalance() {
+    public Integer getBalance() {
         return balance;
     }
 
-    public void setBalance(int balance) {
+    public void setBalance(Integer balance) {
         this.balance = balance;
     }
 
@@ -132,40 +132,7 @@ public class User implements Serializable {
         this.updateTime = updateTime;
     }
 
-    public boolean isSystem() {
+    public Boolean isSystem() {
         return SYSTEM_USER.equals(this.getOpenId());
-    }
-
-    @Override
-    public boolean equals(Object that) {
-        if (this == that) {
-            return true;
-        }
-        if (that == null) {
-            return false;
-        }
-        if (getClass() != that.getClass()) {
-            return false;
-        }
-        User other = (User) that;
-        return (this.getOpenId() == null ? other.getOpenId() == null : this.getOpenId().equals(other.getOpenId()))
-                && (this.getNickname() == null ? other.getNickname() == null : this.getNickname().equals(other.getNickname()))
-                && (this.getWxNickname() == null ? other.getWxNickname() == null : this.getWxNickname().equals(other.getWxNickname()))
-                && (this.getAvatar() == null ? other.getAvatar() == null : this.getAvatar().equals(other.getAvatar()))
-                && (this.getVip() == null ? other.getVip() == null : this.getVip().equals(other.getVip()))
-                && (this.getUpdateTime() == null ? other.getUpdateTime() == null : this.getUpdateTime().equals(other.getUpdateTime()));
-    }
-
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((getOpenId() == null) ? 0 : getOpenId().hashCode());
-        result = prime * result + ((getNickname() == null) ? 0 : getNickname().hashCode());
-        result = prime * result + ((getWxNickname() == null) ? 0 : getWxNickname().hashCode());
-        result = prime * result + ((getAvatar() == null) ? 0 : getAvatar().hashCode());
-        result = prime * result + ((getVip() == null) ? 0 : getVip().hashCode());
-        result = prime * result + ((getUpdateTime() == null) ? 0 : getUpdateTime().hashCode());
-        return result;
     }
 }

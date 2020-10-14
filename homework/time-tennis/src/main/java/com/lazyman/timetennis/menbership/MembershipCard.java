@@ -1,6 +1,7 @@
 package com.lazyman.timetennis.menbership;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.lazyman.timetennis.user.User;
 import lombok.Data;
 
 import java.util.Date;
@@ -13,4 +14,5 @@ public class MembershipCard {
     @JsonFormat(pattern = "yyyy-MM-dd")
     private Date expireDate;
     private MembershipCardMeta meta;
+    private User user;
 }

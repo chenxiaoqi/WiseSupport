@@ -107,3 +107,24 @@ create table arena_favorite
         primary key (open_id, arena_id)
 ) charset = utf8;
 
+#===================
+drop index idx_open_id_meta_id on membership_card;
+
+create unique index idx_meta_id_open_id
+    on membership_card (meta_id, open_id);
+
+drop table membership_card_meta_arena_r;
+
+alter table membership_card_meta
+    add arena_id int not null;
+
+create index idx_arena_id
+    on membership_card_meta (arena_id);
+
+drop index idx_open_id on membership_card_meta;
+
+alter table membership_card_meta
+    drop column open_id;
+
+
+

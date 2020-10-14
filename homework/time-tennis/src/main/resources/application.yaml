@@ -42,3 +42,22 @@ wx:
   images-path: images
   default-arena-id: 2
   default-court-id: 7
+
+---
+spring:
+  profiles: timetennis
+server:
+  port: 8090
+wx:
+  app-id: wxa87c26db862e6bbd
+  secret: ${wx.app-secret-timetennis}
+
+---
+spring:
+  profiles: timetennis-production
+  datasource:
+    url: jdbc:mysql://localhost:3306/timetennis?useUnicode=true&characterEncoding=UTF-8
+    username: timetennis
+    password: ${wx.mysql-password}
+logging:
+  config: classpath:logback-spring-production.xml

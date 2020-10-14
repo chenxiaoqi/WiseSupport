@@ -1,7 +1,6 @@
 package com.lazyman.timetennis.menbership;
 
 import com.lazyman.timetennis.Constant;
-import com.lazyman.timetennis.arena.Arena;
 import com.lazyman.timetennis.user.User;
 import com.lazyman.timetennis.wp.BasePayController;
 import com.lazyman.timetennis.wp.Trade;
@@ -35,11 +34,7 @@ public class MembershipCardUserController extends BasePayController implements A
 
     @GetMapping("/cards")
     public List<MembershipCard> useCards(User user) {
-        List<MembershipCard> cards = mcDao.userCards(user.getOpenId());
-        for (MembershipCard card : cards) {
-            card.getMeta().setArenas(mcDao.arenas(card.getMeta().getId()));
-        }
-        return cards;
+        return mcDao.userCards(user.getOpenId());
     }
 
     @PostMapping("/purchase")
@@ -57,7 +52,7 @@ public class MembershipCardUserController extends BasePayController implements A
             throw new BusinessException("对不起,该会员卡已经下线,不能购买");
         }
 
-        String mchId = findMchId(metaId);
+        String mchId = meta.getArena().getMchId();
         String tradeNo = pay.creatTradeNo(Constant.PRODUCT_CARD);
         return preparePay(tradeNo, mchId, user.getOpenId(), Constant.PRODUCT_CARD, meta.getPrice(), "购买会员卡[" + meta.getName() + "]", () -> mcDao.createTradeMembershipCardRelation(tradeNo, metaId));
     }
@@ -74,7 +69,7 @@ public class MembershipCardUserController extends BasePayController implements A
         Validate.notNull(card);
         MembershipCardMeta meta = mcDao.loadMeta(card.getMeta().getId());
         Validate.notNull(meta);
-        String mchId = findMchId(meta.getId());
+        String mchId = meta.getArena().getMchId();
         String tradeNo = pay.creatTradeNo(Constant.PRODUCT_RECHARGE);
         return preparePay(tradeNo, mchId, user.getOpenId(),
                 Constant.PRODUCT_RECHARGE,
@@ -135,16 +130,5 @@ public class MembershipCardUserController extends BasePayController implements A
             }
             mcDao.createMembershipCard(trade.getOpenId(), meta, code, DateUtils.addMonths(new Date(), meta.getExtendMonth()));
         }
-    }
-
-    private String findMchId(@RequestParam int metaId) {
-        String mchId = null;
-        for (Arena arena : mcDao.arenas(metaId)) {
-            if (arena.getMchId() != null) {
-                mchId = arena.getMchId();
-                break;
-            }
-        }
-        return mchId;
     }
 }
