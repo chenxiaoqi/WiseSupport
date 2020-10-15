@@ -3,8 +3,8 @@ package com.lazyman.timetennis.booking;
 import com.lazyman.timetennis.Constant;
 import com.lazyman.timetennis.arena.Arena;
 import com.lazyman.timetennis.arena.ArenaDao;
+import com.lazyman.timetennis.arena.ArenaPrivilege;
 import com.lazyman.timetennis.arena.Court;
-import com.lazyman.timetennis.menbership.MembershipCard;
 import com.lazyman.timetennis.menbership.MembershipCardBill;
 import com.lazyman.timetennis.menbership.MembershipCardBillDao;
 import com.lazyman.timetennis.menbership.MembershipCardDao;
@@ -40,16 +40,19 @@ public class BookingManageController implements ApplicationContextAware {
 
     private MembershipCardDao mcDao;
 
+    private ArenaPrivilege privilege;
+
     private BookSchedulerRepository repository;
 
     private ApplicationContext context;
 
-    public BookingManageController(BookingMapper bookingMapper, ArenaDao arenaDao, PayDao payDao, MembershipCardBillDao billDao, MembershipCardDao mcDao, BookSchedulerRepository repository) {
+    public BookingManageController(BookingMapper bookingMapper, ArenaDao arenaDao, PayDao payDao, MembershipCardBillDao billDao, MembershipCardDao mcDao, ArenaPrivilege privilege, BookSchedulerRepository repository) {
         this.bookingMapper = bookingMapper;
         this.arenaDao = arenaDao;
         this.payDao = payDao;
         this.billDao = billDao;
         this.mcDao = mcDao;
+        this.privilege = privilege;
         this.repository = repository;
     }
 
@@ -61,7 +64,8 @@ public class BookingManageController implements ApplicationContextAware {
                                   @RequestParam int[] courtIds,
                                   @RequestParam int[] startTimes,
                                   @RequestParam int[] endTimes) {
-        checkArenaPrivileges(user, arenaId);
+
+        privilege.requireAdministrator(user.getOpenId(), arenaId);
 
         BookScheduler scheduler = repository.arenaScheduler(arenaId);
         List<Booking> bookings = new ArrayList<>();
@@ -82,6 +86,7 @@ public class BookingManageController implements ApplicationContextAware {
             booking.setCourt(court);
             booking.setStart(startTime);
             booking.setEnd(endTime);
+            booking.setCharged(true);
             booking.setOpenId(user.getOpenId());
             booking.setFee(-1);
             bookings.add(booking);
@@ -101,7 +106,8 @@ public class BookingManageController implements ApplicationContextAware {
     public void releaseCourt(User user,
                              @RequestParam int bookingId) {
         Booking booking = bookingMapper.selectByPrimaryKey(bookingId);
-        checkArenaPrivileges(user, booking.getArena().getId());
+
+        privilege.requireAdministrator(user.getOpenId(), booking.getArena().getId());
 
         BookScheduler scheduler = repository.arenaScheduler(booking.getArena().getId());
         context.publishEvent(new BookingCancelEvent(this, user, booking));
@@ -119,9 +125,11 @@ public class BookingManageController implements ApplicationContextAware {
 
     @GetMapping("/booking/order")
     public OrderDetail getBookingOrder(User user, int bookingId) {
-        checkPrivileges(user);
         OrderDetail detail = new OrderDetail();
         Booking booking = bookingMapper.selectByPrimaryKey(bookingId);
+
+        privilege.requireAdministrator(user.getOpenId(), booking.getArena().getId());
+
         if (booking.getPayType() == null) {
             detail.setBookings(Collections.singletonList(booking));
             detail.setFee(booking.getFee());
@@ -152,7 +160,8 @@ public class BookingManageController implements ApplicationContextAware {
                                     @RequestParam @NotEmpty String payNo) {
         List<Booking> bookings = bookingMapper.byPayNo(payNo);
         Validate.notEmpty(bookings);
-        checkArenaPrivileges(user, bookings.get(0).getArena().getId());
+
+        privilege.requireAdministrator(user.getOpenId(), bookings.get(0).getArena().getId());
 
         for (Booking booking : bookings) {
             Validate.isTrue(booking.getStatus().equals("ok"), "预定记录状态错误[%s]", booking.getStatus());
@@ -161,10 +170,9 @@ public class BookingManageController implements ApplicationContextAware {
         if ("mc".equals(payType)) {
             MembershipCardBill bill = billDao.load(payNo);
             Validate.notNull(bill);
-            mcDao.recharge(bill.getCode(), bill.getFee());
-            MembershipCard mc = mcDao.loadCard(bill.getCode());
+            int balance = mcDao.recharge(bill.getCode(), bill.getFee());
             String tradeNo = payNo + "-R";
-            billDao.add(tradeNo, bill.getUser().getOpenId(), bill.getCode(), Constant.PRODUCT_REFUND, bill.getFee(), mc.getBalance());
+            billDao.add(tradeNo, bill.getUser().getOpenId(), bill.getCode(), Constant.PRODUCT_REFUND, bill.getFee(), balance);
         } else {
             Trade trade = payDao.load(payNo);
             Validate.notNull(trade);
@@ -178,19 +186,6 @@ public class BookingManageController implements ApplicationContextAware {
 
         for (Booking booking : bookings) {
             context.publishEvent(new BookingCancelEvent(this, user, booking));
-        }
-    }
-
-    private void checkPrivileges(User user) {
-        if (!user.isArenaAdmin()) {
-            throw new BusinessException("对不起,您没有权限没有权限");
-        }
-    }
-
-    private void checkArenaPrivileges(User user, int arenaId) {
-        checkPrivileges(user);
-        if (!arenaDao.isArenaAdmin(user.getOpenId(), arenaId)) {
-            throw new BusinessException("对不起,您不是该场馆管理员");
         }
     }
 

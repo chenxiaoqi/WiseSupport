@@ -3,7 +3,9 @@ package com.lazyman.timetennis.menbership;
 import com.lazyman.timetennis.Constant;
 import com.lazyman.timetennis.arena.Arena;
 import com.lazyman.timetennis.user.User;
+import com.wisesupport.commons.exceptions.BusinessException;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -40,13 +42,13 @@ public class MembershipCardDao {
     }
 
     @CacheEvict(cacheNames = Constant.CK_ARENA, key = "#arenaId")
-    public int metaOffline(int arenaId, int id) {
-        return this.changeMetaStatus(id, "ofl");
+    public void metaOffline(int arenaId, int id) {
+        this.changeMetaStatus(id, "ofl");
     }
 
     @CacheEvict(cacheNames = Constant.CK_ARENA, key = "#arenaId")
-    public int metaOnline(int arenaId, int id) {
-        return this.changeMetaStatus(id, "ol");
+    public void metaOnline(int arenaId, int id) {
+        this.changeMetaStatus(id, "ol");
     }
 
     public List<MembershipCardMeta> byArenaId(int arenaId) {
@@ -128,11 +130,20 @@ public class MembershipCardDao {
     }
 
     public int chargeFee(String code, int fee) {
-        return template.update("update membership_card set balance=balance-? where balance>=? and code=?", fee, fee, code);
+        int balance = Objects.requireNonNull(template.queryForObject("select balance from membership_card where code=?", Integer.class, code));
+        int result = balance - fee;
+        if (result < 0) {
+            throw new BusinessException("账户余额不足");
+        }
+        Validate.isTrue(template.update("update membership_card set balance=? where balance=? and code=?", result, balance, code) == 1, "扣费并发冲突");
+        return result;
     }
 
     public int recharge(String code, int fee) {
-        return template.update("update membership_card set balance=balance+? where code=?", fee, code);
+        int balance = Objects.requireNonNull(template.queryForObject("select balance from membership_card where code=?", Integer.class, code));
+        int result = balance + fee;
+        Validate.isTrue(template.update("update membership_card set balance=? where code=? and balance=?", result, code, balance) == 1, "充值并发冲突");
+        return result;
     }
 
     public MembershipCard loadCard(String code) {
@@ -181,11 +192,11 @@ public class MembershipCardDao {
         return Objects.requireNonNull(template.query("select 1 from membership_card where meta_id=? limit 1", ResultSet::next, metaId));
     }
 
-    private int changeMetaStatus(int id, String status) {
-        return template.update("update membership_card_meta set status=? where id=?", status, id);
+    private void changeMetaStatus(int id, String status) {
+        template.update("update membership_card_meta set status=? where id=?", status, id);
     }
 
-    List<MembershipCard> members(int metaId, String name, String openId) {
+    List<MembershipCard> members(int metaId, String name, String code, String openId) {
         String sql = "select b.open_id,b.avatar,b.wx_nickname,a.code,a.balance,a.expire_date,a.create_time from membership_card a, tt_user b where a.open_id=b.open_id and a.meta_id=?";
         List<Object> args = new ArrayList<>();
         args.add(metaId);
@@ -193,16 +204,21 @@ public class MembershipCardDao {
             args.add(name);
             sql = sql + " and b.wx_nickname like concat('%',?,'%')";
         }
+        if (!StringUtils.isEmpty(code)) {
+            args.add(code);
+            sql = sql + " and a.code=?";
+        }
         if (!StringUtils.isEmpty(openId)) {
             args.add(openId);
             sql = sql + " and a.open_id>?";
         }
-        sql = sql + " order by a.open_id limit 20";
+        sql = sql + " order by a.open_id limit 50";
         return template.query(sql, (rs, rowNum) -> {
             MembershipCard card = new MembershipCard();
             card.setBalance(rs.getInt("balance"));
             card.setCode(rs.getString("code"));
             card.setExpireDate(rs.getDate("expire_date"));
+            card.setCreateTime(rs.getTimestamp("create_time"));
             User user = new User();
             user.setOpenId(rs.getString("open_id"));
             user.setAvatar(rs.getString("avatar"));

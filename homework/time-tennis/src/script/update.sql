@@ -126,5 +126,12 @@ drop index idx_open_id on membership_card_meta;
 alter table membership_card_meta
     drop column open_id;
 
+#========
+alter table arena
+    add refund_advance_hours int default 24 not null;
+
+alter table arena
+    add refund_times_limit int default 0 not null;
+
 
 

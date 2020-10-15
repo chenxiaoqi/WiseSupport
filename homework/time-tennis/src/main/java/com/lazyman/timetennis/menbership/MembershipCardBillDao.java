@@ -20,8 +20,8 @@ public class MembershipCardBillDao {
                 tradeNo, openId, code, productType, fee, balance);
     }
 
-    List<MembershipCardBill> userBill(String openId, String code) {
-        return template.query("select bill_no, product_type, fee, balance,create_time from membership_card_bill where open_id=? and code=? order by create_time desc limit 20", (rs, rowNum) -> {
+    List<MembershipCardBill> bills(String code) {
+        return template.query("select bill_no, product_type, fee, balance,create_time from membership_card_bill where code=? order by create_time desc limit 30", (rs, rowNum) -> {
             MembershipCardBill bill = new MembershipCardBill();
             bill.setBillNo(rs.getString("bill_no"));
             bill.setProductType(rs.getString("product_type"));
@@ -29,7 +29,7 @@ public class MembershipCardBillDao {
             bill.setBalance(rs.getInt("balance"));
             bill.setCreateTime(rs.getTimestamp("create_time"));
             return bill;
-        }, openId, code);
+        }, code);
     }
 
     public MembershipCardBill load(String billNo) {

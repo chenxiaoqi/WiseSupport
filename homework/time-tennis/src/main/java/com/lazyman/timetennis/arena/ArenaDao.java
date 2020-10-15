@@ -39,7 +39,7 @@ public class ArenaDao {
     }
 
     public Arena load(int id) {
-        return template.queryForObject("select id,name,type,province,city,district,address,images,book_style,phone,introduction,advance_book_days,book_start_hour,book_end_hour,status,mch_id,allow_half_hour,book_at_least from arena where id=?", (rs, rowNum) -> {
+        return template.queryForObject("select id,name,type,province,city,district,address,images,book_style,phone,introduction,advance_book_days,book_start_hour,book_end_hour,status,mch_id,allow_half_hour,book_at_least,refund_advance_hours,refund_times_limit from arena where id=?", (rs, rowNum) -> {
             Arena result = new Arena();
             populateArenaProperties(rs, result);
             result.setType(rs.getInt("type"));
@@ -50,6 +50,8 @@ public class ArenaDao {
             result.setIntroduction(rs.getString("introduction"));
             result.setAllowHalfHour(rs.getBoolean("allow_half_hour"));
             result.setBookAtLeast(rs.getInt("book_at_least"));
+            result.setRefundAdvanceHours(rs.getInt("refund_advance_hours"));
+            result.setRefundTimesLimit(rs.getInt("refund_times_limit"));
             return result;
         }, id);
     }
@@ -143,7 +145,7 @@ public class ArenaDao {
                         arena.getAdvanceBookDays(),
                         arena.getBookStartHour(),
                         arena.getBookEndHour(),
-                        arena.isAllowHalfHour(),
+                        arena.getAllowHalfHour(),
                         arena.getBookAtLeast()
                 }
         ), holder);
@@ -163,7 +165,7 @@ public class ArenaDao {
             @CacheEvict(value = Constant.CK_ARENA, key = "#arena.id")
     })
     public void update(Arena arena) {
-        String sql = "update arena set name=?,type=?,province=?,city=?,district=?,address=?,phone=?,advance_book_days=?,book_start_hour=?,book_end_hour=?,introduction=?,images=?,allow_half_hour=?,book_at_least=? where id=?";
+        String sql = "update arena set name=?,type=?,province=?,city=?,district=?,address=?,phone=?,advance_book_days=?,book_start_hour=?,book_end_hour=?,introduction=?,images=?,allow_half_hour=?,book_at_least=?,refund_advance_hours=?,refund_times_limit=? where id=?";
         template.update(sql,
                 arena.getName(),
                 arena.getType(),
@@ -177,13 +179,11 @@ public class ArenaDao {
                 arena.getBookEndHour(),
                 arena.getIntroduction(),
                 StringUtils.join(arena.getImages(), ','),
-                arena.isAllowHalfHour(),
+                arena.getAllowHalfHour(),
                 arena.getBookAtLeast(),
+                arena.getRefundAdvanceHours(),
+                arena.getRefundTimesLimit(),
                 arena.getId());
-    }
-
-    public boolean isArenaAdmin(String openId, int arenaId) {
-        return Objects.requireNonNull(template.query("select 1 from arena_role where open_id=? and arena_id=? and role='admin'", ResultSet::next, openId, arenaId));
     }
 
     @Cacheable(Constant.CK_CITIES)

@@ -13,6 +13,8 @@ public class MembershipCard {
     private int balance;
     @JsonFormat(pattern = "yyyy-MM-dd")
     private Date expireDate;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private Date createTime;
     private MembershipCardMeta meta;
     private User user;
 }

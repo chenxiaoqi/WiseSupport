@@ -5,17 +5,14 @@ import com.lazyman.timetennis.user.User;
 import com.lazyman.timetennis.wp.BasePayController;
 import com.lazyman.timetennis.wp.Trade;
 import com.lazyman.timetennis.wp.TradeEvent;
+import com.lazyman.timetennis.wp.WePayService;
 import com.wisesupport.commons.exceptions.BusinessException;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Validate;
-import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.context.ApplicationListener;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.constraints.NotEmpty;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -27,9 +24,12 @@ public class MembershipCardUserController extends BasePayController implements A
 
     private MembershipCardBillDao billDao;
 
-    public MembershipCardUserController(MembershipCardDao mcDao, MembershipCardBillDao billDao) {
+    private MembershipCardService cardService;
+
+    public MembershipCardUserController(MembershipCardDao mcDao, MembershipCardBillDao billDao, MembershipCardService cardService) {
         this.mcDao = mcDao;
         this.billDao = billDao;
+        this.cardService = cardService;
     }
 
     @GetMapping("/cards")
@@ -47,13 +47,12 @@ public class MembershipCardUserController extends BasePayController implements A
             throw new BusinessException("您的购买订单确认中,请稍等");
         }
         MembershipCardMeta meta = mcDao.loadMeta(metaId);
-        Validate.notNull(meta);
         if (!meta.getStatus().equals("ol")) {
             throw new BusinessException("对不起,该会员卡已经下线,不能购买");
         }
 
         String mchId = meta.getArena().getMchId();
-        String tradeNo = pay.creatTradeNo(Constant.PRODUCT_CARD);
+        String tradeNo = WePayService.creatTradeNo(Constant.PRODUCT_CARD);
         return preparePay(tradeNo, mchId, user.getOpenId(), Constant.PRODUCT_CARD, meta.getPrice(), "购买会员卡[" + meta.getName() + "]", () -> mcDao.createTradeMembershipCardRelation(tradeNo, metaId));
     }
 
@@ -66,11 +65,9 @@ public class MembershipCardUserController extends BasePayController implements A
             throw new BusinessException("您的购买订单确认中,请稍等");
         }
         MembershipCard card = mcDao.loadCard(code);
-        Validate.notNull(card);
         MembershipCardMeta meta = mcDao.loadMeta(card.getMeta().getId());
-        Validate.notNull(meta);
         String mchId = meta.getArena().getMchId();
-        String tradeNo = pay.creatTradeNo(Constant.PRODUCT_RECHARGE);
+        String tradeNo = WePayService.creatTradeNo(Constant.PRODUCT_RECHARGE);
         return preparePay(tradeNo, mchId, user.getOpenId(),
                 Constant.PRODUCT_RECHARGE,
                 card.getMeta().getInitialBalance(),
@@ -100,9 +97,8 @@ public class MembershipCardUserController extends BasePayController implements A
         if ("ok".equals(trade.getStatus())) {
             if (mcDao.changeToFinished(trade.getTradeNo()) == 1) {
                 String code = mcDao.getCardCodeByTradeNo(trade.getTradeNo());
-                Validate.isTrue(mcDao.recharge(code, trade.getFee()) == 1);
-                MembershipCard card = mcDao.loadCard(code);
-                billDao.add(trade.getTradeNo(), trade.getOpenId(), code, Constant.PRODUCT_RECHARGE, trade.getFee(), card.getBalance());
+                int balance = mcDao.recharge(code, trade.getFee());
+                billDao.add(trade.getTradeNo(), trade.getOpenId(), code, Constant.PRODUCT_RECHARGE, trade.getFee(), balance);
             } else {
                 log.info("duplicate recharge event trade {}", trade.getTradeNo());
             }
@@ -117,18 +113,7 @@ public class MembershipCardUserController extends BasePayController implements A
                 log.error("could not found meta for trade {}", trade.getTradeNo());
                 return;
             }
-            if (mcDao.hasMeta(trade.getOpenId(), meta.getId())) {
-                log.warn("user {} already has meta {},maybe duplicate notify", trade.getOpenId(), meta.getId());
-                return;
-            }
-            String code = StringUtils.leftPad(String.valueOf(meta.getId()), 5, '0');
-            String maxCode = mcDao.maxMembershipCardCode(meta.getId());
-            if (maxCode == null) {
-                code = code + StringUtils.leftPad("1", 5, '0');
-            } else {
-                code = code + StringUtils.leftPad(String.valueOf(Integer.parseInt(maxCode.substring(5)) + 1), 5, '0');
-            }
-            mcDao.createMembershipCard(trade.getOpenId(), meta, code, DateUtils.addMonths(new Date(), meta.getExtendMonth()));
+            cardService.create(meta, trade.getOpenId());
         }
     }
 }

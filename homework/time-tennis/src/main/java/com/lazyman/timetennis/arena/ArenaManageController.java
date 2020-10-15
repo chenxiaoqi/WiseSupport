@@ -34,12 +34,15 @@ public class ArenaManageController {
 
     private CourtDao courtDao;
 
+    private ArenaPrivilege privilege;
+
     private File imagesDir;
 
-    public ArenaManageController(ArenaDao arenaDao, RuleDao ruleDao, CourtDao courtDao, @Value("${wx.images-path}") String imagesPath) {
+    public ArenaManageController(ArenaDao arenaDao, RuleDao ruleDao, CourtDao courtDao, ArenaPrivilege privilege, @Value("${wx.images-path}") String imagesPath) {
         this.arenaDao = arenaDao;
         this.ruleDao = ruleDao;
         this.courtDao = courtDao;
+        this.privilege = privilege;
         this.imagesDir = new File(imagesPath);
     }
 
@@ -263,6 +266,9 @@ public class ArenaManageController {
 
     @GetMapping("/arena/admins")
     public List<User> admins(User user, @RequestParam @NotEmpty int arenaId) {
+        if (!user.isSuperAdmin()) {
+            privilege.requireAdministrator(user.getOpenId(), arenaId);
+        }
         return arenaDao.admins(arenaId);
     }
 
@@ -325,9 +331,7 @@ public class ArenaManageController {
     private void checkArenaPrivileges(User user, int arenaId) {
         if (!user.isSuperAdmin()) {
             checkPrivileges(user);
-            if (!arenaDao.isArenaAdmin(user.getOpenId(), arenaId)) {
-                throw new BusinessException("对不起,您不是该场馆管理员");
-            }
+            privilege.requireAdministrator(user.getOpenId(), arenaId);
         }
     }
 }
