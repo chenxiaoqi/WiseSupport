@@ -12,9 +12,9 @@ import com.lazyman.timetennis.user.User;
 import com.lazyman.timetennis.wp.BasePayController;
 import com.lazyman.timetennis.wp.Trade;
 import com.lazyman.timetennis.wp.TradeEvent;
+import com.lazyman.timetennis.wp.WePayService;
 import com.wisesupport.commons.exceptions.BusinessException;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
@@ -119,7 +119,7 @@ public class UserBookingControllerV2 extends BasePayController implements Applic
         }
 
         int tf = 0;
-        String tradeNo = pay.creatTradeNo(Constant.PRODUCT_BOOKING);
+        String tradeNo = WePayService.creatTradeNo(Constant.PRODUCT_BOOKING);
         BookScheduler scheduler = schedulerRepository.arenaScheduler(dbArena);
         List<Booking> bookings = new ArrayList<>();
         for (int i = 0; i < courtIds.length; i++) {
@@ -145,6 +145,7 @@ public class UserBookingControllerV2 extends BasePayController implements Applic
             booking.setOpenId(user.getOpenId());
             booking.setFee(fee);
             booking.setPayNo(tradeNo);
+            booking.setCharged(true);
             booking.setPayType(code == null ? "wep" : "mc");
             tf = tf + fee;
             bookings.add(booking);
@@ -182,10 +183,11 @@ public class UserBookingControllerV2 extends BasePayController implements Applic
             throw new BusinessException("卡已经过期");
         }
         totalFee = totalFee * card.getMeta().getDiscount() / 100;
+        int balance = card.getBalance();
         if (totalFee != 0) {
-            Validate.isTrue(mcDao.chargeFee(code, totalFee) == 1, "余额不足");
+            balance = mcDao.chargeFee(code, totalFee);
         }
-        billDao.add(tradeNo, user.getOpenId(), code, Constant.PRODUCT_BOOKING, totalFee, card.getBalance() - totalFee);
+        billDao.add(tradeNo, user.getOpenId(), code, Constant.PRODUCT_BOOKING, totalFee, balance);
     }
 
     @Override

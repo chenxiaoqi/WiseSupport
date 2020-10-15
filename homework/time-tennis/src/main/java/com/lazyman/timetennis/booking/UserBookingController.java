@@ -110,6 +110,7 @@ public class UserBookingController implements ApplicationContextAware {
         booking.setStart(timeIndexStart);
         booking.setEnd(timeIndexEnd);
         booking.setOpenId(user.getOpenId());
+        booking.setCharged(false);
 
         //todo
         booking.setFee(BookingTool.calcFee(rules, date, timeIndexStart, timeIndexEnd, 40));

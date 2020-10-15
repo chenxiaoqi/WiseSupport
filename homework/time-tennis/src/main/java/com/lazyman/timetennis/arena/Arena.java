@@ -20,12 +20,14 @@ public class Arena {
     private Integer advanceBookDays;
     private Integer bookStartHour;
     private Integer bookEndHour;
-    private Integer bookStyle = 1;
+    private Integer bookStyle;
     private List<Court> courts;
     private String[] images;
     private String status;
     private String mchId;
-    private boolean allowHalfHour = false;
-    private Integer bookAtLeast = 1;
+    private Boolean allowHalfHour;
+    private Integer bookAtLeast;
+    private Integer refundTimesLimit;
+    private Integer refundAdvanceHours;
     private List<MembershipCardMeta> metas;
 }
