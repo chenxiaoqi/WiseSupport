@@ -69,7 +69,7 @@ public class LoginController {
             //用户登录超时就更新一下头像和昵称
             if (loginUser == null) {
                 userMapper.updateByPrimaryKey(wxUser);
-                result.setWxNickname(wxUser.getNickname());
+                result.setWxNickname(wxUser.getWxNickname());
                 result.setAvatar(wxUser.getAvatar());
             }
         }

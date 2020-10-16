@@ -2,7 +2,6 @@ package com.lazyman.timetennis.booking;
 
 import com.lazyman.timetennis.Constant;
 import com.lazyman.timetennis.arena.Arena;
-import com.lazyman.timetennis.arena.ArenaDao;
 import com.lazyman.timetennis.arena.ArenaPrivilege;
 import com.lazyman.timetennis.arena.Court;
 import com.lazyman.timetennis.menbership.MembershipCardBill;
@@ -32,8 +31,6 @@ import java.util.List;
 public class BookingManageController implements ApplicationContextAware {
     private BookingMapper bookingMapper;
 
-    private ArenaDao arenaDao;
-
     private PayDao payDao;
 
     private MembershipCardBillDao billDao;
@@ -46,9 +43,8 @@ public class BookingManageController implements ApplicationContextAware {
 
     private ApplicationContext context;
 
-    public BookingManageController(BookingMapper bookingMapper, ArenaDao arenaDao, PayDao payDao, MembershipCardBillDao billDao, MembershipCardDao mcDao, ArenaPrivilege privilege, BookSchedulerRepository repository) {
+    public BookingManageController(BookingMapper bookingMapper, PayDao payDao, MembershipCardBillDao billDao, MembershipCardDao mcDao, ArenaPrivilege privilege, BookSchedulerRepository repository) {
         this.bookingMapper = bookingMapper;
-        this.arenaDao = arenaDao;
         this.payDao = payDao;
         this.billDao = billDao;
         this.mcDao = mcDao;
@@ -88,7 +84,7 @@ public class BookingManageController implements ApplicationContextAware {
             booking.setEnd(endTime);
             booking.setCharged(true);
             booking.setOpenId(user.getOpenId());
-            booking.setFee(-1);
+            booking.setFee(0);
             bookings.add(booking);
         }
 
@@ -106,6 +102,9 @@ public class BookingManageController implements ApplicationContextAware {
     public void releaseCourt(User user,
                              @RequestParam int bookingId) {
         Booking booking = bookingMapper.selectByPrimaryKey(bookingId);
+        if (booking.getFee() >= 0) {
+            throw new BusinessException("场地费用大于0");
+        }
 
         privilege.requireAdministrator(user.getOpenId(), booking.getArena().getId());
 
@@ -161,18 +160,27 @@ public class BookingManageController implements ApplicationContextAware {
         List<Booking> bookings = bookingMapper.byPayNo(payNo);
         Validate.notEmpty(bookings);
 
-        privilege.requireAdministrator(user.getOpenId(), bookings.get(0).getArena().getId());
+        Booking peek = bookings.get(0);
+        privilege.requireAdministrator(user.getOpenId(), peek.getArena().getId());
 
         for (Booking booking : bookings) {
             Validate.isTrue(booking.getStatus().equals("ok"), "预定记录状态错误[%s]", booking.getStatus());
         }
 
+        String status = "rfd";
         if ("mc".equals(payType)) {
-            MembershipCardBill bill = billDao.load(payNo);
-            Validate.notNull(bill);
-            int balance = mcDao.recharge(bill.getCode(), bill.getFee());
-            String tradeNo = payNo + "-R";
-            billDao.add(tradeNo, bill.getUser().getOpenId(), bill.getCode(), Constant.PRODUCT_REFUND, bill.getFee(), balance);
+            //会员卡支付
+            if (peek.getCharged()) {
+                //已经付钱了,要退钱
+                MembershipCardBill bill = billDao.load(payNo);
+                Validate.notNull(bill);
+                int balance = mcDao.recharge(bill.getCode(), bill.getFee());
+                String tradeNo = payNo + "-R";
+                billDao.add(tradeNo, user.getOpenId(), bill.getCode(), Constant.PRODUCT_REFUND, bill.getFee(), balance);
+            } else {
+                //没收费,会员卡没有消费记录
+                status = "canc";
+            }
         } else {
             Trade trade = payDao.load(payNo);
             Validate.notNull(trade);
@@ -181,8 +189,7 @@ public class BookingManageController implements ApplicationContextAware {
             }
             payDao.updateStatus(payNo, "rfd");
         }
-
-        bookingMapper.updateBookingStatus(payNo, "rfd");
+        bookingMapper.updateBookingStatus(payNo, status);
 
         for (Booking booking : bookings) {
             context.publishEvent(new BookingCancelEvent(this, user, booking));

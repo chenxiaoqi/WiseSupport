@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.annotation.Profile;
 import org.springframework.lang.NonNull;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -15,6 +16,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 import java.util.TreeMap;
 
 @Component
+@Profile("!timetennis")
 @Slf4j
 public class TradeTask implements ApplicationContextAware {
     private PayDao payDao;
