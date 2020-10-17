@@ -45,6 +45,8 @@ public class WePayService {
 
     private static final FastDateFormat FORMAT = FastDateFormat.getInstance("yyyyMMddhhmmssSSS");
 
+    private static String previewTradeNo;
+
     private final static DocumentBuilder documentBuilder;
 
     private final static TransformerFactory transformerFactory;
@@ -209,8 +211,22 @@ public class WePayService {
         return Hex.encodeHexString(DigestUtils.md5(builder.toString()), false);
     }
 
-    public static String creatTradeNo(String productType) {
-        return FORMAT.format(new Date()) + productType;
+    public synchronized static String creatTradeNo(String productType) {
+        String tradNo;
+        do {
+            tradNo = FORMAT.format(new Date()) + productType;
+            if (tradNo.equals(previewTradeNo)) {
+                try {
+                    Thread.sleep(1);
+                } catch (InterruptedException e) {
+                    //do nothing
+                }
+            } else {
+                previewTradeNo = tradNo;
+                break;
+            }
+        } while (true);
+        return tradNo;
     }
 
     String generateXml(Map<String, String> params) {

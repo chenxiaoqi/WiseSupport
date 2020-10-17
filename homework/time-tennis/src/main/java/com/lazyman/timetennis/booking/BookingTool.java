@@ -6,7 +6,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.lang3.time.FastDateFormat;
 
-import java.text.ParseException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -14,7 +13,7 @@ import java.util.Locale;
 
 public final class BookingTool {
 
-    public static final FastDateFormat DESC_FORMAT = FastDateFormat.getInstance("yyyy-MM-dd E", Locale.CHINA);
+    private static final FastDateFormat DESC_FORMAT = FastDateFormat.getInstance("yyyy-MM-dd E", Locale.CHINA);
 
     private BookingTool() {
     }
@@ -23,24 +22,15 @@ public final class BookingTool {
         return DateUtils.addMilliseconds(date, (int) (timeIndex * 30 * DateUtils.MILLIS_PER_MINUTE));
     }
 
-    public static boolean cancelAble(Booking booking) {
-
-        //已经出过账单了不能删除
-        if (booking.getCharged()) {
-            return false;
-        }
-
+    static boolean cancelAble(Booking booking, int advanceHours) {
         //刚刚定的都可以删除
         if (System.currentTimeMillis() - booking.getUpdateTime().getTime() < 20 * DateUtils.MILLIS_PER_MINUTE) {
             return true;
         }
 
-        //必须提前2个小时取消场地预定
+        //必须提前取消场地预定
         Date start = toBookingDate(booking.getDate(), booking.getStart());
-        if (start.getTime() - System.currentTimeMillis() < 2 * DateUtils.MILLIS_PER_HOUR) {
-            return false;
-        }
-        return true;
+        return start.getTime() - System.currentTimeMillis() >= advanceHours * DateUtils.MILLIS_PER_HOUR;
     }
 
     static int calcFee(List<Rule> rules, Date date, int timeIndexStart, int timeIndexEnd, int defaultFee) {
@@ -72,7 +62,7 @@ public final class BookingTool {
         return fee / 10;
     }
 
-    public static void main(String[] args) throws ParseException {
+    public static void main(String[] args) {
 
     }
 
@@ -100,7 +90,7 @@ public final class BookingTool {
         return toDescription(booking.getDate(), booking.getStart(), booking.getEnd());
     }
 
-    public static String toDescription(Date date, int start, int end) {
+    private static String toDescription(Date date, int start, int end) {
         return DESC_FORMAT.format(date) + ' ' +
                 toTime(start) +
                 '~' +

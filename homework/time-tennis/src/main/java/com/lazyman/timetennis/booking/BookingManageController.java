@@ -1,12 +1,9 @@
 package com.lazyman.timetennis.booking;
 
-import com.lazyman.timetennis.Constant;
 import com.lazyman.timetennis.arena.Arena;
 import com.lazyman.timetennis.arena.ArenaPrivilege;
 import com.lazyman.timetennis.arena.Court;
-import com.lazyman.timetennis.menbership.MembershipCardBill;
-import com.lazyman.timetennis.menbership.MembershipCardBillDao;
-import com.lazyman.timetennis.menbership.MembershipCardDao;
+import com.lazyman.timetennis.menbership.MembershipCardService;
 import com.lazyman.timetennis.user.User;
 import com.lazyman.timetennis.wp.PayDao;
 import com.lazyman.timetennis.wp.Trade;
@@ -18,11 +15,13 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.lang.NonNull;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.constraints.NotEmpty;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -33,21 +32,18 @@ public class BookingManageController implements ApplicationContextAware {
 
     private PayDao payDao;
 
-    private MembershipCardBillDao billDao;
-
-    private MembershipCardDao mcDao;
-
     private ArenaPrivilege privilege;
 
     private BookSchedulerRepository repository;
 
     private ApplicationContext context;
 
-    public BookingManageController(BookingMapper bookingMapper, PayDao payDao, MembershipCardBillDao billDao, MembershipCardDao mcDao, ArenaPrivilege privilege, BookSchedulerRepository repository) {
+    private MembershipCardService cardService;
+
+    public BookingManageController(BookingMapper bookingMapper, PayDao payDao, ArenaPrivilege privilege, BookSchedulerRepository repository, MembershipCardService cardService) {
         this.bookingMapper = bookingMapper;
         this.payDao = payDao;
-        this.billDao = billDao;
-        this.mcDao = mcDao;
+        this.cardService = cardService;
         this.privilege = privilege;
         this.repository = repository;
     }
@@ -102,8 +98,8 @@ public class BookingManageController implements ApplicationContextAware {
     public void releaseCourt(User user,
                              @RequestParam int bookingId) {
         Booking booking = bookingMapper.selectByPrimaryKey(bookingId);
-        if (booking.getFee() >= 0) {
-            throw new BusinessException("场地费用大于0");
+        if (booking.getFee() >= 0 && booking.getCharged()) {
+            throw new BusinessException("已经收费,场地费用大于0");
         }
 
         privilege.requireAdministrator(user.getOpenId(), booking.getArena().getId());
@@ -114,42 +110,11 @@ public class BookingManageController implements ApplicationContextAware {
         try {
             booking = new Booking();
             booking.setId(bookingId);
-            booking.setOpenId(user.getOpenId());
             bookingMapper.deleteBooking(booking);
         } catch (Throwable e) {
             scheduler.invalidate();
             throw e;
         }
-    }
-
-    @GetMapping("/booking/order")
-    public OrderDetail getBookingOrder(User user, int bookingId) {
-        OrderDetail detail = new OrderDetail();
-        Booking booking = bookingMapper.selectByPrimaryKey(bookingId);
-
-        privilege.requireAdministrator(user.getOpenId(), booking.getArena().getId());
-
-        if (booking.getPayType() == null) {
-            detail.setBookings(Collections.singletonList(booking));
-            detail.setFee(booking.getFee());
-        } else {
-            detail.setPayType(booking.getPayType());
-            detail.setPayNo(booking.getPayNo());
-            if ("mc".equals(booking.getPayType())) {
-                MembershipCardBill bill = billDao.load(booking.getPayNo());
-                detail.setFee(bill.getFee());
-                detail.setCode(bill.getCode());
-                detail.setCreateTime(bill.getCreateTime());
-            } else {
-                Trade trade = payDao.load(booking.getPayNo());
-                detail.setTransactionId(trade.getTransactionId());
-                detail.setMcId(trade.getMchId());
-                detail.setFee(trade.getFee());
-                detail.setCreateTime(trade.getCreateTime());
-            }
-            detail.setBookings(bookingMapper.byPayNo(booking.getPayNo()));
-        }
-        return detail;
     }
 
     @PostMapping("/booking/refund")
@@ -167,19 +132,12 @@ public class BookingManageController implements ApplicationContextAware {
             Validate.isTrue(booking.getStatus().equals("ok"), "预定记录状态错误[%s]", booking.getStatus());
         }
 
-        String status = "rfd";
+
         if ("mc".equals(payType)) {
             //会员卡支付
             if (peek.getCharged()) {
                 //已经付钱了,要退钱
-                MembershipCardBill bill = billDao.load(payNo);
-                Validate.notNull(bill);
-                int balance = mcDao.recharge(bill.getCode(), bill.getFee());
-                String tradeNo = payNo + "-R";
-                billDao.add(tradeNo, user.getOpenId(), bill.getCode(), Constant.PRODUCT_REFUND, bill.getFee(), balance);
-            } else {
-                //没收费,会员卡没有消费记录
-                status = "canc";
+                cardService.refund(user, payNo);
             }
         } else {
             Trade trade = payDao.load(payNo);
@@ -189,7 +147,7 @@ public class BookingManageController implements ApplicationContextAware {
             }
             payDao.updateStatus(payNo, "rfd");
         }
-        bookingMapper.updateBookingStatus(payNo, status);
+        bookingMapper.updateBookingStatus(payNo, "rfd");
 
         for (Booking booking : bookings) {
             context.publishEvent(new BookingCancelEvent(this, user, booking));

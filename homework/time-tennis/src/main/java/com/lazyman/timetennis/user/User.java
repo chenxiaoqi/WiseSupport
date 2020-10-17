@@ -77,7 +77,7 @@ public class User implements Serializable {
     }
 
     public Boolean getAdmin() {
-        return admin;
+        return arenaAdmin;
     }
 
     public void setAdmin(Boolean admin) {

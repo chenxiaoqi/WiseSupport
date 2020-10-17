@@ -5,9 +5,8 @@ import com.lazyman.timetennis.arena.Arena;
 import com.lazyman.timetennis.arena.ArenaDao;
 import com.lazyman.timetennis.arena.Court;
 import com.lazyman.timetennis.core.LockRepository;
-import com.lazyman.timetennis.menbership.MembershipCard;
-import com.lazyman.timetennis.menbership.MembershipCardBillDao;
-import com.lazyman.timetennis.menbership.MembershipCardDao;
+import com.lazyman.timetennis.menbership.*;
+import com.lazyman.timetennis.statistic.StatisticDao;
 import com.lazyman.timetennis.user.User;
 import com.lazyman.timetennis.wp.BasePayController;
 import com.lazyman.timetennis.wp.Trade;
@@ -15,8 +14,10 @@ import com.lazyman.timetennis.wp.TradeEvent;
 import com.lazyman.timetennis.wp.WePayService;
 import com.wisesupport.commons.exceptions.BusinessException;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationListener;
@@ -26,10 +27,13 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotEmpty;
 import java.util.*;
 
 @RestController
-@RequestMapping("/user/v2")
+@RequestMapping("/user")
 @Slf4j
 public class UserBookingControllerV2 extends BasePayController implements ApplicationListener<TradeEvent>, ApplicationContextAware {
     private MembershipCardBillDao billDao;
@@ -48,24 +52,54 @@ public class UserBookingControllerV2 extends BasePayController implements Applic
 
     private TransactionTemplate tt;
 
-    public UserBookingControllerV2(MembershipCardBillDao billDao,
-                                   BookingMapper bookingMapper,
-                                   MembershipCardDao mcDao,
-                                   ArenaDao arenaDao,
-                                   BookSchedulerRepository schedulerRepository,
-                                   LockRepository lockRepository,
-                                   TransactionTemplate tt) {
+    private MembershipCardService cardService;
+
+    private StatisticDao statisticDao;
+
+    private int defaultArenaId;
+
+    private int defaultCourtId;
+
+    public UserBookingControllerV2(
+            @Value("${wx.default-arena-id}") int defaultArenaId,
+            @Value("${wx.default-court-id}") int defaultCourtId,
+            MembershipCardBillDao billDao,
+            BookingMapper bookingMapper,
+            MembershipCardDao mcDao,
+            ArenaDao arenaDao,
+            BookSchedulerRepository schedulerRepository,
+            LockRepository lockRepository,
+            TransactionTemplate tt,
+            MembershipCardService cardService, StatisticDao statisticDao) {
+        this.defaultArenaId = defaultArenaId;
+        this.defaultCourtId = defaultCourtId;
         this.billDao = billDao;
         this.bookingMapper = bookingMapper;
         this.mcDao = mcDao;
         this.arenaDao = arenaDao;
         this.schedulerRepository = schedulerRepository;
         this.lockRepository = lockRepository;
-
         this.tt = tt;
+        this.cardService = cardService;
+        this.statisticDao = statisticDao;
     }
 
     @PostMapping("/booking")
+    @Transactional
+    public void booking(User user,
+                        @DateTimeFormat(pattern = "yyyy-MM-dd") @RequestParam Date date,
+                        @Min(0) @Max(47) @RequestParam int timeIndexStart,
+                        @Min(0) @Max(47) @RequestParam int timeIndexEnd) {
+        //todo 正式上线后面删除
+        MembershipCard card = cardService.find(user.getOpenId(), this.defaultArenaId);
+
+        if (card.getBalance() <= 0) {
+            throw new BusinessException("账户余额不足");
+        }
+        this.booking(user, date, this.defaultArenaId, new int[]{this.defaultCourtId}, new int[]{timeIndexStart}, new int[]{timeIndexEnd}, -1, card.getCode());
+    }
+
+    @PostMapping("/v2/booking")
     public Map<String, String> booking(User user,
                                        @DateTimeFormat(pattern = "yyyy-MM-dd") Date date,
                                        @RequestParam int arenaId,
@@ -85,10 +119,79 @@ public class UserBookingControllerV2 extends BasePayController implements Applic
         }
     }
 
-    @GetMapping("/bookings")
+    @GetMapping("/v2/bookings")
     public List<Booking> bookings(User user, @RequestParam(required = false) Boolean history) {
         Calendar now = Calendar.getInstance();
         return bookingMapper.userBookings(user.getOpenId(), DateUtils.truncate(now, Calendar.DAY_OF_MONTH).getTime(), history != null && history);
+    }
+
+    @GetMapping("/booking/order")
+    public OrderDetail getBookingOrder(User user,
+                                       @RequestParam @NotEmpty String payNo,
+                                       @RequestParam @NotEmpty String payType) {
+        OrderDetail detail = new OrderDetail();
+        detail.setPayType(payType);
+        detail.setPayNo(payNo);
+        if ("mc".equals(payType)) {
+            MembershipCardBill bill = billDao.load(payNo);
+            detail.setFee(bill.getFee());
+            detail.setCode(bill.getCode());
+            detail.setCreateTime(bill.getCreateTime());
+        } else {
+            Trade trade = payDao.load(payNo);
+            detail.setTransactionId(trade.getTransactionId());
+            detail.setMcId(trade.getMchId());
+            detail.setFee(trade.getFee());
+            detail.setCreateTime(trade.getCreateTime());
+        }
+        detail.setBookings(bookingMapper.byPayNo(payNo));
+        return detail;
+    }
+
+    @DeleteMapping("/booking/{id}")
+    @Transactional
+    public synchronized void cancelNotCharged(User user, @PathVariable int id) {
+        Booking booking = bookingMapper.selectByPrimaryKey(id);
+        Validate.notNull(booking);
+        if (booking.getCharged()) {
+            throw new BusinessException("已支付订场不能取消");
+        }
+
+        validateCancelAble(user.getOpenId(), Collections.singletonList(booking));
+
+        bookingMapper.deleteBooking(booking);
+        bookingMapper.deleteShare(booking.getId());
+        context.publishEvent(new BookingCancelEvent(this, user, booking));
+    }
+
+    @DeleteMapping("/v2/refund")
+    @Transactional
+    public synchronized void refund(User user, @RequestParam @NotEmpty String payNo) {
+        List<Booking> bookings = bookingMapper.byPayNo(payNo);
+        Validate.notEmpty(bookings);
+        Booking peek = bookings.get(0);
+        if (!peek.getOpenId().equals(user.getOpenId())) {
+            throw new BusinessException("这个场地不是你定的哦");
+        }
+        if (!peek.getStatus().equals("ok")) {
+            throw new BusinessException("场地状态错误:" + peek.getStatus());
+        }
+        if (!peek.getCharged()) {
+            throw new BusinessException("为支付的场地无法退款");
+        }
+        if ("wep".equals(peek.getPayType())) {
+            throw new BusinessException("微信暂时支付不支持取消");
+        }
+
+        validateCancelAble(user.getOpenId(), bookings);
+
+        cardService.refund(user, peek.getPayNo());
+        bookingMapper.updateBookingStatus(peek.getPayNo(), "rfd");
+
+        //todo 退分摊费用,目前已付费的是分摊不了的,所以暂不考虑
+        for (Booking booking : bookings) {
+            context.publishEvent(new BookingCancelEvent(this, user, booking));
+        }
     }
 
     @Override
@@ -118,8 +221,12 @@ public class UserBookingControllerV2 extends BasePayController implements Applic
             throw new BusinessException("您有一个未支付的预定待系统确认,请10分钟后再试!");
         }
 
+        //检查累计预定时间是否超过场馆设置
+        validateHourLimit(user, dbArena, startTimes, endTimes);
+
         int tf = 0;
-        String tradeNo = WePayService.creatTradeNo(Constant.PRODUCT_BOOKING);
+        boolean postCharge = code != null && dbArena.getChargeStrategy() != 0;
+        String tradeNo = postCharge ? null : WePayService.creatTradeNo(Constant.PRODUCT_BOOKING);
         BookScheduler scheduler = schedulerRepository.arenaScheduler(dbArena);
         List<Booking> bookings = new ArrayList<>();
         for (int i = 0; i < courtIds.length; i++) {
@@ -144,32 +251,83 @@ public class UserBookingControllerV2 extends BasePayController implements Applic
             booking.setEnd(endTime);
             booking.setOpenId(user.getOpenId());
             booking.setFee(fee);
-            booking.setPayNo(tradeNo);
-            booking.setCharged(true);
             booking.setPayType(code == null ? "wep" : "mc");
+            if (postCharge) {
+                //会员卡支付且不是立即收费的,保存会员卡号到payNo,定时任务从这个卡里扣钱
+                booking.setPayNo(code);
+                booking.setCharged(false);
+            } else {
+                booking.setPayNo(tradeNo);
+                booking.setCharged(true);
+            }
             tf = tf + fee;
             bookings.add(booking);
         }
 
         try {
-            if (tf != totalFee) {
+            //todo 全面上线后这个-1就不要
+            if (totalFee != -1 && tf != totalFee) {
                 throw new BusinessException("对不起,总费用不匹配,请联系管理员处理!");
             }
             for (Booking booking : bookings) {
                 bookingMapper.insert(booking);
+                context.publishEvent(new BookingEvent(this, user, booking));
             }
-
-            if (code != null) {
-                membershipCardPay(user, dbArena, tradeNo, code, totalFee);
+            if (postCharge) {
+                return null;
+            } else if (code != null) {
+                membershipCardPay(user, dbArena, tradeNo, code, tf);
                 return null;
             } else {
-                return preparePay(tradeNo, dbArena.getMchId(), user.getOpenId(), Constant.PRODUCT_BOOKING, totalFee, "场地预定", () -> {
+                return preparePay(tradeNo, dbArena.getMchId(), user.getOpenId(), Constant.PRODUCT_BOOKING, tf, "场地预定", () -> {
                     //do nothing
                 });
             }
         } catch (Throwable e) {
             scheduler.invalidate();
             throw e;
+        }
+    }
+
+    private void validateCancelAble(String openId, List<Booking> bookings) {
+        Arena arena = arenaDao.loadFull(bookings.get(0).getArena().getId());
+
+        //20分钟内的可以直接推定,不记录推定次数
+        for (Booking booking : bookings) {
+            if (System.currentTimeMillis() - booking.getUpdateTime().getTime() < 20 * DateUtils.MILLIS_PER_MINUTE) {
+                return;
+            }
+        }
+
+        for (Booking booking : bookings) {
+            Date start = BookingTool.toBookingDate(booking.getDate(), booking.getStart());
+            if (start.getTime() - System.currentTimeMillis() < arena.getRefundAdvanceHours() * DateUtils.MILLIS_PER_HOUR) {
+                throw new BusinessException("预定场地必须提前" + arena.getRefundAdvanceHours() + "小时取消,如有特殊需求请联系管理员");
+            }
+        }
+        Date date = DateUtils.truncate(new Date(), Calendar.DAY_OF_MONTH);
+        int times = statisticDao.getCancelTimes(openId, date);
+        if (times >= arena.getRefundTimesLimit()) {
+            throw new BusinessException("本月退定已超过限额");
+        }
+        statisticDao.setCancelTimes(openId, date, times + 1);
+    }
+
+    private void validateHourLimit(User user, Arena arena, int[] startTimes, int[] endTimes) {
+        if (arena.getBookHoursLimit() <= 0) {
+            return;
+        }
+        int count = 0;
+        for (int i = 0; i < startTimes.length; i++) {
+            int startTime = startTimes[i];
+            int endTime = endTimes[i];
+            count = count + endTime - startTime + 1;
+        }
+        Calendar now = Calendar.getInstance();
+        int start = now.get(Calendar.HOUR_OF_DAY);
+        now = DateUtils.truncate(now, Calendar.DAY_OF_MONTH);
+        if (arena.getBookHoursLimit() * 2 < bookingMapper.countBooked(user.getOpenId(), arena.getId(), now.getTime(), start) + count) {
+            throw new BusinessException("该场馆最多只允许预定" + arena.getBookHoursLimit() + "个小时");
         }
     }
 
@@ -182,12 +340,7 @@ public class UserBookingControllerV2 extends BasePayController implements Applic
         if (card.getExpireDate().getTime() < System.currentTimeMillis()) {
             throw new BusinessException("卡已经过期");
         }
-        totalFee = totalFee * card.getMeta().getDiscount() / 100;
-        int balance = card.getBalance();
-        if (totalFee != 0) {
-            balance = mcDao.chargeFee(code, totalFee);
-        }
-        billDao.add(tradeNo, user.getOpenId(), code, Constant.PRODUCT_BOOKING, totalFee, balance);
+        cardService.charge(tradeNo, user.getOpenId(), totalFee, Constant.PRODUCT_BOOKING, card, false);
     }
 
     @Override

@@ -96,9 +96,10 @@ public class MembershipCardUserController extends BasePayController implements A
         log.info("receive membership card trade[{}] event, in status {}", trade.getTradeNo(), trade.getStatus());
         if ("ok".equals(trade.getStatus())) {
             if (mcDao.changeToFinished(trade.getTradeNo()) == 1) {
-                String code = mcDao.getCardCodeByTradeNo(trade.getTradeNo());
-                int balance = mcDao.recharge(code, trade.getFee());
-                billDao.add(trade.getTradeNo(), trade.getOpenId(), code, Constant.PRODUCT_RECHARGE, trade.getFee(), balance);
+                MembershipCard card = mcDao.loadCardByTradeNo(trade.getTradeNo());
+                int balance = mcDao.recharge(card.getCode(), trade.getFee());
+                mcDao.extendExpireDate(card.getMeta().getExtendMonth(), card.getCode());
+                billDao.add(trade.getTradeNo(), trade.getOpenId(), card.getCode(), Constant.PRODUCT_RECHARGE, trade.getFee(), balance);
             } else {
                 log.info("duplicate recharge event trade {}", trade.getTradeNo());
             }
