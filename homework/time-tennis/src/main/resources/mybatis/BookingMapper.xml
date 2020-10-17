@@ -123,7 +123,8 @@
     </select>
 
     <select id="notCharged" resultMap="BaseResultMap">
-        select a.id, a.open_id, a.date, a.arena_id,a.court_id, a.start, a.end,a.fee, a.charged, a.update_time,
+        select a.id, a.open_id, a.date, a.arena_id,a.court_id, a.start, a.end, a.fee, a.pay_no, a.charged,
+        a.update_time,
         b.nickname,b.wx_nickname,b.avatar,b.vip,
         d.open_id as share_user_open_id,
         d.nickname as share_user_nickname,

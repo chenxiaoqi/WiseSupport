@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.constraints.NotEmpty;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -99,7 +100,7 @@ public class MembershipCardUserController extends BasePayController implements A
                 MembershipCard card = mcDao.loadCardByTradeNo(trade.getTradeNo());
                 int balance = mcDao.recharge(card.getCode(), trade.getFee());
                 mcDao.extendExpireDate(card.getMeta().getExtendMonth(), card.getCode());
-                billDao.add(trade.getTradeNo(), trade.getOpenId(), card.getCode(), Constant.PRODUCT_RECHARGE, trade.getFee(), balance);
+                billDao.add(trade.getTradeNo(), trade.getOpenId(), card.getCode(), Constant.PRODUCT_RECHARGE, trade.getFee(), balance, new Date());
             } else {
                 log.info("duplicate recharge event trade {}", trade.getTradeNo());
             }

@@ -98,7 +98,7 @@ public class BookingManageController implements ApplicationContextAware {
     public void releaseCourt(User user,
                              @RequestParam int bookingId) {
         Booking booking = bookingMapper.selectByPrimaryKey(bookingId);
-        if (booking.getFee() >= 0 && booking.getCharged()) {
+        if (booking.getFee() > 0 && booking.getCharged()) {
             throw new BusinessException("已经收费,场地费用大于0");
         }
 

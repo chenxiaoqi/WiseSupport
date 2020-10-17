@@ -4,6 +4,7 @@ import com.lazyman.timetennis.user.User;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
+import java.util.Date;
 import java.util.List;
 
 @Component
@@ -14,10 +15,10 @@ public class MembershipCardBillDao {
         this.template = template;
     }
 
-    public void add(String tradeNo, String openId, String code, String productType, int fee, int balance) {
+    public void add(String tradeNo, String openId, String code, String productType, int fee, int balance, Date feeTime) {
         template.update(
-                "insert into membership_card_bill (bill_no,open_id, code, product_type, fee, balance) values (?,?,?,?,?,?)",
-                tradeNo, openId, code, productType, fee, balance);
+                "insert into membership_card_bill (bill_no,open_id, code, product_type, fee, balance,create_time) values (?,?,?,?,?,?,?)",
+                tradeNo, openId, code, productType, fee, balance, feeTime);
     }
 
     List<MembershipCardBill> bills(String code) {
