@@ -4,7 +4,6 @@ import com.lazyman.timetennis.Constant;
 import com.lazyman.timetennis.booking.Booking;
 import com.lazyman.timetennis.booking.BookingMapper;
 import com.lazyman.timetennis.booking.BookingTool;
-import com.lazyman.timetennis.user.ChargeService;
 import com.lazyman.timetennis.user.User;
 import com.lazyman.timetennis.user.UserMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -18,21 +17,14 @@ import org.apache.poi.ss.usermodel.CellType;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.lang.NonNull;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
-
-@Component
-@Profile("timetennis")
 @Slf4j
 public class MonthlyStatisticTask implements ApplicationContextAware {
     private BookingMapper bookingMapper;
@@ -40,24 +32,28 @@ public class MonthlyStatisticTask implements ApplicationContextAware {
     private UserMapper userMapper;
 
     private JdbcTemplate template;
+
+    private String defaultArenaId;
+
     private ApplicationContext context;
 
-    public MonthlyStatisticTask(BookingMapper bookingMapper, UserMapper userMapper, JdbcTemplate template, ChargeService service) {
+    public MonthlyStatisticTask(BookingMapper bookingMapper, UserMapper userMapper, JdbcTemplate template) {
         this.bookingMapper = bookingMapper;
         this.userMapper = userMapper;
         this.template = template;
     }
 
     //    @Scheduled(fixedDelay = 3600000)
-    @Scheduled(cron = "${wx.stat-cron}")
-    @Transactional
+//    @Scheduled(cron = "${wx.stat-cron}")
+//    @Transactional
     public void run() {
         Date end = DateUtils.truncate(new Date(), Calendar.MONTH);
 //        Date end = DateUtils.truncate(DateUtils.addMonths(new Date(), 1), Calendar.MONTH);
         Date start = DateUtils.addMonths(end, -1);
 
         log.info("monthly statistic task start {}", Constant.FORMAT.format(start));
-        List<Booking> bookings = bookingMapper.query(null, start, end);
+        //todo
+        List<Booking> bookings = bookingMapper.notCharged(1, start, end);
         Collection<Statistic> statistics = calc(bookings, start);
 
         User operator = userMapper.selectByPrimaryKey(User.SYSTEM_USER);

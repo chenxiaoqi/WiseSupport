@@ -142,6 +142,7 @@ public class MembershipCardManageController {
         privilege.requireAccountant(user.getOpenId(), meta.getArena().getId());
 
         int balance = mcDao.recharge(code, fee);
+        mcDao.extendExpireDate(meta.getExtendMonth(), code);
         String tradeNo = WePayService.creatTradeNo(Constant.PRODUCT_RECHARGE);
         billDao.add(tradeNo, user.getOpenId(), code, Constant.PRODUCT_RECHARGE, fee, balance);
     }

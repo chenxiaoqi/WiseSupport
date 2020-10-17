@@ -36,7 +36,10 @@ public class BookingController implements ApplicationContextAware {
 
     private BookSchedulerRepository repository;
 
-    public BookingController(BookingMapper bookingMapper, @Value("${wx.default-arena-id}") int defaultArenaId, ArenaDao arenaDao, BookSchedulerRepository repository) {
+    public BookingController(BookingMapper bookingMapper,
+                             @Value("${wx.default-arena-id}") int defaultArenaId,
+                             ArenaDao arenaDao,
+                             BookSchedulerRepository repository) {
         this.bookingMapper = bookingMapper;
         this.defaultArenaId = defaultArenaId;
         this.arenaDao = arenaDao;
@@ -50,8 +53,8 @@ public class BookingController implements ApplicationContextAware {
         if (arenaId == null) {
             arenaId = defaultArenaId;
         }
+        Arena arena = arenaDao.load(arenaId);
         if (date == null) {
-            Arena arena = arenaDao.load(arenaId);
             start = DateUtils.truncate(new Date(), Calendar.DAY_OF_MONTH);
             end = DateUtils.addDays(start, arena.getAdvanceBookDays() - 1);
         } else {
@@ -60,7 +63,7 @@ public class BookingController implements ApplicationContextAware {
         }
 
         List<Booking> result = bookingMapper.queryInRange(arenaId, start, end);
-        result.forEach(item -> item.setCancelAble(BookingTool.cancelAble(item)));
+        result.forEach(item -> item.setCancelAble(BookingTool.cancelAble(item, arena.getRefundAdvanceHours())));
         return result;
     }
 
@@ -74,8 +77,9 @@ public class BookingController implements ApplicationContextAware {
 
     @GetMapping("/bookings")
     public List<Booking> bookings(String openId, Integer id) {
+        Arena arena = arenaDao.loadFull(this.defaultArenaId);
         List<Booking> result = bookingMapper.page(openId, id);
-        result.forEach((item) -> item.setCancelAble(BookingTool.cancelAble(item)));
+        result.forEach((item) -> item.setCancelAble(BookingTool.cancelAble(item, arena.getRefundAdvanceHours())));
         return result;
     }
 

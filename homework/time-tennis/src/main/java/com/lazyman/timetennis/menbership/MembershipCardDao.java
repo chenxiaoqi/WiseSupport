@@ -6,6 +6,7 @@ import com.lazyman.timetennis.user.User;
 import com.wisesupport.commons.exceptions.BusinessException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
+import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -108,8 +109,8 @@ public class MembershipCardDao {
         }, metaId);
     }
 
-    List<MembershipCard> userCardsInArena(String openId, int arenaId) {
-        return template.query("select a.code,a.open_id,a.balance,a.expire_date,c.id as meta_id, c.name,c.discount,c.initial_balance from membership_card a,membership_card_meta c where a.meta_id=c.id and a.open_id=? and c.arena_id=?", (rs, rowNum) -> {
+    public List<MembershipCard> userCardsInArena(String openId, int arenaId) {
+        return template.query("select a.code,a.open_id,a.balance,a.expire_date,c.id as meta_id, c.name,c.discount,c.initial_balance,c.extend_month from membership_card a,membership_card_meta c where a.meta_id=c.id and a.open_id=? and c.arena_id=?", (rs, rowNum) -> {
             MembershipCard card = new MembershipCard();
             populateCard(card, rs);
             return card;
@@ -117,7 +118,7 @@ public class MembershipCardDao {
     }
 
     List<MembershipCard> userCards(String openId) {
-        return template.query("select a.code,a.open_id,a.balance,a.expire_date,a.meta_id, b.name,b.discount,b.id as meta_id,b.initial_balance,c.id as arena_id,c.name as arena_name from membership_card a,membership_card_meta b,arena c where a.meta_id=b.id and b.arena_id=c.id and a.open_id=?", (rs, rowNum) -> {
+        return template.query("select a.code,a.open_id,a.balance,a.expire_date,a.meta_id, b.name,b.discount,b.id as meta_id,b.initial_balance,b.extend_month,c.id as arena_id,c.name as arena_name from membership_card a,membership_card_meta b,arena c where a.meta_id=b.id and b.arena_id=c.id and a.open_id=?", (rs, rowNum) -> {
             MembershipCard card = new MembershipCard();
             populateCard(card, rs);
 
@@ -129,17 +130,17 @@ public class MembershipCardDao {
         }, openId);
     }
 
-    public int chargeFee(String code, int fee) {
+    public int chargeFee(String code, int fee, boolean ignoreLowerBalance) {
         int balance = Objects.requireNonNull(template.queryForObject("select balance from membership_card where code=?", Integer.class, code));
         int result = balance - fee;
-        if (result < 0) {
+        if (result < 0 && !ignoreLowerBalance) {
             throw new BusinessException("账户余额不足");
         }
         Validate.isTrue(template.update("update membership_card set balance=? where balance=? and code=?", result, balance, code) == 1, "扣费并发冲突");
         return result;
     }
 
-    public int recharge(String code, int fee) {
+    int recharge(String code, int fee) {
         int balance = Objects.requireNonNull(template.queryForObject("select balance from membership_card where code=?", Integer.class, code));
         int result = balance + fee;
         Validate.isTrue(template.update("update membership_card set balance=? where code=? and balance=?", result, code, balance) == 1, "充值并发冲突");
@@ -147,7 +148,7 @@ public class MembershipCardDao {
     }
 
     public MembershipCard loadCard(String code) {
-        return template.queryForObject("select a.code,a.meta_id,a.open_id,a.balance,a.expire_date,b.name,b.discount,b.initial_balance from membership_card a,membership_card_meta b where a.meta_id=b.id and a.code=?", (rs, rowNum) -> {
+        return template.queryForObject("select a.code,a.meta_id,a.open_id,a.balance,a.expire_date,b.name,b.discount,b.initial_balance,b.extend_month from membership_card a,membership_card_meta b where a.meta_id=b.id and a.code=?", (rs, rowNum) -> {
             MembershipCard card = new MembershipCard();
             populateCard(card, rs);
             return card;
@@ -177,6 +178,7 @@ public class MembershipCardDao {
         meta.setDiscount(rs.getInt("discount"));
         meta.setId(rs.getInt("meta_id"));
         meta.setInitialBalance(rs.getInt("initial_balance"));
+        meta.setExtendMonth(rs.getInt("extend_month"));
         card.setMeta(meta);
     }
 
@@ -184,8 +186,13 @@ public class MembershipCardDao {
         return template.update("update trade_membership_card_recharge_r set finished=1 where trade_no=? and finished=0", tradeNo);
     }
 
-    String getCardCodeByTradeNo(String tradeNo) {
-        return template.queryForObject("select mc_code from trade_membership_card_recharge_r where trade_no=?", (rs, rowNum) -> rs.getString("mc_code"), tradeNo);
+    MembershipCard loadCardByTradeNo(String tradeNo) {
+        return template.queryForObject("select a.code,a.meta_id,a.open_id,a.balance,a.expire_date,b.name,b.discount,b.initial_balance,b.extend_month from trade_membership_card_recharge_r c, membership_card a,membership_card_meta b where c.mc_code=a.code and  a.meta_id=b.id and c.trade_no=?", (rs, rowNum) -> {
+                    MembershipCard card = new MembershipCard();
+                    populateCard(card, rs);
+                    return card;
+                },
+                tradeNo);
     }
 
     boolean hasMember(int metaId) {
@@ -226,6 +233,10 @@ public class MembershipCardDao {
             card.setUser(user);
             return card;
         }, args.toArray());
+    }
+
+    void extendExpireDate(int extendMonth, String code) {
+        template.update("update membership_card set expire_date=? where code=?", DateUtils.addMonths(new Date(), extendMonth), code);
     }
 }
 

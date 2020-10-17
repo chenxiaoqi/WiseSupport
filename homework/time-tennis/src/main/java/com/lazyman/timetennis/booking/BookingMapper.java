@@ -13,17 +13,15 @@ public interface BookingMapper {
 
     Booking selectByPrimaryKey(Integer id);
 
-    List<Booking> queryByDate(@Param("date") Date date, @Param("arenaId") int arenaId);
-
     List<Booking> queryInRange(@Param("arenaId") Integer arenaId, @Param("start") Date start, @Param("end") Date end);
 
-    int countBooked(@Param("openId") String openId, @Param("date") Date date, @Param("start") int startIndex);
+    int countBooked(@Param("openId") String openId, @Param("arenaId") int arenaId, @Param("date") Date date, @Param("start") int startIndex);
 
-    List<Booking> query(@Param("openId") String openId, @Param("startDate") Date startDate, @Param("endDate") Date endDate);
+    List<Booking> notCharged(@Param("arenaId") Integer arenaId, @Param("startDate") Date startDate, @Param("endDate") Date endDate);
 
     void deleteBooking(Booking booking);
 
-    void addShare(@Param("bookingId") int bookingId, @Param("openId") String openId);
+    void addShare(@Param("bookingId") int bookingId, @Param("openId") String openId, @Param("payNo") String payNo);
 
     void deleteShare(@Param("bookingId") int bookingId);
 
@@ -34,4 +32,8 @@ public interface BookingMapper {
     void updateBookingStatus(@Param("tradeNo") String tradeNo, @Param("status") String status);
 
     List<Booking> byPayNo(@Param("payNo") String payNo);
+
+    void setCharged(@Param("id") int id, @Param("payNo") String payNo);
+
+    void setSharePayNo(@Param("bookingId") Integer bookingId, @Param("openId") String openId, @Param("payNo") String payNo);
 }

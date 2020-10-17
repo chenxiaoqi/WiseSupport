@@ -8,14 +8,11 @@ alter table tt_booking
 create index idx_date_arena_id
     on tt_booking (date, arena_id);
 
-create index idx_date_arena_id
-    on tt_booking (arena_id, date);
-
 create index idx_open_id_date
     on tt_booking (open_id, date);
 
 alter table tt_booking
-    add pay_type varchar(4) null;
+    add pay_type varchar(4) default 'mc' null;
 
 alter table tt_booking
     add pay_no varchar(24) null;
@@ -50,8 +47,8 @@ CREATE TABLE `arena`
     `mch_id`               varchar(24)          DEFAULT NULL,
     `allow_half_hour`      tinyint(1)  NOT NULL DEFAULT '0',
     `book_at_least`        tinyint(4)  NOT NULL DEFAULT '1',
-    `refund_advance_hours` int(11)     NOT NULL DEFAULT '24',
-    `refund_times_limit`   int(11)     NOT NULL DEFAULT '0',
+    `refund_advance_hours` tinyint(4)  NOT NULL DEFAULT '24',
+    `refund_times_limit`   tinyint(4)  NOT NULL DEFAULT '0',
     PRIMARY KEY (`id`),
     KEY `idx_city_type` (`city`, `type`)
 ) ENGINE = InnoDB
@@ -193,3 +190,34 @@ CREATE TABLE `user_role`
     PRIMARY KEY (`open_id`, `role_name`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8;
+
+#=================================
+alter table booking_share
+    add pay_no varchar(24) null;
+
+alter table arena
+    add charge_strategy tinyint default 0 not null;
+
+alter table arena
+    add book_hours_limit tinyint default 0 not null;
+
+ALTER TABLE tt_user
+    CHANGE wx_nickname wx_nickname VARCHAR(64) CHARACTER SET utf8mb4;
+
+alter table monthly_stat
+    add cancel_times int null;
+
+alter table monthly_stat
+    alter column open_id drop default;
+
+alter table monthly_stat
+    alter column month drop default;
+
+alter table monthly_stat
+    modify fee int null;
+
+alter table monthly_stat
+    modify hours int null;
+
+alter table monthly_stat
+    modify balance int null;

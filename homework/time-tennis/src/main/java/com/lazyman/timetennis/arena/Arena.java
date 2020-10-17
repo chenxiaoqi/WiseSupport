@@ -29,5 +29,7 @@ public class Arena {
     private Integer bookAtLeast;
     private Integer refundTimesLimit;
     private Integer refundAdvanceHours;
+    private Integer chargeStrategy;
+    private Integer bookHoursLimit;
     private List<MembershipCardMeta> metas;
 }

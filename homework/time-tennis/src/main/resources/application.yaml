@@ -37,8 +37,7 @@ wx:
   pay-sp-bill-create-ip: 124.70.154.176
   pay-notify-url: https://vn.xiaoqicloud.cn/pay/notify
   pay-expire-minutes: 5
-  stat-cron: 0 0 1 1 1/1 ?
-  cancel-times-limit: 2
+  stat-cron: 0 0 1 2 1/1 ?
   images-path: images
   default-arena-id: 9
   default-court-id: 16

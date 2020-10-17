@@ -64,24 +64,6 @@
         where a.id = #{id,jdbcType=INTEGER}
     </select>
 
-
-    <select id="queryByDate" resultMap="BaseResultMap">
-        select id,
-               open_id,
-               court_id,
-               arena_id,
-               date,
-               start,
-               end,
-               fee,
-               charged,
-               update_time
-        from tt_booking
-        where date = #{date}
-          and arena_id = #{arenaId}
-          and status = 'ok'
-    </select>
-
     <select id="queryInRange" resultMap="BaseResultMap">
         select a.id,
                a.open_id,
@@ -91,6 +73,7 @@
                a.end,
                a.fee,
                a.pay_type,
+               a.pay_no,
                a.charged,
                a.update_time,
                b.nickname,
@@ -116,6 +99,8 @@
         select ifnull(sum(end - start + 1), 0)
         from tt_booking
         where open_id = #{openId}
+          and arena_id = #{arenaId}
+          and status = 'ok'
           and (date &gt; #{date} or (date = #{date} and start &gt;= #{start}))
     </select>
 
@@ -136,7 +121,8 @@
         left join booking_share c on a.id=c.booking_id
         left join tt_user d on c.open_id=d.open_id
     </select>
-    <select id="query" resultMap="BaseResultMap">
+
+    <select id="notCharged" resultMap="BaseResultMap">
         select a.id, a.open_id, a.date, a.arena_id,a.court_id, a.start, a.end,a.fee, a.charged, a.update_time,
         b.nickname,b.wx_nickname,b.avatar,b.vip,
         d.open_id as share_user_open_id,
@@ -148,12 +134,12 @@
         left join booking_share c on a.id=c.booking_id
         left join tt_user d on c.open_id=d.open_id
         <where>
-            <if test="openId!=null">a.open_id=#{openId}</if>
-            <if test="startDate!=null">
-                and a.date &gt;= #{startDate} and a.date &lt; #{endDate}
-            </if>
+            a.date &gt;= #{startDate} and a.date &lt; #{endDate}
+            and arena_id=#{arenaId}
+            and a.charged = false
+            and a.status='ok'
+            and a.pay_type='mc'
         </where>
-        order by a.update_time
     </select>
 
     <delete id="deleteBooking">
@@ -177,7 +163,7 @@
         where booking_id = #{bookingId}
     </delete>
     <select id="userBookings" resultMap="BaseResultMap">
-        select a.id, a.open_id, a.date, a.start, a.end,a.fee, a.charged, a.update_time,
+        select a.id, a.open_id, a.date, a.start, a.end,a.fee, a.charged, a.update_time,a.pay_type,a.pay_no,
         d.open_id as share_user_open_id,
         d.nickname as share_user_nickname,
         d.wx_nickname as share_user_wx_nickname,
@@ -185,7 +171,8 @@
         d.vip as share_user_vip,
         e.name as arena_name,
         f.name as court_name
-        from (select id, open_id, date,arena_id,court_id, start, end,fee, charged, update_time from tt_booking
+        from (select id, open_id, date,arena_id,court_id, start, end,fee, charged, update_time,pay_type,pay_no from
+        tt_booking
         <where>
             open_id=#{openId} and status='ok'
             <if test="history">and date &lt; #{now}</if>
@@ -205,11 +192,35 @@
         set status=#{status}
         where pay_no = #{tradeNo}
     </update>
+    <update id="setCharged">
+        update tt_booking
+        set charged= true,
+            pay_no=#{payNo}
+        where id = #{id}
+    </update>
 
+    <update id="setSharePayNo">
+        update booking_share
+        set pay_no=#{payNo}
+        where open_id = #{openId}
+          and booking_id = #{bookingId}
+    </update>
     <select id="byPayNo" resultMap="BaseResultMap">
-        select a.date, a.status, a.arena_id, a.court_id, a.start, a.end, b.name as court_name
+        select a.date,
+               a.status,
+               a.open_id,
+               a.arena_id,
+               a.court_id,
+               a.start,
+               a.charged,
+               a.end,
+               a.update_time,
+               a.pay_no,
+               b.name as court_name,
+               c.name as arena_name
         from tt_booking a
                  inner join court b on a.court_id = b.id
+                 inner join arena c on a.arena_id = c.id
         where a.pay_no = #{payNo}
         order by a.date
     </select>
