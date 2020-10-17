@@ -60,7 +60,7 @@ public class ChargeTask implements Runnable {
         } else {
             long startTime = System.currentTimeMillis();
             for (Integer arenaId : arenaIds) {
-                log.info("start charge arena {} {}-{}", arenaId, Constant.FORMAT.format(start), Constant.FORMAT.format(end));
+                log.info("start charge arena {} {} ~ {},charge strategy {}", arenaId, Constant.FORMAT.format(start), Constant.FORMAT.format(end), this.chargeStrategy);
                 charge(arenaId, start, end);
                 log.info("end charge arena {},elapse {}s", arenaId, (System.currentTimeMillis() - startTime) / 1000);
             }

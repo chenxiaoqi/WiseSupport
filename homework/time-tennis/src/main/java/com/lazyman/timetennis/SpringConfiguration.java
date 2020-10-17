@@ -18,7 +18,6 @@ import org.springframework.transaction.support.TransactionTemplate;
 import javax.net.ssl.SSLContext;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
-import java.time.Duration;
 
 @Configuration
 public class SpringConfiguration {
@@ -44,10 +43,12 @@ public class SpringConfiguration {
     @Bean
     public ChargeTask monthlyChargeTask(TaskScheduler scheduler, BookingMapper bookingMapper, ArenaDao arenaDao, MembershipCardService cardService, TransactionTemplate tt) {
         ChargeTask chargeTask = new ChargeTask(2, bookingMapper, arenaDao, cardService, tt);
-        scheduler.schedule(chargeTask, new CronTrigger("0 0 1 1 1/1 ?"));
+        scheduler.schedule(chargeTask, new CronTrigger("0 0 2 1 1/1 ?"));
+
 //        ChargeTask chargeTask = new ChargeTask(2, bookingMapper, arenaDao, cardService, tt);
 //        chargeTask.setToday("2020-11-07");
-        scheduler.scheduleAtFixedRate(chargeTask, Duration.ofMinutes(1));
+//        scheduler.scheduleAtFixedRate(chargeTask, Duration.ofMinutes(1));
+
         return chargeTask;
     }
 }
