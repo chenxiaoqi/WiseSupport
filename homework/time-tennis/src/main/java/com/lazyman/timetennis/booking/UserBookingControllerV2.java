@@ -251,6 +251,7 @@ public class UserBookingControllerV2 extends BasePayController implements Applic
             booking.setEnd(endTime);
             booking.setOpenId(user.getOpenId());
             booking.setFee(fee);
+            booking.setStatus("ok");
             booking.setPayType(code == null ? "wep" : "mc");
             if (postCharge) {
                 //会员卡支付且不是立即收费的,保存会员卡号到payNo,定时任务从这个卡里扣钱

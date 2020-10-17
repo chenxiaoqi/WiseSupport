@@ -1,5 +1,6 @@
 package com.lazyman.timetennis.arena;
 
+import com.lazyman.timetennis.booking.BookSchedulerRepository;
 import com.lazyman.timetennis.user.User;
 import com.wisesupport.commons.exceptions.BusinessException;
 import org.apache.commons.io.FileUtils;
@@ -38,12 +39,15 @@ public class ArenaManageController {
 
     private File imagesDir;
 
-    public ArenaManageController(ArenaDao arenaDao, RuleDao ruleDao, CourtDao courtDao, ArenaPrivilege privilege, @Value("${wx.images-path}") String imagesPath) {
+    private BookSchedulerRepository repository;
+
+    public ArenaManageController(ArenaDao arenaDao, RuleDao ruleDao, CourtDao courtDao, ArenaPrivilege privilege, @Value("${wx.images-path}") String imagesPath, BookSchedulerRepository repository) {
         this.arenaDao = arenaDao;
         this.ruleDao = ruleDao;
         this.courtDao = courtDao;
         this.privilege = privilege;
         this.imagesDir = new File(imagesPath);
+        this.repository = repository;
     }
 
     @GetMapping("/arena/{id}")
@@ -145,6 +149,7 @@ public class ArenaManageController {
         checkArenaPrivileges(user, arenaId);
         int courtId = courtDao.insert(arenaId, name, fee);
         insertCourtRuleRelation(courtId, ruleIds);
+        repository.invalidate(arenaId);
     }
 
     @PutMapping("/court")
@@ -304,6 +309,7 @@ public class ArenaManageController {
             throw new BuilderException("上线的场馆请至少保留一个在线的场地");
         }
         arenaDao.updateCourtStatus(courtId, arenaId, online ? "ol" : "ofl");
+        repository.invalidate(arenaId);
     }
 
     private void moveFile(String image, String name) throws IOException {

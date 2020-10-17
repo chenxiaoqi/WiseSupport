@@ -39,7 +39,7 @@ public class BookSchedulerRepository implements ApplicationListener<BookingCance
         return bs;
     }
 
-    void invalidate(int arenaId) {
+    public void invalidate(int arenaId) {
         cache.remove(arenaId);
     }
 
