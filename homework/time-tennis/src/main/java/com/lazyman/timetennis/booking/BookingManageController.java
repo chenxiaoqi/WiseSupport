@@ -81,6 +81,7 @@ public class BookingManageController implements ApplicationContextAware {
             booking.setCharged(true);
             booking.setOpenId(user.getOpenId());
             booking.setFee(0);
+            booking.setStatus("lock");
             bookings.add(booking);
         }
 
