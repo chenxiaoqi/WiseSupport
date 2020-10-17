@@ -67,3 +67,4 @@ logging:
 wx:
   default-arena-id: 1
   default-court-id: 1
+  images-path: /home/chenxiaoqi/app-data/timetennis/images

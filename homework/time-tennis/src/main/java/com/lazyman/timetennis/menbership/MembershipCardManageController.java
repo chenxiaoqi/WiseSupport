@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.constraints.NotEmpty;
+import java.util.Date;
 import java.util.List;
 
 @RestController
@@ -144,6 +145,6 @@ public class MembershipCardManageController {
         int balance = mcDao.recharge(code, fee);
         mcDao.extendExpireDate(meta.getExtendMonth(), code);
         String tradeNo = WePayService.creatTradeNo(Constant.PRODUCT_RECHARGE);
-        billDao.add(tradeNo, user.getOpenId(), code, Constant.PRODUCT_RECHARGE, fee, balance);
+        billDao.add(tradeNo, user.getOpenId(), code, Constant.PRODUCT_RECHARGE, fee, balance, new Date());
     }
 }

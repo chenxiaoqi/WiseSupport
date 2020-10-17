@@ -44,16 +44,16 @@ public class MembershipCardService {
         Validate.notNull(bill);
         int balance = mcDao.recharge(bill.getCode(), bill.getFee());
         String tradeNo = payNo + "-R";
-        billDao.add(tradeNo, user.getOpenId(), bill.getCode(), Constant.PRODUCT_REFUND, bill.getFee(), balance);
+        billDao.add(tradeNo, user.getOpenId(), bill.getCode(), Constant.PRODUCT_REFUND, bill.getFee(), balance, new Date());
     }
 
-    public void charge(String tradeNo, String openId, int fee, String productType, MembershipCard card, boolean ignoreLowerBalance) {
+    public void charge(String tradeNo, String openId, int fee, String productType, MembershipCard card, boolean ignoreLowerBalance, Date feeTime) {
         fee = fee * card.getMeta().getDiscount() / 100;
         int balance = card.getBalance();
         if (fee != 0) {
             balance = mcDao.chargeFee(card.getCode(), fee, ignoreLowerBalance);
         }
-        billDao.add(tradeNo, openId, card.getCode(), productType, fee, balance);
+        billDao.add(tradeNo, openId, card.getCode(), productType, fee, balance, feeTime);
     }
 
     //todo 正式上线后删除,直接根据code查找

@@ -2,11 +2,11 @@
 <configuration scan="true" scanPeriod="60 seconds" debug="false">
 
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>/home/chenxiaoqi/logs/lewin.log</file>
+        <file>/home/chenxiaoqi/app-data/lewin//logs/log.txt</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>/home/chenxiaoqi/logs/lewin-%d{yyyy-MM-dd}.log</fileNamePattern>
+            <fileNamePattern>/home/chenxiaoqi/app-data/lewin/logs/log-%d{yyyy-MM-dd}.txt</fileNamePattern>
             <maxHistory>30</maxHistory>
-            <totalSizeCap>15GB</totalSizeCap>
+            <totalSizeCap>5GB</totalSizeCap>
         </rollingPolicy>
         <encoder>
             <pattern>%d{HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n</pattern>

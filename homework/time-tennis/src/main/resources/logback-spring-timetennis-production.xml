@@ -2,9 +2,9 @@
 <configuration scan="true" scanPeriod="60 seconds" debug="false">
 
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>/home/chenxiaoqi/logs/timetennnis.log</file>
+        <file>/home/chenxiaoqi/app-data/timetennis/logs/log.txt</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>/home/chenxiaoqi/logs/timetennnis-%d{yyyy-MM-dd}.log</fileNamePattern>
+            <fileNamePattern>/home/chenxiaoqi/app-data/timetennis/logs/log-%d{yyyy-MM-dd}.txt</fileNamePattern>
             <maxHistory>30</maxHistory>
             <totalSizeCap>5GB</totalSizeCap>
         </rollingPolicy>

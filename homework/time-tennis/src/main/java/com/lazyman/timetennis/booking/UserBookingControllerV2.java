@@ -340,7 +340,7 @@ public class UserBookingControllerV2 extends BasePayController implements Applic
         if (card.getExpireDate().getTime() < System.currentTimeMillis()) {
             throw new BusinessException("卡已经过期");
         }
-        cardService.charge(tradeNo, user.getOpenId(), totalFee, Constant.PRODUCT_BOOKING, card, false);
+        cardService.charge(tradeNo, user.getOpenId(), totalFee, Constant.PRODUCT_BOOKING, card, false, new Date());
     }
 
     @Override

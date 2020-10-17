@@ -86,14 +86,14 @@ public class ChargeTask implements Runnable {
                                         User.SYSTEM_USER,
                                         average,
                                         Constant.PRODUCT_BOOKING_SHARE,
-                                        cardService.find(shareUser.getOpenId(), booking.getArena().getId()), true);
+                                        cardService.find(shareUser.getOpenId(), booking.getArena().getId()), true, booking.getUpdateTime());
                                 bookingMapper.setSharePayNo(booking.getId(), shareUser.getOpenId(), tradeNo);
                             }
                             fee = fee - average * booking.getShareUsers().size();
                         }
                         String productType = hasShared ? Constant.PRODUCT_BOOKING_SHARE : Constant.PRODUCT_BOOKING;
                         String tradeNo = WePayService.creatTradeNo(productType);
-                        cardService.charge(tradeNo, User.SYSTEM_USER, fee, productType, card, true);
+                        cardService.charge(tradeNo, User.SYSTEM_USER, fee, productType, card, true, booking.getUpdateTime());
                         bookingMapper.setCharged(booking.getId(), tradeNo);
                     } catch (Exception e) {
                         log.error("charge booking {} failed", booking.getId());
