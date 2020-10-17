@@ -63,3 +63,7 @@ spring:
     password: ${wx.mysql-password}
 logging:
   config: classpath:logback-spring-timetennis-production.xml
+
+wx:
+  default-arena-id: 1
+  default-court-id: 1
