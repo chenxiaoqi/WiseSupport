@@ -62,4 +62,4 @@ spring:
     username: timetennis
     password: ${wx.mysql-password}
 logging:
-  config: classpath:logback-spring-production.xml
+  config: classpath:logback-spring-timetennis-production.xml
