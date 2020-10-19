@@ -19,12 +19,15 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.lang.NonNull;
+import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
+
+@Component
 @Slf4j
 public class MonthlyStatisticTask implements ApplicationContextAware {
     private BookingMapper bookingMapper;

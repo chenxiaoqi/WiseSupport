@@ -79,7 +79,6 @@ public class ArenaManageController {
 
     @GetMapping("/arenas")
     public List<Arena> arenas(User user) {
-        checkPrivileges(user);
         return arenaDao.arenas(user.getOpenId());
     }
 
@@ -87,8 +86,7 @@ public class ArenaManageController {
     public List<Rule> rules(User user,
                             @RequestParam int arenaId,
                             Integer type) {
-        checkPrivileges(user);
-        checkArenaPrivileges(user, arenaId);
+        privilege.requireAdministrator(user.getOpenId(), arenaId);
         return ruleDao.rules(arenaId, type);
     }
 
@@ -97,7 +95,7 @@ public class ArenaManageController {
                            @RequestParam int id) {
         Rule rule = ruleDao.load(id);
         Validate.notNull(rule);
-        checkArenaPrivileges(user, rule.getArenaId());
+        privilege.requireAdministrator(user.getOpenId(), rule.getArenaId());
         if (ruleDao.used(id)) {
             throw new BusinessException("该规则已经被使用,请先到场地中删除");
         }
@@ -106,8 +104,9 @@ public class ArenaManageController {
 
     @GetMapping("/rule/{id}")
     public Rule rule(User user, @PathVariable int id) {
-        checkPrivileges(user);
-        return ruleDao.load(id);
+        Rule rule = ruleDao.load(id);
+        privilege.requireAdministrator(user.getOpenId(), rule.getArenaId());
+        return rule;
     }
 
     @PutMapping("/rule")
@@ -115,20 +114,20 @@ public class ArenaManageController {
                            Rule rule) {
         Rule dbRule = ruleDao.load(rule.getId());
         Validate.notNull(dbRule);
-        checkArenaPrivileges(user, dbRule.getArenaId());
+        privilege.requireAdministrator(user.getOpenId(), dbRule.getArenaId());
         ruleDao.update(rule);
     }
 
     @PostMapping("/rule")
     public void insertRule(User user, Rule rule) {
-        checkArenaPrivileges(user, rule.getArenaId());
+        privilege.requireAdministrator(user.getOpenId(), rule.getArenaId());
         ruleDao.insert(rule);
     }
 
     @GetMapping("/court/{id}")
     public Court court(User user, @PathVariable int id) {
-        checkPrivileges(user);
         Court court = courtDao.load(id);
+        privilege.requireAdministrator(user.getOpenId(), court.getArenaId());
         List<Rule> rules = ruleDao.courtRules(new Object[]{id});
         for (Rule rule : rules) {
             if (rule.getType() == 1) {
@@ -146,7 +145,7 @@ public class ArenaManageController {
                          @RequestParam @NotEmpty String name,
                          @RequestParam int fee,
                          @RequestParam(required = false) String ruleIds) {
-        checkArenaPrivileges(user, arenaId);
+        privilege.requireAdministrator(user.getOpenId(), arenaId);
         int courtId = courtDao.insert(arenaId, name, fee);
         insertCourtRuleRelation(courtId, ruleIds);
         repository.invalidate(arenaId);
@@ -161,7 +160,7 @@ public class ArenaManageController {
                             @RequestParam(required = false) String ruleIds) {
         Court court = courtDao.load(id);
         Validate.notNull(court);
-        checkArenaPrivileges(user, court.getArenaId());
+        privilege.requireAdministrator(user.getOpenId(), court.getArenaId());
         courtDao.update(id, court.getArenaId(), name, fee);
         ruleDao.deleteCourtRelation(id);
         insertCourtRuleRelation(id, ruleIds);
@@ -169,7 +168,6 @@ public class ArenaManageController {
 
     @PostMapping("/upload")
     public String upload(MultipartFile image) throws IOException {
-//        checkPrivileges(user);
         String tn = TEMP_FILE_PREFIX + System.currentTimeMillis() + "." + MimeType.valueOf(Objects.requireNonNull(image.getContentType())).getSubtype();
         try (FileOutputStream out = new FileOutputStream(new File(imagesDir, tn))) {
             IOUtils.copy(image.getInputStream(), out);
@@ -180,7 +178,9 @@ public class ArenaManageController {
     @PostMapping("/arena")
     @Transactional(rollbackFor = {IOException.class, RuntimeException.class})
     public void addArena(User user, Arena arena) throws IOException {
-        checkPrivileges(user);
+        if (!user.isSuperAdmin()) {
+            throw new BusinessException("需要系统管理员权限");
+        }
         int id = arenaDao.insert(arena);
         String[] images = arena.getImages();
         String[] names = new String[images.length];
@@ -196,7 +196,7 @@ public class ArenaManageController {
     @PutMapping("/arena")
     @Transactional(rollbackFor = {IOException.class, RuntimeException.class})
     public void updateArena(User user, Arena arena) throws IOException {
-        checkArenaPrivileges(user, arena.getId());
+        privilege.requireAdministrator(user.getOpenId(), arena.getId());
 
         Arena dbArena = arenaDao.load(arena.getId());
         String[] ons = dbArena.getImages();
@@ -232,7 +232,7 @@ public class ArenaManageController {
 
     @PostMapping("/arena/status")
     public void updateArenaStatus(User user, int arenaId, boolean online) {
-        checkArenaPrivileges(user, arenaId);
+        privilege.requireAdministrator(user.getOpenId(), arenaId);
         if (online && courtDao.onLineCourts(arenaId).isEmpty()) {
             throw new BuilderException("该场馆还没有上线的场地");
         }
@@ -303,7 +303,7 @@ public class ArenaManageController {
 
     @PostMapping("/court/status")
     public void updateCourtStatus(User user, int courtId, int arenaId, boolean online) {
-        checkArenaPrivileges(user, arenaId);
+        privilege.requireAdministrator(user.getOpenId(), arenaId);
         Arena arena = arenaDao.load(arenaId);
         if (!online && arena.getStatus().equals("ol") && courtDao.onLineCourts(arenaId).size() <= 1) {
             throw new BuilderException("上线的场馆请至少保留一个在线的场地");
@@ -325,19 +325,6 @@ public class ArenaManageController {
                 String rId = rIds[i];
                 ruleDao.insertCourtRelation(id, Integer.parseInt(rId), i);
             }
-        }
-    }
-
-    private void checkPrivileges(User user) {
-        if (!user.isArenaAdmin()) {
-            throw new BusinessException("对不起,您没有权限没有权限");
-        }
-    }
-
-    private void checkArenaPrivileges(User user, int arenaId) {
-        if (!user.isSuperAdmin()) {
-            checkPrivileges(user);
-            privilege.requireAdministrator(user.getOpenId(), arenaId);
         }
     }
 }
