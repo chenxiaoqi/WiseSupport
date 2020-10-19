@@ -5,5 +5,5 @@ spring:
     password: ${wx.mysql-password}
 
 wx:
-  pay-use-sandbox: true
+  pay-use-sandbox: false
   pay-notify-url: https://www.xiaoqicloud.cn/lewin/pay/notify

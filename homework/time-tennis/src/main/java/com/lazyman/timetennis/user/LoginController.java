@@ -2,6 +2,7 @@ package com.lazyman.timetennis.user;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.lazyman.timetennis.arena.ArenaPrivilege;
 import com.lazyman.timetennis.core.WeXinService;
 import com.lazyman.timetennis.core.WeXinToken;
 import com.lazyman.timetennis.privilege.RoleDao;
@@ -29,16 +30,19 @@ public class LoginController {
 
     private RoleDao roleDao;
 
+    private ArenaPrivilege arenaPrivilege;
+
     private UserCoder coder;
 
     private WeXinService weXinService;
 
     public LoginController(UserMapper userMapper,
                            RoleDao roleDao,
-                           UserCoder coder,
+                           ArenaPrivilege arenaPrivilege, UserCoder coder,
                            WeXinService weXinService) {
         this.userMapper = userMapper;
         this.roleDao = roleDao;
+        this.arenaPrivilege = arenaPrivilege;
         this.coder = coder;
         this.weXinService = weXinService;
     }
@@ -74,9 +78,7 @@ public class LoginController {
             }
         }
         result.setSuperAdmin(roleDao.isSuperAdmin(result.getOpenId()));
-        result.setArenaAdmin(roleDao.isAreaAdmin(result.getOpenId()));
-        result.setAccountant(roleDao.isAccountant(result.getOpenId()));
-
+        result.setArenaAdmin(arenaPrivilege.hasArena(result.getOpenId()));
         //保存到cookie里
         coder.encode(result, resp);
 

@@ -27,6 +27,7 @@ public class User implements Serializable {
 
     private Integer balance;
 
+    //todo 用不着了,考虑反序列化问题后删除
     private Boolean accountant;
 
     private Boolean superAdmin;
@@ -51,8 +52,9 @@ public class User implements Serializable {
         this.arenaAdmin = arenaAdmin;
     }
 
+    //todo 删除需要考虑token序列化
     public Boolean isAccountant() {
-        return accountant;
+        return false;
     }
 
     public Boolean isSuperAdmin() {

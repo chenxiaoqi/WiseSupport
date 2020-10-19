@@ -25,14 +25,6 @@ public class RoleDao {
         return isRoleOf(openId, "super");
     }
 
-    public boolean isAreaAdmin(String openId) {
-        return isRoleOf(openId, "arena_admin");
-    }
-
-    public boolean isAccountant(String openId) {
-        return isRoleOf(openId, "account");
-    }
-
     int revoke(String openId, String roleName) {
         return template.update("delete  from user_role where open_id=? and role_name=?", openId, roleName);
     }

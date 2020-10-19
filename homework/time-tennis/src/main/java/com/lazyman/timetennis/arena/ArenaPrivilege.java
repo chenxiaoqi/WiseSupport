@@ -28,6 +28,10 @@ public class ArenaPrivilege {
         }
     }
 
+    public boolean hasArena(String openId) {
+        return Objects.requireNonNull(template.query("select 1 from arena_role where open_id=? and role=? limit 1", ResultSet::next, openId, "admin"));
+    }
+
     private boolean isRoleOf(String openId, int arenaId, String role) {
         return Objects.requireNonNull(template.query("select 1 from arena_role where open_id=? and arena_id=? and role=?", ResultSet::next, openId, arenaId, role));
     }

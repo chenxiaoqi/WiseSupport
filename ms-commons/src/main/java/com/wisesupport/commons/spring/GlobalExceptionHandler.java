@@ -4,9 +4,11 @@ import com.wisesupport.commons.exceptions.BusinessException;
 import com.wisesupport.commons.exceptions.LoginTimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.bind.ServletRequestBindingException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -26,7 +28,7 @@ public class GlobalExceptionHandler {
             response.setStatus(401);
             log.debug("handle {} failed", request.getRequestURI(), throwable);
         } else {
-            if (throwable instanceof BusinessException) {
+            if (throwable instanceof BusinessException || throwable instanceof MethodArgumentTypeMismatchException || throwable instanceof ServletRequestBindingException) {
                 log.debug("handle {} failed", request.getRequestURI(), throwable);
             } else {
                 log.error("handle {} failed", request.getRequestURI(), throwable);
