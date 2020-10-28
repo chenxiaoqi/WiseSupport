@@ -30,13 +30,11 @@
         <constructor-arg index="0" value="1"/>
     </bean>
 
-
     <bean id="runs" class="com.lazyman.timetennis.task.CompositeRunnable">
         <constructor-arg>
             <list value-type="java.lang.Runnable">
                 <bean parent="chargeTask">
                     <constructor-arg index="0" value="2"/>
-                    <property name="today" value="2020-11-01"/>
                 </bean>
                 <bean class="com.lazyman.timetennis.statistic.MonthlyExportTask">
                     <constructor-arg ref="bookingMapper"/>
@@ -44,7 +42,6 @@
                     <constructor-arg ref="payDao"/>
                     <constructor-arg ref="membershipCardBillDao"/>
                     <constructor-arg value="${wx.reports-dir}"/>
-                    <property name="today" value="2020-11-01"/>
                 </bean>
             </list>
         </constructor-arg>
