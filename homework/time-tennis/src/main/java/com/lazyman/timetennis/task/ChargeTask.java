@@ -4,6 +4,7 @@ import com.lazyman.timetennis.Constant;
 import com.lazyman.timetennis.arena.ArenaDao;
 import com.lazyman.timetennis.booking.Booking;
 import com.lazyman.timetennis.booking.BookingMapper;
+import com.lazyman.timetennis.booking.QueryParam;
 import com.lazyman.timetennis.menbership.MembershipCard;
 import com.lazyman.timetennis.menbership.MembershipCardService;
 import com.lazyman.timetennis.user.User;
@@ -28,11 +29,7 @@ public class ChargeTask implements Runnable {
     private ArenaDao arenaDao;
     private MembershipCardService cardService;
     private TransactionTemplate tt;
-
-    private Date start;
-    private Date end;
     private String today;
-
 
     public ChargeTask(int chargeStrategy, BookingMapper bookingMapper, ArenaDao arenaDao, MembershipCardService cardService, TransactionTemplate tt) {
         this.chargeStrategy = chargeStrategy;
@@ -46,12 +43,14 @@ public class ChargeTask implements Runnable {
     }
 
     public void run() {
+        Date start;
+        Date end;
         if (chargeStrategy == 1) {
-            this.end = DateUtils.truncate(getToday(), Calendar.DAY_OF_MONTH);
-            this.start = DateUtils.addDays(end, -1);
+            end = DateUtils.truncate(getToday(), Calendar.DAY_OF_MONTH);
+            start = DateUtils.addDays(end, -1);
         } else {
-            this.end = DateUtils.truncate(getToday(), Calendar.MONTH);
-            this.start = DateUtils.addMonths(end, -1);
+            end = DateUtils.truncate(getToday(), Calendar.MONTH);
+            start = DateUtils.addMonths(end, -1);
         }
 
         List<Integer> arenaIds = arenaDao.arenaIdsByChargeStrategy(this.chargeStrategy);
@@ -68,7 +67,13 @@ public class ChargeTask implements Runnable {
     }
 
     private void charge(Integer arenaId, Date start, Date end) {
-        List<Booking> bookings = bookingMapper.notCharged(arenaId, start, end);
+        QueryParam param = new QueryParam();
+        param.setStart(start);
+        param.setEnd(end);
+        param.setArenaId(arenaId);
+        param.setStatus("ok");
+        param.setCharged(false);
+        List<Booking> bookings = bookingMapper.queryInDateRange(param);
         for (Booking booking : bookings) {
             tt.execute(new TransactionCallbackWithoutResult() {
                 @Override

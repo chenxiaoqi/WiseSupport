@@ -196,7 +196,9 @@ public class ArenaManageController {
     @PutMapping("/arena")
     @Transactional(rollbackFor = {IOException.class, RuntimeException.class})
     public void updateArena(User user, Arena arena) throws IOException {
-        privilege.requireAdministrator(user.getOpenId(), arena.getId());
+        if (!user.isSuperAdmin()) {
+            throw new BusinessException("需要系统管理员权限");
+        }
 
         Arena dbArena = arenaDao.load(arena.getId());
         String[] ons = dbArena.getImages();

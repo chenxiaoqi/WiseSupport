@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans
-       http://www.springframework.org/schema/beans/spring-beans.xsd">
+       xmlns:task="http://www.springframework.org/schema/task"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd">
 
     <bean name="sessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
         <property name="dataSource" ref="dataSource"/>
@@ -16,4 +17,48 @@
     </bean>
 
     <bean class="org.springframework.validation.beanvalidation.MethodValidationPostProcessor"/>
+
+
+    <bean id="chargeTask" abstract="true" class="com.lazyman.timetennis.task.ChargeTask">
+        <constructor-arg index="1" ref="bookingMapper"/>
+        <constructor-arg index="2" ref="arenaDao"/>
+        <constructor-arg index="3" ref="membershipCardService"/>
+        <constructor-arg index="4" ref="transactionTemplate"/>
+    </bean>
+
+    <bean id="dailyCharge" parent="chargeTask">
+        <constructor-arg index="0" value="1"/>
+    </bean>
+
+
+    <bean id="runs" class="com.lazyman.timetennis.task.CompositeRunnable">
+        <constructor-arg>
+            <list value-type="java.lang.Runnable">
+                <bean parent="chargeTask">
+                    <constructor-arg index="0" value="2"/>
+                    <property name="today" value="2020-11-01"/>
+                </bean>
+                <bean class="com.lazyman.timetennis.statistic.MonthlyExportTask">
+                    <constructor-arg ref="bookingMapper"/>
+                    <constructor-arg ref="arenaDao"/>
+                    <constructor-arg ref="payDao"/>
+                    <constructor-arg ref="membershipCardBillDao"/>
+                    <constructor-arg value="${wx.reports-dir}"/>
+                    <property name="today" value="2020-11-01"/>
+                </bean>
+            </list>
+        </constructor-arg>
+    </bean>
+
+    <task:scheduled-tasks>
+        <task:scheduled ref="dailyCharge" method="run" fixed-delay="600000"/>
+        <task:scheduled ref="runs" method="run" fixed-delay="600000"/>
+    </task:scheduled-tasks>
+
+    <beans profile="production || timetennis-production">
+        <task:scheduled-tasks>
+            <task:scheduled ref="dailyCharge" method="run" cron="0 0 1 * 1/1 ?"/>
+            <task:scheduled ref="runs" method="run" cron="0 0 2 1 1/1 ?"/>
+        </task:scheduled-tasks>
+    </beans>
 </beans>

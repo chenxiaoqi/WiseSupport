@@ -39,7 +39,7 @@ public class ArenaDao {
     }
 
     public Arena load(int id) {
-        return template.queryForObject("select id,name,type,province,city,district,address,images,book_style,phone,introduction,advance_book_days,book_start_hour,book_end_hour,status,mch_id,allow_half_hour,book_at_least,refund_advance_hours,refund_times_limit,charge_strategy,book_hours_limit from arena where id=?", (rs, rowNum) -> {
+        return template.queryForObject("select id,name,type,province,city,district,address,images,book_style,phone,introduction,advance_book_days,book_start_hour,book_end_hour,status,mch_id,allow_half_hour,book_at_least,refund_advance_hours,refund_times_limit,charge_strategy,book_hours_limit,latitude,longitude from arena where id=?", (rs, rowNum) -> {
             Arena result = new Arena();
             populateArenaProperties(rs, result);
             result.setType(rs.getInt("type"));
@@ -54,6 +54,8 @@ public class ArenaDao {
             result.setRefundTimesLimit(rs.getInt("refund_times_limit"));
             result.setChargeStrategy(rs.getInt("charge_strategy"));
             result.setBookHoursLimit(rs.getInt("book_hours_limit"));
+            result.setLatitude(rs.getFloat("latitude"));
+            result.setLongitude(rs.getFloat("longitude"));
             return result;
         }, id);
     }
@@ -116,7 +118,7 @@ public class ArenaDao {
 
     @CacheEvict(value = Constant.CK_CITIES, allEntries = true)
     public int insert(Arena arena) {
-        String sql = "insert into arena (name, type, address, province, city, district, phone, introduction, advance_book_days, book_start_hour, book_end_hour,allow_half_hour,book_at_least,refund_times_limit,refund_advance_hours,charge_strategy,book_hours_limit) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+        String sql = "insert into arena (name, type, address, province, city, district, phone, introduction, advance_book_days, book_start_hour, book_end_hour,allow_half_hour,book_at_least,refund_times_limit,refund_advance_hours,charge_strategy,book_hours_limit,latitude,longitude) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
         PreparedStatementCreatorFactory psf =
                 new PreparedStatementCreatorFactory(sql,
                         Types.VARCHAR,
@@ -135,7 +137,9 @@ public class ArenaDao {
                         Types.TINYINT,
                         Types.TINYINT,
                         Types.TINYINT,
-                        Types.TINYINT);
+                        Types.TINYINT,
+                        Types.NUMERIC,
+                        Types.NUMERIC);
         psf.setReturnGeneratedKeys(true);
         KeyHolder holder = new GeneratedKeyHolder();
         template.update(psf.newPreparedStatementCreator(
@@ -156,7 +160,9 @@ public class ArenaDao {
                         arena.getRefundTimesLimit(),
                         arena.getRefundAdvanceHours(),
                         arena.getChargeStrategy(),
-                        arena.getBookHoursLimit()
+                        arena.getBookHoursLimit(),
+                        arena.getLatitude(),
+                        arena.getLongitude()
                 }
         ), holder);
         return Objects.requireNonNull(holder.getKey()).intValue();
@@ -175,7 +181,7 @@ public class ArenaDao {
             @CacheEvict(value = Constant.CK_ARENA, key = "#arena.id")
     })
     public void update(Arena arena) {
-        String sql = "update arena set name=?,type=?,province=?,city=?,district=?,address=?,phone=?,advance_book_days=?,book_start_hour=?,book_end_hour=?,introduction=?,images=?,allow_half_hour=?,book_at_least=?,refund_advance_hours=?,refund_times_limit=?,charge_strategy=?,book_hours_limit=? where id=?";
+        String sql = "update arena set name=?,type=?,province=?,city=?,district=?,address=?,phone=?,advance_book_days=?,book_start_hour=?,book_end_hour=?,introduction=?,images=?,allow_half_hour=?,book_at_least=?,refund_advance_hours=?,refund_times_limit=?,charge_strategy=?,book_hours_limit=?,latitude=?,longitude=? where id=?";
         template.update(sql,
                 arena.getName(),
                 arena.getType(),
@@ -195,6 +201,8 @@ public class ArenaDao {
                 arena.getRefundTimesLimit(),
                 arena.getChargeStrategy(),
                 arena.getBookHoursLimit(),
+                arena.getLatitude(),
+                arena.getLongitude(),
                 arena.getId());
     }
 
@@ -229,6 +237,10 @@ public class ArenaDao {
             result.setMchId(rs.getString("mch_id"));
             return result;
         }, name);
+    }
+
+    public List<Integer> arenaIds() {
+        return template.query("select id from arena", (rs, rowNum) -> rs.getInt("id"));
     }
 
     List<User> admins(int arenaId) {
