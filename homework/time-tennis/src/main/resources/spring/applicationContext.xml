@@ -50,10 +50,10 @@
         </constructor-arg>
     </bean>
 
-    <task:scheduled-tasks>
-        <task:scheduled ref="dailyCharge" method="run" fixed-delay="600000"/>
-        <task:scheduled ref="runs" method="run" fixed-delay="600000"/>
-    </task:scheduled-tasks>
+    <!--    <task:scheduled-tasks>-->
+    <!--        <task:scheduled ref="dailyCharge" method="run" fixed-delay="600000"/>-->
+    <!--        <task:scheduled ref="runs" method="run" fixed-delay="600000"/>-->
+    <!--    </task:scheduled-tasks>-->
 
     <beans profile="production || timetennis-production">
         <task:scheduled-tasks>
