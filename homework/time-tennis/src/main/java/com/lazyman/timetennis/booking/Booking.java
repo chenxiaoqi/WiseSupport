@@ -32,7 +32,7 @@ public class Booking implements Serializable {
 
     private Integer fee;
 
-    private List<User> shareUsers;
+    private List<Share> shareUsers;
 
     private String payNo;
 
@@ -40,11 +40,11 @@ public class Booking implements Serializable {
 
     private String status;
 
-    public List<User> getShareUsers() {
+    public List<Share> getShareUsers() {
         return shareUsers;
     }
 
-    public void setShareUsers(List<User> shareUsers) {
+    public void setShareUsers(List<Share> shareUsers) {
         this.shareUsers = shareUsers;
     }
 

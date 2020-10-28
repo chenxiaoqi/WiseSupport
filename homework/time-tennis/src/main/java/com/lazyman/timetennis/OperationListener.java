@@ -5,7 +5,6 @@ import com.lazyman.timetennis.booking.Booking;
 import com.lazyman.timetennis.booking.BookingTool;
 import com.lazyman.timetennis.log.Operation;
 import com.lazyman.timetennis.log.OperationMapper;
-import com.lazyman.timetennis.statistic.MonthFeeEvent;
 import com.lazyman.timetennis.user.BalanceEvent;
 import com.lazyman.timetennis.user.User;
 import com.lazyman.timetennis.user.UserMapper;
@@ -64,16 +63,6 @@ public class OperationListener {
         } else {
             operation.setDescription(String.format("[%s]原账户余额%s,充值%s元,充值后账户余额%s", event.getTarget().getWxNickname(), event.getBalance(), event.getFee(), event.getTarget().getBalance()));
         }
-        save(operation);
-    }
-
-    @EventListener(MonthFeeEvent.class)
-    public void onMonthFee(MonthFeeEvent event) {
-        User user = event.getOperator();
-        Operation operation = new Operation();
-        operation.setOperatorId(user.getOpenId());
-        operation.setOperationType(event.getOperationType());
-        operation.setDescription("月度账单已经生成");
         save(operation);
     }
 }

@@ -31,5 +31,7 @@ public class Arena {
     private Integer refundAdvanceHours;
     private Integer chargeStrategy;
     private Integer bookHoursLimit;
+    private Float latitude;
+    private Float longitude;
     private List<MembershipCardMeta> metas;
 }

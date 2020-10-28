@@ -7,7 +7,7 @@ spring:
     default-property-inclusion: non_null
   datasource:
     driver-class-name: com.mysql.jdbc.Driver
-    url: jdbc:mysql://192.168.1.20:3306/timetennis?useUnicode=true&characterEncoding=UTF-8&useSSL=false
+    url: jdbc:mysql://localhost:3306/lewin?useUnicode=true&characterEncoding=UTF-8&useSSL=false
     username: chenxiaoqi
     password: chenxiaoqi
     hikari:
@@ -37,8 +37,9 @@ wx:
   pay-sp-bill-create-ip: 124.70.154.176
   pay-notify-url: https://vn.xiaoqicloud.cn/pay/notify
   pay-expire-minutes: 5
-  stat-cron: 0 0 1 2 1/1 ?
-  images-path: images
+  data-path: data
+  images-path: ${wx.data-path}/images
+  reports-dir: ${wx.data-path}/reports
   default-arena-id: 9
   default-court-id: 16
 
@@ -46,7 +47,7 @@ wx:
 spring:
   profiles: timetennis
   datasource:
-    url: jdbc:mysql://192.168.1.20:3306/timetennis_old?useUnicode=true&characterEncoding=UTF-8&useSSL=false
+    url: jdbc:mysql://localhost:3306/timetennis?useUnicode=true&characterEncoding=UTF-8&useSSL=false
 server:
   port: 8090
 wx:
@@ -67,4 +68,4 @@ logging:
 wx:
   default-arena-id: 1
   default-court-id: 1
-  images-path: /home/chenxiaoqi/app-data/timetennis/images
+  data-path: /home/chenxiaoqi/app-data/timetennis

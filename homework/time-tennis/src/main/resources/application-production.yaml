@@ -8,4 +8,4 @@ logging:
 
 wx:
   pay-use-sandbox: false
-  images-path: /home/chenxiaoqi/app-data/lewin/images
+  data-path: /home/chenxiaoqi/app-data/lewin

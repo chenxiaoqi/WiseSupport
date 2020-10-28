@@ -17,7 +17,7 @@ public interface BookingMapper {
 
     int countBooked(@Param("openId") String openId, @Param("arenaId") int arenaId, @Param("date") Date date, @Param("start") int startIndex);
 
-    List<Booking> notCharged(@Param("arenaId") Integer arenaId, @Param("startDate") Date startDate, @Param("endDate") Date endDate);
+    List<Booking> queryInDateRange(QueryParam param);
 
     void deleteBooking(Booking booking);
 
