@@ -19,16 +19,7 @@ public class User implements Serializable {
 
     private String avatar;
 
-    private Boolean vip;
-
     private Date updateTime;
-
-    private Boolean admin;
-
-    private Integer balance;
-
-    //todo 用不着了,考虑反序列化问题后删除
-    private Boolean accountant;
 
     private Boolean superAdmin;
 
@@ -52,38 +43,16 @@ public class User implements Serializable {
         this.arenaAdmin = arenaAdmin;
     }
 
-    //todo 删除需要考虑token序列化
-    public Boolean isAccountant() {
-        return false;
-    }
-
     public Boolean isSuperAdmin() {
         return superAdmin;
-    }
-
-
-    public void setAccountant(Boolean accountant) {
-        this.accountant = accountant;
     }
 
     public void setSuperAdmin(Boolean superAdmin) {
         this.superAdmin = superAdmin;
     }
 
-    public Integer getBalance() {
-        return balance;
-    }
-
-    public void setBalance(Integer balance) {
-        this.balance = balance;
-    }
-
     public Boolean getAdmin() {
         return arenaAdmin;
-    }
-
-    public void setAdmin(Boolean admin) {
-        this.admin = admin;
     }
 
     public String getOpenId() {
@@ -116,14 +85,6 @@ public class User implements Serializable {
 
     public void setAvatar(String avatar) {
         this.avatar = avatar == null ? null : avatar.trim();
-    }
-
-    public Boolean getVip() {
-        return vip;
-    }
-
-    public void setVip(Boolean vip) {
-        this.vip = vip;
     }
 
     public Date getUpdateTime() {

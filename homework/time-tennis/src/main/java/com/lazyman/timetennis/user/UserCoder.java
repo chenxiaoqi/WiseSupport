@@ -71,7 +71,10 @@ public class UserCoder {
     private User decode(byte[] bytes) throws IOException {
         DataInputStream din = new DataInputStream(new ByteArrayInputStream(bytes));
         String version = din.readUTF();
-
+        if (!"v2".equals(version)) {
+            log.info("version {} not match", version);
+            return null;
+        }
         long timestamp = din.readLong();
         if (timestamp + DateUtils.MILLIS_PER_HOUR * 24 < System.currentTimeMillis()) {
             return null;
@@ -80,24 +83,18 @@ public class UserCoder {
         user.setOpenId(din.readUTF());
         user.setArenaAdmin(din.readBoolean());
         user.setSuperAdmin(din.readBoolean());
-        user.setVip(din.readBoolean());
-        user.setAccountant(din.readBoolean());
-        user.setBalance(din.readInt());
         return user;
     }
 
     private static byte[] toBytes(User user) throws IOException {
         ByteArrayOutputStream out = new ByteArrayOutputStream(256);
         DataOutputStream dout = new DataOutputStream(out);
-        dout.writeUTF("v1");
+        dout.writeUTF("v2");
         dout.writeLong(System.currentTimeMillis());
 
         dout.writeUTF(user.getOpenId());
         dout.writeBoolean(user.isArenaAdmin());
         dout.writeBoolean(user.isSuperAdmin());
-        dout.writeBoolean(user.getVip());
-        dout.writeBoolean(user.isAccountant());
-        dout.writeInt(user.getBalance());
         return out.toByteArray();
     }
 
@@ -129,19 +126,6 @@ public class UserCoder {
     }
 
     public static void main(String[] args) throws IOException, DecoderException {
-        UserCoder coder = new UserCoder("1111111");
-        User user = new User();
-        user.setOpenId("1111");
-        user.setVip(true);
-        user.setAdmin(false);
-        user.setBalance(9999);
-        String token = coder.encode(user);
 
-        byte[] bytes = coder.validate(token);
-        coder.decode(bytes);
-        System.out.println(user.getOpenId());
-        System.out.println(user.getVip());
-        System.out.println(user.getAdmin());
-        System.out.println(user.getBalance());
     }
 }

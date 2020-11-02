@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSON;
 import com.lazyman.timetennis.core.SecurityUtils;
 import com.lazyman.timetennis.core.WeXinService;
 import com.lazyman.timetennis.core.WeXinToken;
-import com.wisesupport.commons.exceptions.BusinessException;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.Validate;
 import org.springframework.web.bind.annotation.*;
@@ -39,36 +38,6 @@ public class UserController {
         return u;
     }
 
-    @PostMapping("/user/grant_vip")
-    public void vip(User user, @RequestParam @NotEmpty @Size(min = 1, max = 64) String openId) {
-        switchVip(user, openId, true);
-    }
-
-    @PostMapping("/user/cancel_vip")
-    public void cancelVip(User user, @RequestParam @NotEmpty @Size(min = 1, max = 64) String openId) {
-        switchVip(user, openId, false);
-    }
-
-    private void switchVip(User user, @RequestParam @NotEmpty String openId, boolean flag) {
-        if (!user.getAdmin()) {
-            throw new BusinessException("需要管理员权限");
-        }
-        User u = new User();
-        u.setOpenId(openId);
-        u.setVip(flag);
-        userMapper.updateByPrimaryKey(u);
-    }
-
-    @PostMapping("/user/grant_admin")
-    public void grantAdmin(User user, @RequestParam @NotEmpty @Size(min = 1, max = 64) String openId) {
-        switchAdmin(user, openId, true);
-    }
-
-    @PostMapping("/user/cancel_admin")
-    public void cancelAdmin(User user, @RequestParam @NotEmpty @Size(min = 1, max = 64) String openId) {
-        switchAdmin(user, openId, false);
-    }
-
     @PostMapping("/user/decode_phone_number")
     public String decodePhoneNumber(@RequestParam @NotEmpty String jsCode,
                                     @RequestParam @NotEmpty String encData,
@@ -81,15 +50,5 @@ public class UserController {
         user.setOpenId(token.getOpenId());
         userMapper.updateByPrimaryKey(user);
         return phoneNumber;
-    }
-
-    private void switchAdmin(User user, String openId, boolean flag) {
-        if (!user.isSuperAdmin()) {
-            throw new BusinessException("需要超级管理员权限");
-        }
-        User u = new User();
-        u.setOpenId(openId);
-        u.setAdmin(flag);
-        userMapper.updateByPrimaryKey(u);
     }
 }

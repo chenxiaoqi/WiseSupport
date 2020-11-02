@@ -126,24 +126,6 @@
           and (date &gt; #{date} or (date = #{date} and start &gt;= #{start}))
     </select>
 
-    <select id="page" resultMap="BaseResultMap">
-        select a.id, a.open_id, a.date, a.start, a.end,a.fee, a.charged, a.update_time,
-        b.nickname,b.wx_nickname,b.avatar,b.vip,
-        d.open_id as share_user_open_id,
-        d.nickname as share_user_nickname,
-        d.wx_nickname as share_user_wx_nickname,
-        d.avatar as share_user_avatar,
-        d.vip as share_user_vip
-        from (select id, open_id, date,arena_id,court_id, start, end,fee, charged, update_time from tt_booking
-        <where>
-            <if test="openId!=null">open_id=#{openId}</if>
-            <if test="id!=null">and id &lt; #{id}</if>
-        </where>
-        order by id desc limit 21) a inner join tt_user b on a.open_id=b.open_id
-        left join booking_share c on a.id=c.booking_id
-        left join tt_user d on c.open_id=d.open_id
-    </select>
-
     <select id="queryInDateRange" resultMap="BaseResultMap">
         select a.id, a.open_id, a.date, a.arena_id,a.court_id, a.start, a.end, a.fee, a.pay_no,a.pay_type,
         a.charged,a.update_time,
