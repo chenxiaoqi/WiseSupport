@@ -23,7 +23,8 @@
         <constructor-arg index="1" ref="bookingMapper"/>
         <constructor-arg index="2" ref="arenaDao"/>
         <constructor-arg index="3" ref="membershipCardService"/>
-        <constructor-arg index="4" ref="transactionTemplate"/>
+        <constructor-arg index="4" ref="membershipCardDao"/>
+        <constructor-arg index="5" ref="transactionTemplate"/>
     </bean>
 
     <bean id="dailyCharge" parent="chargeTask">

@@ -2,7 +2,6 @@ package com.lazyman.timetennis.menbership;
 
 import com.lazyman.timetennis.Constant;
 import com.lazyman.timetennis.user.User;
-import com.wisesupport.commons.exceptions.BusinessException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -10,7 +9,6 @@ import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
-import java.util.List;
 
 @Service
 @Slf4j
@@ -47,21 +45,12 @@ public class MembershipCardService {
         billDao.add(tradeNo, user.getOpenId(), bill.getCode(), Constant.PRODUCT_REFUND, bill.getFee(), balance, new Date());
     }
 
-    public void charge(String tradeNo, String openId, int fee, String productType, MembershipCard card, boolean ignoreLowerBalance, Date feeTime) {
+    public void charge(String tradeNo, String openId, int fee, String productType, MembershipCard card, boolean ignoreLowBalance, Date feeTime) {
         fee = fee * card.getMeta().getDiscount() / 100;
         int balance = card.getBalance();
         if (fee != 0) {
-            balance = mcDao.chargeFee(card.getCode(), fee, ignoreLowerBalance);
+            balance = mcDao.chargeFee(card.getCode(), fee, ignoreLowBalance);
         }
         billDao.add(tradeNo, openId, card.getCode(), productType, fee, balance, feeTime);
-    }
-
-    //todo 正式上线后删除,直接根据code查找
-    public MembershipCard find(String openId, int arenaId) {
-        List<MembershipCard> cards = mcDao.userCardsInArena(openId, arenaId);
-        if (cards.isEmpty()) {
-            throw new BusinessException("对不起,您不是这个场馆的会员,不能预定场地");
-        }
-        return cards.get(0);
     }
 }

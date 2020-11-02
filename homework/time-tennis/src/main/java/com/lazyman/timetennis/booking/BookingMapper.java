@@ -25,8 +25,6 @@ public interface BookingMapper {
 
     void deleteShare(@Param("bookingId") int bookingId);
 
-    List<Booking> page(@Param("openId") String openId, @Param("id") Integer id);
-
     List<Booking> userBookings(@Param("openId") String openId, @Param("now") Date date, @Param("history") boolean history);
 
     void updateBookingStatus(@Param("tradeNo") String tradeNo, @Param("status") String status);

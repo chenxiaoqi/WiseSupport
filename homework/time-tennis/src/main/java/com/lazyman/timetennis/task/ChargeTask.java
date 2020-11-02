@@ -5,7 +5,9 @@ import com.lazyman.timetennis.arena.ArenaDao;
 import com.lazyman.timetennis.booking.Booking;
 import com.lazyman.timetennis.booking.BookingMapper;
 import com.lazyman.timetennis.booking.QueryParam;
+import com.lazyman.timetennis.booking.Share;
 import com.lazyman.timetennis.menbership.MembershipCard;
+import com.lazyman.timetennis.menbership.MembershipCardDao;
 import com.lazyman.timetennis.menbership.MembershipCardService;
 import com.lazyman.timetennis.user.User;
 import com.lazyman.timetennis.wp.WePayService;
@@ -28,14 +30,16 @@ public class ChargeTask implements Runnable {
     private BookingMapper bookingMapper;
     private ArenaDao arenaDao;
     private MembershipCardService cardService;
+    private MembershipCardDao mcDao;
     private TransactionTemplate tt;
     private String today;
 
-    public ChargeTask(int chargeStrategy, BookingMapper bookingMapper, ArenaDao arenaDao, MembershipCardService cardService, TransactionTemplate tt) {
+    public ChargeTask(int chargeStrategy, BookingMapper bookingMapper, ArenaDao arenaDao, MembershipCardService cardService, MembershipCardDao mcDao, TransactionTemplate tt) {
         this.chargeStrategy = chargeStrategy;
         this.bookingMapper = bookingMapper;
         this.arenaDao = arenaDao;
         this.cardService = cardService;
+        this.mcDao = mcDao;
         this.tt = tt;
         if (chargeStrategy != 1 & chargeStrategy != 2) {
             throw new IllegalStateException("invalid charge strategy");
@@ -75,24 +79,24 @@ public class ChargeTask implements Runnable {
         param.setCharged(false);
         List<Booking> bookings = bookingMapper.queryInDateRange(param);
         for (Booking booking : bookings) {
-            tt.execute(new TransactionCallbackWithoutResult() {
-                @Override
-                protected void doInTransactionWithoutResult(@NonNull TransactionStatus status) {
-                    try {
-                        MembershipCard card = cardService.find(booking.getOpenId(), booking.getArena().getId());
+            try {
+                tt.execute(new TransactionCallbackWithoutResult() {
+                    @Override
+                    protected void doInTransactionWithoutResult(@NonNull TransactionStatus status) {
+                        MembershipCard card = mcDao.loadCard(booking.getPayNo());
                         int fee = booking.getFee();
                         boolean hasShared = !CollectionUtils.isEmpty(booking.getShareUsers());
                         if (hasShared) {
                             int average = booking.getFee() / (booking.getShareUsers().size() + 1);
-                            for (User shareUser : booking.getShareUsers()) {
+                            for (Share share : booking.getShareUsers()) {
                                 String tradeNo = WePayService.creatTradeNo(Constant.PRODUCT_BOOKING_SHARE);
                                 cardService.charge(
                                         tradeNo,
                                         User.SYSTEM_USER,
                                         average,
                                         Constant.PRODUCT_BOOKING_SHARE,
-                                        cardService.find(shareUser.getOpenId(), booking.getArena().getId()), true, booking.getUpdateTime());
-                                bookingMapper.setSharePayNo(booking.getId(), shareUser.getOpenId(), tradeNo);
+                                        mcDao.loadCard(share.getPayNo()), true, booking.getUpdateTime());
+                                bookingMapper.setSharePayNo(booking.getId(), share.getOpenId(), tradeNo);
                             }
                             fee = fee - average * booking.getShareUsers().size();
                         }
@@ -100,11 +104,11 @@ public class ChargeTask implements Runnable {
                         String tradeNo = WePayService.creatTradeNo(productType);
                         cardService.charge(tradeNo, User.SYSTEM_USER, fee, productType, card, true, booking.getUpdateTime());
                         bookingMapper.setCharged(booking.getId(), tradeNo);
-                    } catch (Exception e) {
-                        log.error("charge booking {} failed", booking.getId());
                     }
-                }
-            });
+                });
+            } catch (Exception e) {
+                log.error("charge booking {} failed", booking.getId());
+            }
         }
     }
 

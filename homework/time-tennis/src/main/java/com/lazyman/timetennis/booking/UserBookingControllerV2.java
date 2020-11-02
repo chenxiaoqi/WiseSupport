@@ -27,8 +27,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
 import java.util.*;
 
@@ -82,21 +80,6 @@ public class UserBookingControllerV2 extends BasePayController implements Applic
         this.tt = tt;
         this.cardService = cardService;
         this.statisticDao = statisticDao;
-    }
-
-    @PostMapping("/booking")
-    @Transactional
-    public void booking(User user,
-                        @DateTimeFormat(pattern = "yyyy-MM-dd") @RequestParam Date date,
-                        @Min(0) @Max(47) @RequestParam int timeIndexStart,
-                        @Min(0) @Max(47) @RequestParam int timeIndexEnd) {
-        //todo 正式上线后面删除
-        MembershipCard card = cardService.find(user.getOpenId(), this.defaultArenaId);
-
-        if (card.getBalance() <= 0) {
-            throw new BusinessException("账户余额不足");
-        }
-        this.booking(user, date, this.defaultArenaId, new int[]{this.defaultCourtId}, new int[]{timeIndexStart}, new int[]{timeIndexEnd}, -1, card.getCode());
     }
 
     @PostMapping("/v2/booking")
@@ -177,7 +160,7 @@ public class UserBookingControllerV2 extends BasePayController implements Applic
             throw new BusinessException("场地状态错误:" + peek.getStatus());
         }
         if (!peek.getCharged()) {
-            throw new BusinessException("为支付的场地无法退款");
+            throw new BusinessException("未支付的场地无法退款");
         }
         if ("wep".equals(peek.getPayType())) {
             throw new BusinessException("微信暂时支付不支持取消");
@@ -266,8 +249,7 @@ public class UserBookingControllerV2 extends BasePayController implements Applic
         }
 
         try {
-            //todo 全面上线后这个-1就不要
-            if (totalFee != -1 && tf != totalFee) {
+            if (tf != totalFee) {
                 throw new BusinessException("对不起,总费用不匹配,请联系管理员处理!");
             }
             for (Booking booking : bookings) {
