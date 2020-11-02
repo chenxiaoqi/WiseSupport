@@ -40,8 +40,6 @@ wx:
   data-path: data
   images-path: ${wx.data-path}/images
   reports-dir: ${wx.data-path}/reports
-  default-arena-id: 9
-  default-court-id: 16
 
 ---
 spring:
@@ -66,6 +64,4 @@ logging:
   config: classpath:logback-spring-timetennis-production.xml
 
 wx:
-  default-arena-id: 1
-  default-court-id: 1
   data-path: /home/chenxiaoqi/app-data/timetennis

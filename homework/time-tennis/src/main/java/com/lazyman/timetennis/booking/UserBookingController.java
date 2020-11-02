@@ -6,7 +6,6 @@ import com.lazyman.timetennis.user.User;
 import com.wisesupport.commons.exceptions.BusinessException;
 import org.apache.commons.lang3.Validate;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.dao.DuplicateKeyException;
@@ -27,14 +26,10 @@ public class UserBookingController implements ApplicationContextAware {
 
     private ApplicationContext application;
 
-    private int defaultArenaId;
-
     public UserBookingController(BookingMapper bookingMapper,
-                                 MembershipCardDao mcDao,
-                                 @Value("${wx.default-arena-id}") int defaultArenaId) {
+                                 MembershipCardDao mcDao) {
         this.bookingMapper = bookingMapper;
         this.mcDao = mcDao;
-        this.defaultArenaId = defaultArenaId;
     }
 
     @PostMapping("/share/booking/{bookingId}")
@@ -42,7 +37,7 @@ public class UserBookingController implements ApplicationContextAware {
         Booking booking = bookingMapper.selectByPrimaryKey(bookingId);
         Validate.notNull(booking);
 
-        List<MembershipCard> cards = mcDao.userCardsInArena(user.getOpenId(), this.defaultArenaId);
+        List<MembershipCard> cards = mcDao.userCardsInArena(user.getOpenId(), booking.getArena().getId());
         if (cards.isEmpty()) {
             throw new BusinessException("对不起,您不是这个场馆的会员,不能预定场地");
         }

@@ -17,7 +17,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationListener;
@@ -54,13 +53,7 @@ public class UserBookingControllerV2 extends BasePayController implements Applic
 
     private StatisticDao statisticDao;
 
-    private int defaultArenaId;
-
-    private int defaultCourtId;
-
     public UserBookingControllerV2(
-            @Value("${wx.default-arena-id}") int defaultArenaId,
-            @Value("${wx.default-court-id}") int defaultCourtId,
             MembershipCardBillDao billDao,
             BookingMapper bookingMapper,
             MembershipCardDao mcDao,
@@ -69,8 +62,6 @@ public class UserBookingControllerV2 extends BasePayController implements Applic
             LockRepository lockRepository,
             TransactionTemplate tt,
             MembershipCardService cardService, StatisticDao statisticDao) {
-        this.defaultArenaId = defaultArenaId;
-        this.defaultCourtId = defaultCourtId;
         this.billDao = billDao;
         this.bookingMapper = bookingMapper;
         this.mcDao = mcDao;
