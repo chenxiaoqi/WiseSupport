@@ -46,8 +46,4 @@ public interface UserMapper {
      * @mbg.generated
      */
     int updateByPrimaryKey(User record);
-
-    int charge(@Param("openId") String openId, @Param("discountFee") int discountFee);
-
-    List<User> queryExcluded(@Param("openIds") List<String> openIds);
 }

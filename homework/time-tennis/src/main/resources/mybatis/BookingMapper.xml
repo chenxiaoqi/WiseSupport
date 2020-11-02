@@ -22,7 +22,6 @@
             <result column="nickname" jdbcType="VARCHAR" property="nickname"/>
             <result column="wx_nickname" jdbcType="VARCHAR" property="wxNickname"/>
             <result column="avatar" jdbcType="VARCHAR" property="avatar"/>
-            <result column="vip" jdbcType="BIT" property="vip"/>
         </association>
         <association property="arena" javaType="com.lazyman.timetennis.arena.Arena">
             <id column="arena_id" jdbcType="INTEGER" property="id"/>
@@ -37,7 +36,6 @@
             <result column="share_user_nickname" jdbcType="VARCHAR" property="nickname"/>
             <result column="share_user_wx_nickname" jdbcType="VARCHAR" property="wxNickname"/>
             <result column="share_user_avatar" jdbcType="VARCHAR" property="avatar"/>
-            <result column="share_user_vip" jdbcType="BIT" property="vip"/>
             <result column="share_pay_no" jdbcType="VARCHAR" property="payNo"/>
         </collection>
     </resultMap>
@@ -101,12 +99,10 @@
                b.nickname,
                b.wx_nickname,
                b.avatar,
-               b.vip,
                d.open_id     as share_user_open_id,
                d.nickname    as share_user_nickname,
                d.wx_nickname as share_user_wx_nickname,
-               d.avatar      as share_user_avatar,
-               d.vip         as share_user_vip
+               d.avatar      as share_user_avatar
         from tt_booking a
                  inner join tt_user b on a.open_id = b.open_id
                  left join booking_share c on a.id = c.booking_id
@@ -129,14 +125,13 @@
     <select id="queryInDateRange" resultMap="BaseResultMap">
         select a.id, a.open_id, a.date, a.arena_id,a.court_id, a.start, a.end, a.fee, a.pay_no,a.pay_type,
         a.charged,a.update_time,
-        b.nickname,b.wx_nickname,b.avatar,b.vip,
+        b.nickname,b.wx_nickname,b.avatar,
         c.pay_no as share_pay_no,
         e.name as court_name,
         d.open_id as share_user_open_id,
         d.nickname as share_user_nickname,
         d.wx_nickname as share_user_wx_nickname,
         d.avatar as share_user_avatar,
-        d.vip as share_user_vip
         from tt_booking a inner join tt_user b on a.open_id=b.open_id
         inner join court e on a.court_id=e.id
         left join booking_share c on a.id=c.booking_id
@@ -167,8 +162,8 @@
     </delete>
 
     <insert id="addShare">
-        insert into booking_share(booking_id, open_id)
-        values (#{bookingId}, #{openId})
+        insert into booking_share(booking_id, open_id, pay_no)
+        values (#{bookingId}, #{openId}, #{payNo})
     </insert>
 
     <delete id="deleteShare">
@@ -183,7 +178,6 @@
         d.nickname as share_user_nickname,
         d.wx_nickname as share_user_wx_nickname,
         d.avatar as share_user_avatar,
-        d.vip as share_user_vip,
         e.name as arena_name,
         f.name as court_name
         from (select id, open_id, date,arena_id,court_id, start, end,fee, charged, update_time,pay_type,pay_no from

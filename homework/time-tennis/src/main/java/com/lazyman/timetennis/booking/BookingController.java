@@ -4,12 +4,7 @@ import com.lazyman.timetennis.arena.Arena;
 import com.lazyman.timetennis.arena.ArenaDao;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.DateUtils;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.lang.NonNull;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -22,24 +17,18 @@ import java.util.List;
 @RestController
 @Slf4j
 @Validated
-public class BookingController implements ApplicationContextAware {
+public class BookingController {
 
     private BookingMapper bookingMapper;
-
-    private ApplicationContext application;
-
-    private int defaultArenaId;
 
     private ArenaDao arenaDao;
 
     private BookSchedulerRepository repository;
 
     public BookingController(BookingMapper bookingMapper,
-                             @Value("${wx.default-arena-id}") int defaultArenaId,
                              ArenaDao arenaDao,
                              BookSchedulerRepository repository) {
         this.bookingMapper = bookingMapper;
-        this.defaultArenaId = defaultArenaId;
         this.arenaDao = arenaDao;
         this.repository = repository;
     }
@@ -48,9 +37,6 @@ public class BookingController implements ApplicationContextAware {
     public List<Booking> recentBookings(Integer arenaId, @DateTimeFormat(pattern = "yyyy-MM-dd") Date date) {
         Date start;
         Date end;
-        if (arenaId == null) {
-            arenaId = defaultArenaId;
-        }
         Arena arena = arenaDao.load(arenaId);
         if (date == null) {
             start = DateUtils.truncate(new Date(), Calendar.DAY_OF_MONTH);
@@ -70,10 +56,5 @@ public class BookingController implements ApplicationContextAware {
                                                 @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date date) {
         BookScheduler scheduler = repository.arenaScheduler(arenaId);
         return scheduler.getBookings(date);
-    }
-
-    @Override
-    public void setApplicationContext(@NonNull ApplicationContext applicationContext) throws BeansException {
-        this.application = applicationContext;
     }
 }

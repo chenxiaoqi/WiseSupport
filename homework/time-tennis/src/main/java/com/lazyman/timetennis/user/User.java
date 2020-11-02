@@ -51,10 +51,6 @@ public class User implements Serializable {
         this.superAdmin = superAdmin;
     }
 
-    public Boolean getAdmin() {
-        return arenaAdmin;
-    }
-
     public String getOpenId() {
         return openId;
     }
