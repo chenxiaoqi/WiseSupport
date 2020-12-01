@@ -5,3 +5,5 @@
 
 2.1.1
    删除无用代码
+2.1.2
+   修复月度计费bug,BookingMapper.xml

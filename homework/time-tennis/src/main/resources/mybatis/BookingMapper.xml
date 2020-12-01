@@ -131,7 +131,7 @@
         d.open_id as share_user_open_id,
         d.nickname as share_user_nickname,
         d.wx_nickname as share_user_wx_nickname,
-        d.avatar as share_user_avatar,
+        d.avatar as share_user_avatar
         from tt_booking a inner join tt_user b on a.open_id=b.open_id
         inner join court e on a.court_id=e.id
         left join booking_share c on a.id=c.booking_id
