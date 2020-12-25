@@ -114,7 +114,7 @@ public class UserBookingControllerV2 extends BasePayController implements Applic
         } else {
             Trade trade = payDao.load(payNo);
             detail.setTransactionId(trade.getTransactionId());
-            detail.setMcId(trade.getMchId());
+            detail.setMcId(trade.getReceiverId());
             detail.setFee(trade.getFee());
             detail.setCreateTime(trade.getCreateTime());
         }
@@ -253,7 +253,7 @@ public class UserBookingControllerV2 extends BasePayController implements Applic
                 membershipCardPay(user, dbArena, tradeNo, code, tf);
                 return null;
             } else {
-                return preparePay(tradeNo, dbArena.getMchId(), user.getOpenId(), Constant.PRODUCT_BOOKING, tf, "场地预定", () -> {
+                return preparePay(tradeNo, user.getOpenId(), Constant.PRODUCT_BOOKING, dbArena.getReceiverId(), dbArena.getReceiverType(), tf, "场地预定", () -> {
                     //do nothing
                 });
             }

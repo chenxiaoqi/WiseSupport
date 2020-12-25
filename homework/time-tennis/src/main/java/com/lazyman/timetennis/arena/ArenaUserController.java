@@ -11,14 +11,14 @@ import java.util.List;
 @RequestMapping("/user")
 public class ArenaUserController {
 
-    private ArenaDao arenaDao;
+    private final ArenaDao arenaDao;
 
     public ArenaUserController(ArenaDao arenaDao) {
         this.arenaDao = arenaDao;
     }
 
     @GetMapping("/arenas")
-    public List<Arena> arenas(@RequestParam String city,
+    public List<Arena> arenas(@RequestParam(required = false) String city,
                               @RequestParam(required = false) Integer type,
                               @RequestParam(required = false) String name) {
         return arenaDao.searchArena(city, type, name);

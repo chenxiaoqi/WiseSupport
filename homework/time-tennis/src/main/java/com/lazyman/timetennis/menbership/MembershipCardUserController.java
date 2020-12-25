@@ -1,6 +1,7 @@
 package com.lazyman.timetennis.menbership;
 
 import com.lazyman.timetennis.Constant;
+import com.lazyman.timetennis.arena.Arena;
 import com.lazyman.timetennis.user.User;
 import com.lazyman.timetennis.wp.BasePayController;
 import com.lazyman.timetennis.wp.Trade;
@@ -21,11 +22,11 @@ import java.util.Map;
 @RequestMapping("/user/mc")
 @Slf4j
 public class MembershipCardUserController extends BasePayController implements ApplicationListener<TradeEvent> {
-    private MembershipCardDao mcDao;
+    private final MembershipCardDao mcDao;
 
-    private MembershipCardBillDao billDao;
+    private final MembershipCardBillDao billDao;
 
-    private MembershipCardService cardService;
+    private final MembershipCardService cardService;
 
     public MembershipCardUserController(MembershipCardDao mcDao, MembershipCardBillDao billDao, MembershipCardService cardService) {
         this.mcDao = mcDao;
@@ -52,9 +53,9 @@ public class MembershipCardUserController extends BasePayController implements A
             throw new BusinessException("对不起,该会员卡已经下线,不能购买");
         }
 
-        String mchId = meta.getArena().getMchId();
+        Arena arena = meta.getArena();
         String tradeNo = WePayService.creatTradeNo(Constant.PRODUCT_CARD);
-        return preparePay(tradeNo, mchId, user.getOpenId(), Constant.PRODUCT_CARD, meta.getPrice(), "购买会员卡[" + meta.getName() + "]", () -> mcDao.createTradeMembershipCardRelation(tradeNo, metaId));
+        return preparePay(tradeNo, user.getOpenId(), Constant.PRODUCT_CARD, arena.getReceiverId(), arena.getReceiverType(), meta.getPrice(), "购买会员卡[" + meta.getName() + "]", () -> mcDao.createTradeMembershipCardRelation(tradeNo, metaId));
     }
 
     @PostMapping("/recharge")
@@ -67,10 +68,13 @@ public class MembershipCardUserController extends BasePayController implements A
         }
         MembershipCard card = mcDao.loadCard(code);
         MembershipCardMeta meta = mcDao.loadMeta(card.getMeta().getId());
-        String mchId = meta.getArena().getMchId();
+        Arena arena = meta.getArena();
         String tradeNo = WePayService.creatTradeNo(Constant.PRODUCT_RECHARGE);
-        return preparePay(tradeNo, mchId, user.getOpenId(),
+        return preparePay(tradeNo,
+                user.getOpenId(),
                 Constant.PRODUCT_RECHARGE,
+                arena.getReceiverId(),
+                arena.getReceiverType(),
                 card.getMeta().getInitialBalance(),
                 "会员卡[" + meta.getName() + "]充值",
                 () -> mcDao.createTradeMembershipCardChargeRelation(tradeNo, code));

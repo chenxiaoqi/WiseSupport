@@ -34,6 +34,7 @@ wx:
   mch-id: 1602854290
   pay-sign-key: ${wx.pay-secret}
   pay-use-sandbox: true
+  pay-share-rate: 1000
   pay-sp-bill-create-ip: 124.70.154.176
   pay-notify-url: https://vn.xiaoqicloud.cn/pay/notify
   pay-expire-minutes: 5

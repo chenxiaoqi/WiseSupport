@@ -23,13 +23,13 @@ import java.util.Objects;
 @Component
 public class ArenaDao {
 
-    private JdbcTemplate template;
+    private final JdbcTemplate template;
 
-    private CourtDao courtDao;
+    private final CourtDao courtDao;
 
-    private RuleDao ruleDao;
+    private final RuleDao ruleDao;
 
-    private MembershipCardDao mcDao;
+    private final MembershipCardDao mcDao;
 
     public ArenaDao(JdbcTemplate template, CourtDao courtDao, RuleDao ruleDao, MembershipCardDao mcDao) {
         this.template = template;
@@ -39,7 +39,7 @@ public class ArenaDao {
     }
 
     public Arena load(int id) {
-        return template.queryForObject("select id,name,type,province,city,district,address,images,book_style,phone,introduction,advance_book_days,book_start_hour,book_end_hour,status,mch_id,allow_half_hour,book_at_least,refund_advance_hours,refund_times_limit,charge_strategy,book_hours_limit,latitude,longitude from arena where id=?", (rs, rowNum) -> {
+        return template.queryForObject("select id,name,type,province,city,district,address,images,book_style,phone,introduction,advance_book_days,book_start_hour,book_end_hour,status,receiver_id,receiver_type,allow_half_hour,book_at_least,refund_advance_hours,refund_times_limit,charge_strategy,book_hours_limit,latitude,longitude from arena where id=?", (rs, rowNum) -> {
             Arena result = new Arena();
             populateArenaProperties(rs, result);
             result.setType(rs.getInt("type"));
@@ -86,8 +86,11 @@ public class ArenaDao {
 
     List<Arena> searchArena(String city, Integer type, String name) {
         List<Object> params = new ArrayList<>(3);
-        params.add(city);
-        String sql = "select id, name,district,images,book_style from arena where status='ol' and city=?";
+        String sql = "select id, name,district,images,book_style from arena where status='ol'";
+        if (!StringUtils.isEmpty(city)) {
+            sql = sql + " and city=?";
+            params.add(city);
+        }
         if (type != null) {
             sql = sql + " and type=?";
             params.add(type);
@@ -108,7 +111,7 @@ public class ArenaDao {
     }
 
     List<Arena> arenas(String openId) {
-        return template.query("select b.id,b.name,b.province,b.city,b.district,b.advance_book_days,b.book_start_hour,b.book_end_hour,b.status,b.mch_id from arena_role a,arena b where a.arena_id=b.id and a.role='admin' and a.open_id=?", (rs, rowNum) -> {
+        return template.query("select b.id,b.name,b.province,b.city,b.district,b.advance_book_days,b.book_start_hour,b.book_end_hour,b.status,b.receiver_id,b.receiver_type from arena_role a,arena b where a.arena_id=b.id and a.role='admin' and a.open_id=?", (rs, rowNum) -> {
                     Arena arena = new Arena();
                     populateArenaProperties(rs, arena);
                     return arena;
@@ -181,7 +184,7 @@ public class ArenaDao {
             @CacheEvict(value = Constant.CK_ARENA, key = "#arena.id")
     })
     public void update(Arena arena) {
-        String sql = "update arena set name=?,type=?,province=?,city=?,district=?,address=?,phone=?,advance_book_days=?,book_start_hour=?,book_end_hour=?,introduction=?,images=?,allow_half_hour=?,book_at_least=?,refund_advance_hours=?,refund_times_limit=?,charge_strategy=?,book_hours_limit=?,latitude=?,longitude=? where id=?";
+        String sql = "update arena set name=?,type=?,province=?,city=?,district=?,address=?,phone=?,advance_book_days=?,book_start_hour=?,book_end_hour=?,introduction=?,images=?,allow_half_hour=?,book_at_least=?,refund_advance_hours=?,refund_times_limit=?,charge_strategy=?,book_hours_limit=?,latitude=?,longitude=?,receiver_id=?,receiver_type=? where id=?";
         template.update(sql,
                 arena.getName(),
                 arena.getType(),
@@ -203,6 +206,8 @@ public class ArenaDao {
                 arena.getBookHoursLimit(),
                 arena.getLatitude(),
                 arena.getLongitude(),
+                arena.getReceiverId(),
+                arena.getReceiverType(),
                 arena.getId());
     }
 
@@ -221,20 +226,16 @@ public class ArenaDao {
         template.update("update court set status=? where id=? and arena_id=?", status, courtId, arenaId);
     }
 
-    @CacheEvict(cacheNames = Constant.CK_ARENA, key = "#arenaId")
-    public int updateMchId(int arenaId, String mchId) {
-        return template.update("update arena set mch_id=? where id=?", mchId, arenaId);
-    }
-
     List<Arena> byName(String name) {
-        return template.query("select id,name,city,district,status,mch_id from arena where name like concat('%',?,'%') limit 20", (rs, rowNum) -> {
+        return template.query("select id,name,city,district,status,receiver_id,receiver_type from arena where name like concat('%',?,'%') limit 20", (rs, rowNum) -> {
             Arena result = new Arena();
             result.setId(rs.getInt("id"));
             result.setName(rs.getString("name"));
             result.setDistrict(rs.getString("district"));
             result.setCity(rs.getString("city"));
             result.setStatus(rs.getString("status"));
-            result.setMchId(rs.getString("mch_id"));
+            result.setReceiverId(rs.getString("receiver_id"));
+            result.setReceiverType(rs.getObject("receiver_type", Integer.class));
             return result;
         }, name);
     }
@@ -267,7 +268,8 @@ public class ArenaDao {
         result.setBookStartHour(rs.getInt("book_start_hour"));
         result.setBookEndHour(rs.getInt("book_end_hour"));
         result.setStatus(rs.getString("status"));
-        result.setMchId(rs.getString("mch_id"));
+        result.setReceiverId(rs.getString("receiver_id"));
+        result.setReceiverType(rs.getObject("receiver_type", Integer.class));
     }
 
     public List<Integer> arenaIdsByChargeStrategy(int chargeStrategy) {

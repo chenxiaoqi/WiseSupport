@@ -1,10 +1,14 @@
 package com.lazyman.timetennis.wp;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.lazyman.timetennis.Constant;
 import com.lazyman.timetennis.core.SecurityUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.codec.digest.HmacAlgorithms;
+import org.apache.commons.codec.digest.HmacUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.lang3.time.FastDateFormat;
@@ -51,6 +55,8 @@ public class WePayService {
 
     private final static TransformerFactory transformerFactory;
 
+    private final HmacUtils hmacUtils;
+
     static {
         try {
             documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
@@ -60,23 +66,23 @@ public class WePayService {
         }
     }
 
-    private String appId;
+    private final String appId;
 
-    private String signKey;
+    private final String signKey;
 
     private String sandboxSignKey;
 
-    private boolean useSandbox;
+    private final boolean useSandbox;
 
-    private String notifyUrl;
+    private final String notifyUrl;
 
-    private String spBillCreateIp;
+    private final String spBillCreateIp;
 
-    private String platformMchId;
+    private final String platformMchId;
 
-    private int tradeExpireMinutes;
+    private final int tradeExpireMinutes;
 
-    private HttpClient httpClient;
+    private final HttpClient httpClient;
 
     public WePayService(@Value("${wx.app-id}") String appId,
                         @Value("${wx.pay-sign-key}") String signKey,
@@ -94,6 +100,7 @@ public class WePayService {
         this.platformMchId = platformMchId;
         this.tradeExpireMinutes = tradeExpireMinutes;
         this.httpClient = httpClient;
+        this.hmacUtils = new HmacUtils(HmacAlgorithms.HMAC_SHA_256, signKey);
     }
 
     @PostConstruct
@@ -103,10 +110,58 @@ public class WePayService {
         }
     }
 
-    String prepay(String mchId, String openId, String tradNo, String fee, String desc) {
+    void addShareReceiver() {
         TreeMap<String, String> params = new TreeMap<>();
         params.put("appid", appId);
-        params.put("mch_id", mchId);
+        params.put("mch_id", this.platformMchId);
+        params.put("nonce_str", SecurityUtils.randomSeq(32));
+        params.put("sign_type", "HMAC-SHA256");
+
+        JSONObject jo = new JSONObject();
+        jo.put("type", "PERSONAL_OPENID");
+        jo.put("account", "oA3ve4t84q0Nssa4kt6nPgvmmej0");
+        jo.put("name", "陈小奇");
+        jo.put("relation_type", "STORE_OWNER");
+        params.put("receiver", jo.toJSONString());
+
+        try {
+            sendRequest(params, "/pay/profitsharingaddreceiver");
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    public boolean sharePayment(String tradNo, String transactionId, String receiverId, Integer receiverType, int amount) {
+        TreeMap<String, String> params = new TreeMap<>();
+        params.put("appid", appId);
+        params.put("mch_id", this.platformMchId);
+        params.put("nonce_str", SecurityUtils.randomSeq(32));
+        params.put("sign_type", "HMAC-SHA256");
+        params.put("transaction_id", transactionId);
+        params.put("out_order_no", tradNo);
+
+        JSONArray ja = new JSONArray();
+        JSONObject jo = new JSONObject();
+        jo.put("type", receiverType == 1 ? "PERSONAL_OPENID" : "MERCHANT_ID");
+        jo.put("account", receiverId);
+        jo.put("amount", amount);
+        jo.put("description", "分账到商户");
+
+        ja.add(jo);
+        params.put("receivers", ja.toJSONString());
+
+        try {
+            Map<String, String> result = sendRequest(params, "/secapi/pay/profitsharing");
+            return Objects.equals(result.get("result_code"), "SUCCESS");
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    String prepay(String openId, String tradNo, String fee, String desc, boolean needShare) {
+        TreeMap<String, String> params = new TreeMap<>();
+        params.put("appid", appId);
+        params.put("mch_id", this.platformMchId);
         params.put("nonce_str", SecurityUtils.randomSeq(32));
         params.put("sign_type", "MD5");
         params.put("body", desc);
@@ -120,6 +175,9 @@ public class WePayService {
         params.put("notify_url", notifyUrl);
         params.put("trade_type", "JSAPI");
         params.put("openid", openId);
+        if (needShare) {
+            params.put("profit_sharing", "Y");
+        }
         try {
             Map<String, String> result = sendRequest(params, "/pay/unifiedorder");
             return result.get("prepay_id");
@@ -128,10 +186,10 @@ public class WePayService {
         }
     }
 
-    public TreeMap<String, String> queryTrade(String tradNo, String mchId) {
+    public TreeMap<String, String> queryTrade(String tradNo) {
         TreeMap<String, String> params = new TreeMap<>();
         params.put("appid", appId);
-        params.put("mch_id", mchId);
+        params.put("mch_id", this.platformMchId);
         params.put("out_trade_no", tradNo);
         params.put("nonce_str", SecurityUtils.randomSeq(32));
         params.put("sign_type", "MD5");
@@ -142,10 +200,10 @@ public class WePayService {
         }
     }
 
-    public void closeTrad(String tradeNo, String mchId) {
+    public void closeTrad(String tradeNo) {
         TreeMap<String, String> params = new TreeMap<>();
         params.put("appid", appId);
-        params.put("mch_id", mchId);
+        params.put("mch_id", this.platformMchId);
         params.put("out_trade_no", tradeNo);
         params.put("nonce_str", SecurityUtils.randomSeq(32));
         params.put("sign_type", "MD5");
@@ -208,7 +266,12 @@ public class WePayService {
         }
         //getsignkey接口签名时没有sandboxSignKey,需要用商户key
         builder.append("key=").append(this.useSandbox ? (sandboxSignKey == null ? signKey : sandboxSignKey) : signKey);
-        return Hex.encodeHexString(DigestUtils.md5(builder.toString()), false);
+        String signType = params.get("sign_type");
+        if ("HMAC-SHA256".equals(signType)) {
+            return Hex.encodeHexString(hmacUtils.hmac(builder.toString()), false);
+        } else {
+            return Hex.encodeHexString(DigestUtils.md5(builder.toString()), false);
+        }
     }
 
     public synchronized static String creatTradeNo(String productType) {

@@ -10,9 +10,9 @@ import java.util.Objects;
 
 @Component
 public class PayDao {
-    private int tradeExpireMinutes;
+    private final int tradeExpireMinutes;
 
-    private JdbcTemplate template;
+    private final JdbcTemplate template;
 
     public PayDao(@Value("${wx.pay-expire-minutes}") int tradeExpireMinutes,
                   JdbcTemplate template) {
@@ -20,14 +20,18 @@ public class PayDao {
         this.template = template;
     }
 
-    void createTrade(String tradeNo, String openId, String productType, String prepayId, int totalFee, String mchId) {
-        template.update("insert into trade (trade_no, open_id, product_type, prepare_id, fee,mch_id) values (?,?,?,?,?,?)",
-                tradeNo, openId, productType, prepayId, totalFee, mchId);
+    void createTrade(String tradeNo, String openId, String productType, String prepayId, int totalFee) {
+        this.createTrade(tradeNo, openId, productType, prepayId, totalFee, null, null);
+    }
+
+    void createTrade(String tradeNo, String openId, String productType, String prepayId, int totalFee, String receiverId, Integer receiverType) {
+        template.update("insert into trade (trade_no, open_id, product_type, prepare_id, fee,receiver_id,receiver_type) values (?,?,?,?,?,?,?)",
+                tradeNo, openId, productType, prepayId, totalFee, receiverId, receiverType);
 
     }
 
     public Trade load(String tradNo) {
-        return template.queryForObject("select trade_no,mch_id,fee,status,prepare_id,transaction_id,open_id,product_type,create_time from trade where trade_no=?", (rs, rowNum) -> {
+        return template.queryForObject("select trade_no,receiver_id,fee,status,prepare_id,transaction_id,open_id,product_type,create_time,receiver_id,receiver_type,share_status from trade where trade_no=?", (rs, rowNum) -> {
             Trade trade = new Trade();
             populateTrade(rs, trade);
             return trade;
@@ -43,7 +47,7 @@ public class PayDao {
     }
 
     public Trade pollWaitForPay() {
-        return template.query("select trade_no,status,fee,prepare_id,transaction_id,mch_id,open_id,product_type,create_time from trade where status='wp' and create_time<date_add(now(),interval ? minute ) limit 1", rs -> {
+        return template.query("select trade_no,status,fee,prepare_id,transaction_id,open_id,product_type,create_time,receiver_id,receiver_type,share_status from trade where status='wp' and create_time<date_add(now(),interval ? minute ) limit 1", rs -> {
             if (rs.next()) {
                 Trade trade = new Trade();
                 populateTrade(rs, trade);
@@ -53,6 +57,22 @@ public class PayDao {
             }
         }, -tradeExpireMinutes);
 
+    }
+
+    public Trade pollWaitForShare() {
+        return template.query("select trade_no,status,fee,prepare_id,transaction_id,open_id,product_type,create_time,receiver_id,receiver_type,share_status from trade where share_status='wfs' limit 1", rs -> {
+            if (rs.next()) {
+                Trade trade = new Trade();
+                populateTrade(rs, trade);
+                return trade;
+            } else {
+                return null;
+            }
+        });
+    }
+
+    public void updateShareStatus(String tradeNo, String shareStatus) {
+        template.update("update trade set share_status=? where trade_no=?", shareStatus, tradeNo);
     }
 
     public boolean hasWaitForPay(String openId) {
@@ -65,9 +85,12 @@ public class PayDao {
         trade.setStatus(rs.getString("status"));
         trade.setPrepareId(rs.getString("prepare_id"));
         trade.setOpenId(rs.getString("open_id"));
-        trade.setMchId(rs.getString("mch_id"));
+        trade.setReceiverId(rs.getString("receiver_id"));
         trade.setProductType(rs.getString("product_type"));
         trade.setCreateTime(rs.getTimestamp("create_time"));
         trade.setTransactionId(rs.getString("transaction_id"));
+        trade.setReceiverId(rs.getString("receiver_id"));
+        trade.setReceiverType(rs.getObject("receiver_type", Integer.class));
+        trade.setShareStatus(rs.getString("share_status"));
     }
 }

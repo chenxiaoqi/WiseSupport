@@ -21,7 +21,7 @@ import java.util.Objects;
 @Component
 public class MembershipCardDao {
 
-    private JdbcTemplate template;
+    private final JdbcTemplate template;
 
     public MembershipCardDao(JdbcTemplate template) {
         this.template = template;
@@ -73,13 +73,14 @@ public class MembershipCardDao {
     }
 
     MembershipCardMeta loadMeta(int id) {
-        return template.queryForObject("select a.id,a.name,a.arena_id,a.initial_balance,a.discount,a.price,a.extend_month,a.status,b.name as arena_name,b.mch_id from membership_card_meta a,arena b where a.arena_id=b.id and a.id=?", (rs, rowNum) -> {
+        return template.queryForObject("select a.id,a.name,a.arena_id,a.initial_balance,a.discount,a.price,a.extend_month,a.status,b.name as arena_name,b.receiver_id,b.receiver_type from membership_card_meta a,arena b where a.arena_id=b.id and a.id=?", (rs, rowNum) -> {
             MembershipCardMeta meta = new MembershipCardMeta();
             populateMeta(rs, meta);
             Arena arena = new Arena();
             arena.setId(rs.getInt("arena_id"));
             arena.setName(rs.getString("arena_name"));
-            arena.setMchId(rs.getString("mch_id"));
+            arena.setReceiverId(rs.getString("receiver_id"));
+            arena.setReceiverType(rs.getObject("receiver_type", Integer.class));
             meta.setArena(arena);
             return meta;
         }, id);

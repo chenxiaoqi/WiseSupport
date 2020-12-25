@@ -1,10 +1,8 @@
 package com.lazyman.timetennis.wp;
 
 import com.lazyman.timetennis.core.SecurityUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.lang.Nullable;
 
 import java.util.Map;
 import java.util.TreeMap;
@@ -22,13 +20,14 @@ public class BasePayController {
     @Autowired
     protected PayDao payDao;
 
-    protected Map<String, String> preparePay(String tradeNo, @Nullable String mchId, String openId, String productType, int totalFee, String desc, PrepareCallback callback) {
-
-        if (StringUtils.isEmpty(mchId)) {
-            mchId = this.platformMchId;
+    protected Map<String, String> preparePay(String tradeNo, String openId, String productType, String receiverId, Integer receiveType, int totalFee, String desc, PrepareCallback callback) {
+        boolean needShare = receiverId != null && !receiverId.equals(this.platformMchId);
+        String prepayId = pay.prepay(openId, tradeNo, String.valueOf(totalFee), desc, needShare);
+        if (needShare) {
+            payDao.createTrade(tradeNo, openId, productType, prepayId, totalFee, receiverId, receiveType);
+        } else {
+            payDao.createTrade(tradeNo, openId, productType, prepayId, totalFee);
         }
-        String prepayId = pay.prepay(mchId, openId, tradeNo, String.valueOf(totalFee), desc);
-        payDao.createTrade(tradeNo, openId, productType, prepayId, totalFee, mchId);
         callback.call();
 
         TreeMap<String, String> params = new TreeMap<>();

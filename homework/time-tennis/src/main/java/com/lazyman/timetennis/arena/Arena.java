@@ -24,7 +24,8 @@ public class Arena {
     private List<Court> courts;
     private String[] images;
     private String status;
-    private String mchId;
+    private String receiverId;
+    private Integer receiverType;
     private Boolean allowHalfHour;
     private Integer bookAtLeast;
     private Integer refundTimesLimit;

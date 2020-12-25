@@ -19,13 +19,13 @@ import java.util.TreeMap;
 @Profile("!timetennis")
 @Slf4j
 public class TradeTask implements ApplicationContextAware {
-    private PayDao payDao;
+    private final PayDao payDao;
 
-    private WePayService pay;
+    private final WePayService pay;
 
-    private TradeService tradeService;
+    private final TradeService tradeService;
 
-    private TransactionTemplate tt;
+    private final TransactionTemplate tt;
 
     private ApplicationContext context;
 
@@ -44,17 +44,17 @@ public class TradeTask implements ApplicationContextAware {
         while ((trade = payDao.pollWaitForPay()) != null) {
             final Trade ft = trade;
             try {
-                TreeMap<String, String> wpTrade = pay.queryTrade(ft.getTradeNo(), ft.getMchId());
+                TreeMap<String, String> wpTrade = pay.queryTrade(ft.getTradeNo());
                 tt.execute(new TransactionCallbackWithoutResult() {
                     @Override
-                    protected void doInTransactionWithoutResult(TransactionStatus tt) {
+                    protected void doInTransactionWithoutResult(@NonNull TransactionStatus tt) {
                         String status = tradeService.onNotify(ft, wpTrade);
                         if (status.equals("ok")) {
                             //订单已经支付完成了,应该不可能
                             log.warn("trade {} complete in task", ft.getTradeNo());
                         } else {
                             //任务只处理状态时 wp 的,这里直接设置成 end by task
-                            pay.closeTrad(ft.getTradeNo(), ft.getMchId());
+                            pay.closeTrad(ft.getTradeNo());
                             status = "ebt";
                             payDao.updateStatus(ft.getTradeNo(), status);
                         }
