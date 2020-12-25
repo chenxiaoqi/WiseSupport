@@ -229,6 +229,9 @@ public class ArenaManageController {
                 moveFile(name, names[i]);
             }
         }
+        if (StringUtils.isEmpty(arena.getReceiverId())) {
+            arena.setReceiverType(null);
+        }
         arenaDao.update(arena);
     }
 
@@ -258,17 +261,6 @@ public class ArenaManageController {
             }
         }
         arenaDao.updateArenaStatus(arenaId, status);
-    }
-
-    @PutMapping("/arena/super_manage")
-    public void superManage(User user, @RequestParam @NotEmpty int arenaId, @RequestParam(required = false) String mchId) {
-        if (!user.isSuperAdmin()) {
-            throw new BusinessException("需要系统管理员权限");
-        }
-        if (StringUtils.isEmpty(mchId)) {
-            mchId = null;
-        }
-        Validate.isTrue(arenaDao.updateMchId(arenaId, mchId) == 1);
     }
 
     @GetMapping("/arena/admins")

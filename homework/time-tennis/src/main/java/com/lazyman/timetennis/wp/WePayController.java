@@ -84,7 +84,7 @@ public class WePayController implements ApplicationContextAware {
         Validate.isTrue(user.getOpenId().equals(trade.getOpenId()));
         String status;
         if (trade.getStatus().equals("wp")) {
-            status = tradeService.onNotify(trade, pay.queryTrade(tradeNo, trade.getMchId()));
+            status = tradeService.onNotify(trade, pay.queryTrade(tradeNo));
             trade.setStatus(status);
         } else {
             status = trade.getStatus();

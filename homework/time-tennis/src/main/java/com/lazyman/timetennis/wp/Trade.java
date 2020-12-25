@@ -9,7 +9,9 @@ import java.sql.Timestamp;
 public class Trade {
     private String tradeNo;
 
-    private String mchId;
+    private String receiverId;
+    private Integer receiverType;
+    private String shareStatus;
 
     private String status;
 

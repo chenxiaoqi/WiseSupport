@@ -26,12 +26,12 @@ import java.util.List;
 
 @Slf4j
 public class ChargeTask implements Runnable {
-    private int chargeStrategy;
-    private BookingMapper bookingMapper;
-    private ArenaDao arenaDao;
-    private MembershipCardService cardService;
-    private MembershipCardDao mcDao;
-    private TransactionTemplate tt;
+    private final int chargeStrategy;
+    private final BookingMapper bookingMapper;
+    private final ArenaDao arenaDao;
+    private final MembershipCardService cardService;
+    private final MembershipCardDao mcDao;
+    private final TransactionTemplate tt;
     private String today;
 
     public ChargeTask(int chargeStrategy, BookingMapper bookingMapper, ArenaDao arenaDao, MembershipCardService cardService, MembershipCardDao mcDao, TransactionTemplate tt) {
