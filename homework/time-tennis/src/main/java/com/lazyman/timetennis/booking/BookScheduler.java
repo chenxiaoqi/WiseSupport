@@ -34,7 +34,9 @@ class BookScheduler {
         for (Booking booking : bookings) {
             ScheduleCourts courts = map.get(booking.getDate());
             ScheduleCourt court = courts.getScheduleCourt(booking.getCourt().getId());
-            court.init(booking.getStart(), booking.getEnd());
+            if (court != null) {
+                court.init(booking.getStart(), booking.getEnd());
+            }
         }
     }
 
@@ -143,7 +145,7 @@ class BookScheduler {
         }
 
         ScheduleCourt getScheduleCourt(int courtId) {
-            return Objects.requireNonNull(map.get(courtId));
+            return map.get(courtId);
         }
 
         Collection<ScheduleCourt> getAll() {

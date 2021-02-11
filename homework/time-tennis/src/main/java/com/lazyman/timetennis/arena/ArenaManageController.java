@@ -232,6 +232,7 @@ public class ArenaManageController {
         if (StringUtils.isEmpty(arena.getReceiverId())) {
             arena.setReceiverType(null);
         }
+        //todo 如果修改了advance_book_days需要删除BookScheduler的缓存
         arenaDao.update(arena);
     }
 
