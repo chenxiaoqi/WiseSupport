@@ -107,7 +107,7 @@ public class ChargeTask implements Runnable {
                     }
                 });
             } catch (Exception e) {
-                log.error("charge booking {} failed", booking.getId());
+                log.error("charge booking {} failed", booking.getId(), e);
             }
         }
     }

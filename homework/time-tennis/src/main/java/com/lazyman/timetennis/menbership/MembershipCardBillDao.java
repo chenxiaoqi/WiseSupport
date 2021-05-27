@@ -21,8 +21,9 @@ public class MembershipCardBillDao {
                 tradeNo, openId, code, productType, fee, balance, feeTime);
     }
 
-    List<MembershipCardBill> bills(String code) {
-        return template.query("select bill_no, product_type, fee, balance,create_time from membership_card_bill where code=? order by create_time desc limit 30", (rs, rowNum) -> {
+    List<MembershipCardBill> bills(String code, Date start, Date end) {
+        String sql = "select bill_no, product_type, fee, balance,create_time from membership_card_bill where code=? and create_time>=? and create_time<?  order by create_time desc";
+        return template.query(sql, (rs, rowNum) -> {
             MembershipCardBill bill = new MembershipCardBill();
             bill.setBillNo(rs.getString("bill_no"));
             bill.setProductType(rs.getString("product_type"));
@@ -30,7 +31,7 @@ public class MembershipCardBillDao {
             bill.setBalance(rs.getInt("balance"));
             bill.setCreateTime(rs.getTimestamp("create_time"));
             return bill;
-        }, code);
+        }, code, start, end);
     }
 
     public MembershipCardBill load(String billNo) {

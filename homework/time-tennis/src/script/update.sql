@@ -37,3 +37,9 @@ alter table arena
 alter table arena
     add receiver_type int null;
 
+#2.1.5
+drop index idx_o_m_c on membership_card_bill;
+
+create index idx_m_c
+    on membership_card_bill (code, create_time);
+
