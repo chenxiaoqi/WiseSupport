@@ -12,6 +12,8 @@
    增加trade.receiver_id,trade.receiver_type,share_status,arena.receiver_id,arena.receiver_type
 
 2.1.5
-
+  优化会员卡消费查询
+2.1.6
+  临时修改登录后不更新昵称和头像
 
 

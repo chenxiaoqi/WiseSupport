@@ -69,13 +69,14 @@ public class LoginController {
             userMapper.insert(wxUser);
             result = userMapper.selectByPrimaryKey(wxUser.getOpenId());
         } else {
-            User loginUser = coder.decode(request);
+            //todo
+//            User loginUser = coder.decode(request);
             //用户登录超时就更新一下头像和昵称
-            if (loginUser == null) {
-                userMapper.updateByPrimaryKey(wxUser);
-                result.setWxNickname(wxUser.getWxNickname());
-                result.setAvatar(wxUser.getAvatar());
-            }
+//            if (loginUser == null) {
+//                userMapper.updateByPrimaryKey(wxUser);
+//                result.setWxNickname(wxUser.getWxNickname());
+//                result.setAvatar(wxUser.getAvatar());
+//            }
         }
         result.setSuperAdmin(roleDao.isSuperAdmin(result.getOpenId()));
         result.setArenaAdmin(arenaPrivilege.hasArena(result.getOpenId()));
