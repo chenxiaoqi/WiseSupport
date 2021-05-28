@@ -46,4 +46,6 @@ public interface UserMapper {
      * @mbg.generated
      */
     int updateByPrimaryKey(User record);
+
+    void deregister(@Param("openId") String openId);
 }

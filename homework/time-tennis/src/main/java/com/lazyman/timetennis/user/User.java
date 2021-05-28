@@ -21,9 +21,9 @@ public class User implements Serializable {
 
     private Date updateTime;
 
-    private Boolean superAdmin;
+    private boolean superAdmin;
 
-    private Boolean arenaAdmin;
+    private boolean arenaAdmin;
 
     private String phoneNumber;
 
@@ -39,7 +39,7 @@ public class User implements Serializable {
         return arenaAdmin;
     }
 
-    public void setArenaAdmin(Boolean arenaAdmin) {
+    public void setArenaAdmin(boolean arenaAdmin) {
         this.arenaAdmin = arenaAdmin;
     }
 
@@ -47,7 +47,7 @@ public class User implements Serializable {
         return superAdmin;
     }
 
-    public void setSuperAdmin(Boolean superAdmin) {
+    public void setSuperAdmin(boolean superAdmin) {
         this.superAdmin = superAdmin;
     }
 

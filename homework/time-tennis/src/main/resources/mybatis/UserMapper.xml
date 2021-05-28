@@ -47,6 +47,13 @@
         update_time = now()
         where open_id = #{openId,jdbcType=VARCHAR}
     </update>
+
+    <update id="deregister" parameterType="java.lang.String">
+        update tt_user
+        set wx_nickname=null,
+            avatar=null
+        where open_id = #{openId}
+    </update>
     <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
         <!--
           WARNING - @mbg.generated
